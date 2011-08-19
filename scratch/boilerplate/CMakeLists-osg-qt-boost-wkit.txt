@@ -1,0 +1,91 @@
+cmake_minimum_required(VERSION 2.8)
+
+set( PROJECT_NAME "project" )
+
+project(${PROJECT_NAME})
+message("$ENV{BOOST_ROOT}")
+set( BOOST_ROOT $ENV{BOOST_ROOT} )
+####SETUP EXTERNAL LIBRARIES
+#Boost
+find_package(Boost COMPONENTS thread)
+
+#Qt
+find_package(Qt4)
+include(${QT_USE_FILE})
+                
+#OSG
+set( OSG_INCLUDE_DIR "/usr/local/include" CACHE PATH "OSG include directory" )
+set( OSG_LIB_DIR "/usr/local/lib" CACHE PATH "OSG lib directory" )
+
+include_directories(  ${OSG_INCLUDE_DIR} ${QT_LIBRARY_DIR} 
+                      ${CMAKE_BINARY_DIR} 
+                      ${Boost_INCLUDE_DIRS} ) 
+link_directories(  ${OSG_LIB_DIR} ${QT_LIBRARY_DIR} 
+                  ${BOOST_ROOT}/lib )
+
+####SETUP APPLICATIONS
+ 
+#set( MOC_HEADERS ... ) #<- Add header files to be processed by moc
+#QT4_WRAP_CPP( MOC_SRCS ${MOC_HEADERS} ) #<- generate processed Qt files
+#QT4_ADD_RESOURCES( RES_SRCS application.qrc ) #<- resources
+#source_group( "Resources" application.qrc ) #<- create group for resources
+
+# App 1: Qt + OSG
+set( QT_OSG_SRCS osgviewerQtContext-test.cpp ) #<- add application source and header files
+
+# App 2: Qt + OSG with main window, menu and console
+set( QT_OSG_CONSOLE_SRCS qtosgconsole.cpp 
+                         qtosgconsole-mainwin.cpp
+                         qtosgconsole-mainwin.h
+                         RacketInterpreter.h
+                         RacketInterpreter.cpp
+                         osgviewerwidget.h ) #<- add application source and header files
+set( QT_OSG_CONSOLE_MOC_HEADERS qtosgconsole-mainwin.h )
+QT4_WRAP_CPP( QT_OSG_CONSOLE_MOC_SRCS ${QT_OSG_CONSOLE_MOC_HEADERS} ) 
+QT4_ADD_RESOURCES( QT_OSG_CONSOLE_RES qtosgconsole.qrc )
+source_group( "Resources" qtosgconsole.qrc )
+
+####CONFIGURE EXECUTABLES
+#QT + OSG
+add_executable( qtosg ${QT_OSG_SRCS} ) #<- executable 1
+target_link_libraries( qtosg 
+debug OpenThreadsd optimized OpenThreads
+debug osgd optimized osg
+debug osgGAd optimized osgGA
+debug osgDBd optimized osgDB
+debug osgUtild optimized osgUtil
+debug osgViewerd optimized osgViewer
+debug osgTextd optimized osgText
+debug osgQtd optimized osgQt
+${QT_LIBRARIES} 
+${QT_QTOPENGL_LIBRARY_RELEASE}
+if(WIN32)
+  target_link_libraries( qtosg debug qtmaind optimized qtmain )
+endif(WIN32)  
+
+#QT + OSG W/ MainWindow, menu and console + Lua + Scheme + Tinyscheme
+add_executable( qtosgconsole-racket ${QT_OSG_CONSOLE_SRCS} 
+                             ${QT_OSG_CONSOLE_MOC_SRCS}
+                             ${QT_OSG_CONSOLE_RES} ) #<- executable 2
+target_link_libraries( qtosgconsole-racket 
+ OpenThreads
+ osg
+ osgGA
+ osgDB
+ osgUtil
+ osgViewer
+ osgText
+ osgQt
+${QT_LIBRARIES} 
+${QT_QTOPENGL_LIBRARY_RELEASE}
+ tinyscheme
+#C:/vclibs/boost_1_45_0/lib/libboost_thread-vc90-mt-1_45.lib
+#C:/vclibs/boost_1_45_0/lib/libboost_date_time-vc90-mt-1_45.lib 
+${Boost_LIBRARIES} )
+if(WIN32)
+  target_link_libraries(  qtmain )
+endif(WIN32)  
+
+
+
+
