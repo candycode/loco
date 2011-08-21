@@ -1,0 +1,40 @@
+<!-- Code Mirror sample -->
+<!DOCTYPE html>
+<html lang="en">
+<!-- ===== HEAD ===== -->
+<head>
+  <!-- jQuery -->
+  <script type="text/javascript" src="lib/jquery-1.5.1.min.js"></script> 
+  <!-- Code Mirror -->
+  <script type="text/javascript" src="lib/codemirror/js/codemirror.js"></script>
+  <!-- Initialization -->
+  <script>
+    $(document).ready(function(){
+          editor = 
+          	CodeMirror.fromTextArea("code", {
+          		parserfile: ["tokenizejavascript.js", "parsejavascript.js"],
+          		path: "lib/codemirror/js/",
+          		stylesheet: "lib/codemirror/css/jscolors.css", 
+          		width: "80em",
+          		height: "10em" });
+          	});
+  </script>
+  <!-- style for code editor -->
+  <style>
+  	#code-wrapper {
+  		border-style:solid;
+  		border-width:1px;
+      width: 80em;
+      height: 20em;
+  	}
+  </style>  
+</head>
+<!-- ====== BODY ====== -->
+<body>
+
+  <div id="code-wrapper">        
+    <textarea id="code">var x = 2;</textarea>
+  </div>
+
+</body>
+</html>
