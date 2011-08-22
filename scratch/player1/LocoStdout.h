@@ -15,6 +15,7 @@ public slots:
 	
 	void print(const QString& s) { std::cout << s.toAscii().constData(); }
 	void println( const QString& s ) { print(s); std::cout << std::endl; }
-	void destroy() { printf("LocoStdout::destroy\n"); delete this; }
+	void destroy() { delete this; }
+	void flush() { std::cout.flush(); }
 };
 }
