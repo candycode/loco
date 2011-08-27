@@ -7,13 +7,14 @@
 #include <QtWebKit/QwebFrame>
 #include "LocoIWebConfig.h"
 #include <iostream>
+#include <QApplication>
 namespace loco {
 
 typedef QWebView* QWebViewPtr;
 typedef IWebConfig* IWebConfigPtr;
 class WebView : public QObject {
 	Q_OBJECT
-public: WebView(QWebViewPtr wv = 0 ) : wv_( wv ) { 
+public: WebView( QApplication* app, QWebViewPtr wv = 0 ) : app_( app ), wv_( wv ) { 
 			if( wv_ ) connect( wv_, SIGNAL(loadFinished(bool)), this, SLOT(loadFinished(bool)) );
 			/*printf("WebView::WebView\n");*/}
 	void AddConfig( const QString& name, IWebConfigPtr cfg ) {
@@ -44,6 +45,7 @@ public slots:
 		f.open( QIODevice::ReadOnly );
 		return f.readAll();
 	}
+	int exec() { return app_->exec(); }
 private slots:
 	void loadFinished(bool ok) {
 		if( ok ) {
@@ -55,6 +57,7 @@ private slots:
 	}
 
 private:
+	QApplication* app_;
 	QWebViewPtr wv_;
 	typedef QMap< QString, IWebConfigPtr > ConfigMap;
 	ConfigMap configMap_;

@@ -193,7 +193,7 @@ public:
 				}
 			}
 			if( !ok ) return false;
-			AddFilter( new ScriptFilter( wf_, c, jfun,  ), id ); 
+			AddFilter( new ScriptFilter( wf_, c, jfun, jerrfun, codePlaceHolder ), id ); 
 		} else AddFilter( new ScriptFilter( wf_, c ), id );
 		return true;
 	}
