@@ -6,12 +6,108 @@
 #include <iostream>
 #include <QMap>
 #include "LocoTextFilter.h"
+namespace loco {
+// errors warnings logs
+class EWL {
+	Q_OBJECT
+public slots:
+    QString getLastError() const { return errors_.back(); }
+    QString getLastWarning() const { return warnings_.back(); }
+    QString getLastLog() const { return logs_.back(); }
+    void error( const QString& emsg ) { errors_.push_back( emsg ); }
+    void warn( const QString& wmsg ) { warnings_.push_back( wmsg ); }
+    void log( const QString& lmsg ) { logs_.push_back( lmsg ); }
+    void clearErrors() { errors_.clear(); }
+    void clearWarnings() { errors_.clear(); }
+    void clearLogs() { logs_.clear(); }
+    //void saveErrors( const QString& fileName ) {}
+    //void saveWarnings( const QString& fileName ) {}
+    //void saveLogs( const QString& fileName ) {}
+	//void sendErrors( const QString& url ) {}
+    //void sendWarnings( const QString& url ) {}
+    //void sendLogs( const QString& url ) {}
+	//void sendError( const QString& emsg ) { errors_.push_back( emsg ); }
+    //void sendWarn( const QString& wmsg ) { warnings_.push_back( wmsg ); }
+    //void sendLog( const QString& lmsg ) { logs_.push_back( lmsg ); }
+private:
+    typedef QStringList Errors;
+	typedef QStringList Warnings;
+	typedef QStringList Logs;
+	Errors errors_;
+	Warnings warnings_;
+	Logs logs_;
+};
+}
 
 namespace loco {
 
-typedef TextFilter* TextFilterPtr;
+struct Filter : EWL {
+    const QString& Filter( const QString& ) = 0;
+	bool Error() const = 0;
+	~Filter() = 0 {}
+};
 
-class Environment : public QObject {
+class ScriptFilter : public Filter {
+public:
+	ScriptFilter( WebFramePtr wf,
+		          const QString& s,
+				  const QString& jfun,
+				  const QString& jerrfun = "",
+				  const QString& codePlaceHolder = "",
+				  const QString& type = "" ) 
+		: s_( s ), wf_( wf ), jfun_( jfun ),
+		  jerrfun_( jerrfun ), codePlaceHolder_( codePlaceHolder ), 
+		  type_( type )
+	{}
+	void SetWF( WebFramePtr wf ) { wf_ = wf; }
+	WebFramePtr GetWF() const { return wf_; }
+	void SetScript( const QString s ) { s_ = s; }
+	const QString& GetScript() { return s_; }
+	void SetType( const QString& t ) { type_ = t; }
+	const QString& GetType() const { return type_; }
+	void SetJFun( const QString& f ) { jfun_ = f; }
+	const QString& GetJFun() const { return jfun_; }
+	void SetJErrFun( const QString& f ) { jerrfun_ = f; }
+	const QString& GetJErrFun() const { return jerrfun_; }
+public:
+	const QString& Filter( const QString& s ) {
+		err_ = true;
+		QVariant r;
+		if( codePlaceHolder_.isEmpty() ) {
+			r = wf_->evaluateJavaScript( jfun + '(' + s + ");" );
+		}
+		else {
+			QString nj = jfun_;
+			const QString& njref = nj.replace( placeHolder_, s );
+			r = wf_->evaluateJavaScript( njref );
+		}
+		if( r.isNull() || !r.isValid() ) {
+			QVariant e = wf_->evaluateJavaScript( jerrfun );
+			if( !r.isNull() && r.isValid() ) error( e.toString() );
+			return s;
+		}
+		err_ = false;
+		return r.toString();
+	}
+	bool Error() const { return err_; }
+private:
+    QString s_;
+	WebFramePtr wf_;
+	QString jfun_;
+	QString jerrfun_;
+	QString codePlaceHolder_;
+	QString type_;
+	mutable bool err_;
+};
+
+
+}
+
+namespace loco {
+
+typedef Filter* FilterPtr;
+
+class Environment : public QObject, public EWL {
     Q_OBJECT
 public:
     Environment( WebFramePtr wf = 0,
@@ -21,20 +117,86 @@ public:
         if( wf != 0 ) Connect();
     } 
     void SetWebFrame( QWebFrame* wf ) { wf_ = wf; if( wf_ != 0 ) Connect(); }
-    const WebFramePtr GetWebFrame( wf }
-	void AddObject( QObject* obj, const QString& jscriptName ) {
-        objMap_[ jscriptName ] = obj;
+	WebFramePtr GetWebFrame() const { return wf_; }
+
+	void AddObject( QObject* obj, const QString& jscriptName, bool immediateAdd = false ) {
+		objMap_[ jscriptName ] = obj;
+		if( immediateAdd ) wf_->addJavaScriptWindowObject( obj, jscriptName );
 	}
-    void InitCode( const QString& code, int pos, const QString& filterId = "" ) {
-		codeInitMap_[ pos ] = code;
+    bool AddInitCode( const QString code, int pos, const QStringList& filters = QStringList() ) {
+		bool ok = true;
+		if( !filters.empty() ) {
+		    QString c = code;
+			for( QStringList::iterator i = filters.begin(); i != filters.end ) {
+			    c = i->Filter( c );
+				if( i->Error() ) {
+					error( i->getLastError() );
+					ok = false;
+					break;
+				}
+			}
+			if( !ok ) return false;
+			codeInitMap_[ pos ] = c;
+		} else codeInitMap_[ pos ] = code;
+		return true;
 	}
-	void PreLoadCode( const QString& code, int pos, const QString& filterId = "" ) {
-		codePreLoadMap_[ pos ] = filter( code, filterId );
+	bool AddPreLoadCode( const QString& code, int pos, const QStringList& filters = QStringList() ) {
+		bool ok = true;
+		if( !filters.empty() ) {
+		    QString c = code;
+			for( QStringList::iterator i = filters.begin(); i != filters.end ) {
+			    c = i->Filter( c );
+				if( i->Error() ) {
+					error( i->getLastError() );
+					ok = false;
+					break;
+				}
+			}
+			if( !ok ) return false;
+			codePreLoadMap_[ pos ] = c;
+		} else codePreLoadMap_[ pos ] = code;
+		return true;
 	}
-    void PostLoadCode( const QString& code, int pos, const Qstring& filterId = "" ) {
-        codePostLoadMap_[ pos ] = filter( code, filterId );
+    void AddPostLoadCode( const QString& code, int pos, const QStringList& filters = QStringList() ) {
+        bool ok = true;
+		if( !filters.empty() ) {
+		    QString c = code;
+			for( QStringList::iterator i = filters.begin(); i != filters.end ) {
+			    c = i->Filter( c );
+				if( i->Error() ) {
+					error( i->getLastError() );
+					ok = false;
+					break;
+				}
+			}
+			if( !ok ) return false;
+			codePostLoadMap_[ pos ] = c;
+		} else codePostLoadMap_[ pos ] = code;
+		return true;
     }
-    void SetFilter( TextFilterPtr f, const QString& id ) { filterMap_[ id ] = f; }
+    void AddFilter( FilterPtr f, const QString& id ) { filterMap_[ id ] = f; }
+	bool AddScriptFilter( const QString& js,
+		                  const QString& id,
+		                  const QString& jfun,
+						  const QString& jerrfun = "",
+						  const QString& codePlaceHolder = "",
+						  const QStringList& filtersOnFilter = QStringList() ) {
+	    bool ok = true;
+		if( !filtersOnFilter.empty() ) {
+		    QString c = js;
+			for( QStringList::iterator i = filters.begin(); i != filters.end() ) {
+			    c = i->Filter( c );
+				if( i->Error() ) {
+					error( i->getLastError() );
+					ok = false;
+					break;
+				}
+			}
+			if( !ok ) return false;
+			AddFilter( new ScriptFilter( wf_, c, jfun,  ), id ); 
+		} else AddFilter( new ScriptFilter( wf_, c ), id );
+		return true;
+	}
 public slots:
 // bool createObject( const QString& dllUrl,
 //	                  const QString& ifaceName,
@@ -47,30 +209,15 @@ public slots:
         if( addSelf_ ) wf_->addToJavaScriptWindowObject( this, jsName_ );
 	    for( ObjectMap::const_iterator i = objMap_.begin();
 		     i != objMap_.end(); ++i ) {
-            wf_->addToJavaScriptWindowObject( i->second, i->first );
+            lastJSEval_ = wf_->addToJavaScriptWindowObject( i->second, i->first );
         }
         for( CodeMap::const_iterator i = codeInitMap_.begin();
 		     i != codeInitMap_.end(); ++i ) {
-            wf_->evaluateJavaScript( i->second );
-        }    
-           
+            lastJSEval_ = wf_->evaluateJavaScript( i->second );
+        }   
     }
-
-    QString getLastError() const { return errors_.back(); }
-    QString getLastWarning() const { return warnings_.back(); }
-    QString getLastLog() const { return logs_.back(); }
-    void error( const QString& emsg ) { errors_.push_back( emsg ); }
-    void warn( const QString& wmsg ) { warnings_.push_back( wmsg ); }
-    void log( const QString& lmsg ) { logs_.push_back( lmsg ); }
-    void clearErrors() { errors_.clear(); }
-    void clearWarnings() { errors_.clear(); }
-    void clearLogs() { logs_.clear(); }
-    //void saveErrors( const QString& fileName ) {}
-    //void saveWarnings( const QString& fileName ) {}
-    //void saveLogs( const QString& fileName ) {}            
-        
-
-    void include( const QString& path ) {
+          
+    void include( const QString& path, const QStringList& filters = QStringList() ) {
         if( path.contains( "://" ) ) includeUrl( path );
         else includeFile( path );
     }    
@@ -83,29 +230,34 @@ public slots:
     void preLoadCode() {
          for( CodeMap::const_iterator i = codePreLoadMap_.begin();
 		     i != codePreLoadMap_.end(); ++i ) {
-            wf_->evaluateJavaScript( i->second );
+            lastJSEval_ = wf_->evaluateJavaScript( i->second );
         }    
     }    
     void postLoadCode( bool ok ) {
         if( !ok ) return;
         for( CodeMap::const_iterator i = codePostLoadMap_.begin();
 		     i != codePostLoadMap_.end(); ++i ) {
-            wf_->evaluateJavaScript( i->second );
+            lastJSEval_ = wf_->evaluateJavaScript( i->second );
         } 
-    }    
+    }
+
+	QVariant lastEval() const { return lastJSEval_; }
 private:
     void Connect() {
         connect( wf_.data(), SIGNAL( javaScriptWindowObjectCleared() ), this, SLOT( addObjectsToJScriptContext() ) );
         connect( wf_.data(), SIGNAL( loadStarted() ), this, SLOT( preLoadCode() ) );
         connect( wf_.data(), SIGNAL( loadFinished( bool ) ), this, SLOT( postLoadCode( bool ) ) ); 
     }
-    void includeUrl( const QString& ) {}
-    void includeFile( const QString& fp ) {
+    void includeUrl( const QString&, const QStringList ) {}
+    void includeFile( const QString& fp, const QStringList ) {
         QFile f( fp );
         f.open( QIODevice::ReadOnly );
-        QString s = f.readAll();
+        QString c = f.readAll();
         f.close();
-        wf_->evaluateJavaScript( s );
+        for( QStringList::iterator i = filters.begin(); i != filters.end() ) {
+	        c = i->Filter( c );
+		}
+		lastJSEval_ = wf_->evaluateJavaScript( c );
     }
     //void includeUrl( const QString& url ) {
     //    //QNetworkRequest r( QUrl( url ) );
@@ -124,5 +276,6 @@ private:
     CodeMap codeInitMap_;
     FilterMap filterMap_; 
 	ObjectMap objMap_;
+	QVariant lastJSEval_;
 };
 }
