@@ -12,9 +12,10 @@ loco.web.loadHtml("http://www.google.com", "default", "loco.cout.println('loaded
 loco.cout.println('ola');
 loco.web.setHtml( "<html><head><script>(new Loco).cout.println('eheh');</script></head><body>Ciauuu</body></html>", "default" );
 loco.cout.println("lalalala");*/
+
 loco = new Loco;
-loco.window.show();
-loco.webview.setHtml( "http://www.amazon.com" );
+loco.cout.println("loading url...");
+loco.env.showWindow();
+loco.env.load( "http://www.amazon.com", 'loco.cout.println("page loaded");' );
 
-
-loco.webview.exec();
+loco.env.exec();

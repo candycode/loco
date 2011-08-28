@@ -244,9 +244,9 @@ public slots:
 	QVariant lastEval() const { return lastJSEval_; }
 private:
     void Connect() {
-        connect( wf_.data(), SIGNAL( javaScriptWindowObjectCleared() ), this, SLOT( addObjectsToJScriptContext() ) );
-        connect( wf_.data(), SIGNAL( loadStarted() ), this, SLOT( preLoadCode() ) );
-        connect( wf_.data(), SIGNAL( loadFinished( bool ) ), this, SLOT( postLoadCode( bool ) ) ); 
+        connect( wf_, SIGNAL( javaScriptWindowObjectCleared() ), this, SLOT( addObjectsToJScriptContext() ) );
+        connect( wf_, SIGNAL( loadStarted() ), this, SLOT( preLoadCode() ) );
+        connect( wf_, SIGNAL( loadFinished( bool ) ), this, SLOT( postLoadCode( bool ) ) ); 
     }
     void includeUrl( const QString&, const QStringList ) {}
     void includeFile( const QString& fp, const QStringList ) {

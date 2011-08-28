@@ -12,12 +12,12 @@ link_directories( ${QT_LIBRARY_DIR} )
 
 ####SETUP APPLICATIONS
 #LocoLoader.h 
-set( MOC_HEADERS LocoStdout.h LocoWebView.h ) #<- Add header files to be processed by moc
+set( MOC_HEADERS LocoStdout.h LocoWebView.h JEnvConfig.h ) #<- Add header files to be processed by moc
 QT4_WRAP_CPP( MOC_SRCS ${MOC_HEADERS} ) #<- generate processed Qt files
 
 # App 1
 set( SRCS locoplay1.cpp ) #<- add application source and header files
-set( SRCS_INCLUDE LocoStdout.h LocoWebView.h LocoIWebConfig.h )
+set( SRCS_INCLUDE LocoStdout.h LocoWebView.h LocoIWebConfig.h JEnvConfig.h )
 
 ####CONFIGURE EXECUTABLES
 add_executable( locoplay1 ${SRCS} ${SRCS_INCLUDE} ${MOC_SRCS} )
