@@ -81,6 +81,7 @@ int main(int argc, char *argv[])
 		std::cout << "usage: " << argv[ 0 ] << " <.js file >" << std::endl;
 		return 1;
 	}
+	const bool gui = true;//false;
 	QWebView wv;
 	wv.settings()->setAttribute( QWebSettings::LocalContentCanAccessRemoteUrls, true );
 	QFile jsource( argv[ 1 ] );
@@ -90,7 +91,7 @@ int main(int argc, char *argv[])
     QWebFrame* wf = wv.page()->mainFrame();
 	wv.settings()->setAttribute( QWebSettings::JavascriptEnabled, true );
 	JEnvConfig ec( &wv, &a );
-	//ec.addObjectsToJScriptContext();
+    if(!gui) ec.addObjectsToJScriptContext();
 	//wf->evaluateJavaScript( ec.jsInit() );
 	
 	//loco::Stdout cout_;

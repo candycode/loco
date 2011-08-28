@@ -7,7 +7,16 @@
 #include <QApplication>
 #include "LocoStdout.h"
 #include <QVariantMap>
+#include <QWaitCondition>
+#include <QMutex>
 
+const QString SLEEP =           "  this.sleep = function (milliseconds) {"
+                                "    var start = new Date().getTime();"
+                                "    for (var i = 0; i < 1e10; i++) {"
+                                "      if ((new Date().getTime() - start) > milliseconds){"
+                                "        break;"
+	                            "      }"
+                                "    }";
 class JEnvConfig : public QObject {
     Q_OBJECT
 public:
@@ -16,7 +25,8 @@ public:
 		jsCode_ = "Loco = function() { "
 		                        "  this.cout = lococout__;"
 								"  this.env  = locoenv__; "
-								"  return this; }         ";
+                               	"  return this; }";
+		                       
         connect( wv->page()->mainFrame(), SIGNAL( loadFinished(bool) ), this, SLOT( loadFinished(bool)));
 	}
 public:
@@ -53,8 +63,16 @@ public slots:
 	}
 	void loadFinished( bool ok ) {
 	    addObjectsToJScriptContext();
-		if( ok ) wv_->page()->mainFrame()->evaluateJavaScript( jsCBack_ ); ///*"loco.cout.println(\"page loaded\");"*/);
+		if( ok ) {
+			if( !jsCBack_.isEmpty() ) wv_->page()->mainFrame()->evaluateJavaScript( jsCBack_ ); ///*"loco.cout.println(\"page loaded\");"*/);
+		}
 		else std::cerr << "error loading page\n";
+	}
+	void sleep(int ms) {
+      QWaitCondition sleep;
+	  QMutex m;
+	  m.lock();
+      sleep.wait(&m,ms);   // two seconds
 	}
 
 private:
