@@ -74,6 +74,12 @@ public slots:
 	  m.lock();
       sleep.wait(&m,ms);   // two seconds
 	}
+    QVariant eval( const QString& s ) {
+        QVariant v = wv_->page()->mainFrame()->evaluateJavaScript( 
+            "try {\n" + s + "\n} catch(e) {\nlocoenv_.riseError( e.description );\n}" );
+        return v;
+    }
+    void riseError( const QString& s ) { std::cerr << s.toStdString() << std::endl; }
 
 private:
 	QWebView* wv_;

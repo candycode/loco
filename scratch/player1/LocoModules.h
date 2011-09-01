@@ -11,16 +11,19 @@ namespace loco {
 class EWL {
 	Q_OBJECT
 public slots:
-    QString getLastError() const { return errors_.back(); }
-    QString getLastWarning() const { return warnings_.back(); }
-    QString getLastLog() const { return logs_.back(); }
+    QString lastError() const { return errors_.back(); }
+    QString lastWarning() const { return warnings_.back(); }
+    QString lastLog() const { return logs_.back(); }
     void error( const QString& emsg ) { errors_.push_back( emsg ); }
     void warn( const QString& wmsg ) { warnings_.push_back( wmsg ); }
     void log( const QString& lmsg ) { logs_.push_back( lmsg ); }
     void clearErrors() { errors_.clear(); }
     void clearWarnings() { errors_.clear(); }
     void clearLogs() { logs_.clear(); }
-    //void saveErrors( const QString& fileName ) {}
+    //void saveErrors( const QString& fileName ) {
+    //    QFile of( fileName );
+    //    of.open( QIODevice
+    //}
     //void saveWarnings( const QString& fileName ) {}
     //void saveLogs( const QString& fileName ) {}
 	//void sendErrors( const QString& url ) {}
@@ -83,7 +86,7 @@ public:
 		}
 		if( r.isNull() || !r.isValid() ) {
 			QVariant e = wf_->evaluateJavaScript( jerrfun );
-			if( !r.isNull() && r.isValid() ) error( e.toString() );
+			if( !e.isNull() && e.isValid() ) error( e.toString() );
 			return s;
 		}
 		err_ = false;
@@ -116,18 +119,19 @@ public:
         : wf_( wf ), jsName_( jsName ), addSelf_( addSelf ) {
         if( wf != 0 ) Connect();
     } 
-    void SetWebFrame( QWebFrame* wf ) { wf_ = wf; if( wf_ != 0 ) Connect(); }
+    void SetWebFrame( QWebFramePtr wf ) { wf_ = wf; if( wf_ != 0 ) Connect(); }
 	WebFramePtr GetWebFrame() const { return wf_; }
 
 	void AddObject( QObject* obj, const QString& jscriptName, bool immediateAdd = false ) {
+        if( obj->parent == 0 ) obj->setParent( this );
 		objMap_[ jscriptName ] = obj;
 		if( immediateAdd ) wf_->addJavaScriptWindowObject( obj, jscriptName );
 	}
-    bool AddInitCode( const QString code, int pos, const QStringList& filters = QStringList() ) {
+    bool AddInitCode( const QString& code, int pos, const QStringList& filters = QStringList() ) {
 		bool ok = true;
 		if( !filters.empty() ) {
 		    QString c = code;
-			for( QStringList::iterator i = filters.begin(); i != filters.end ) {
+			for( QStringList::iterator i = filters.begin(); i != filters.end, ++i ) {
 			    c = i->Filter( c );
 				if( i->Error() ) {
 					error( i->getLastError() );
@@ -144,7 +148,7 @@ public:
 		bool ok = true;
 		if( !filters.empty() ) {
 		    QString c = code;
-			for( QStringList::iterator i = filters.begin(); i != filters.end ) {
+			for( QStringList::iterator i = filters.begin(); i != filters.end; ++i ) {
 			    c = i->Filter( c );
 				if( i->Error() ) {
 					error( i->getLastError() );
@@ -161,7 +165,7 @@ public:
         bool ok = true;
 		if( !filters.empty() ) {
 		    QString c = code;
-			for( QStringList::iterator i = filters.begin(); i != filters.end ) {
+			for( QStringList::iterator i = filters.begin(); i != filters.end; ++i ) {
 			    c = i->Filter( c );
 				if( i->Error() ) {
 					error( i->getLastError() );
@@ -174,16 +178,19 @@ public:
 		} else codePostLoadMap_[ pos ] = code;
 		return true;
     }
-    void AddFilter( FilterPtr f, const QString& id ) { filterMap_[ id ] = f; }
+    void AddFilter( FilterPtr f, const QString& id ) { 
+        if( f->parent() == 0 ) f->setParent( this );
+        filterMap_[ id ] = f;
+    }
 	bool AddScriptFilter( const QString& js,
 		                  const QString& id,
 		                  const QString& jfun,
 						  const QString& jerrfun = "",
 						  const QString& codePlaceHolder = "",
 						  const QStringList& filtersOnFilter = QStringList() ) {
-	    bool ok = true;
-		if( !filtersOnFilter.empty() ) {
-		    QString c = js;
+	    if( !filtersOnFilter.empty() ) {
+		    bool ok = true;
+            QString c = js;
 			for( QStringList::iterator i = filters.begin(); i != filters.end() ) {
 			    c = i->Filter( c );
 				if( i->Error() ) {
@@ -194,7 +201,7 @@ public:
 			}
 			if( !ok ) return false;
 			AddFilter( new ScriptFilter( wf_, c, jfun, jerrfun, codePlaceHolder ), id ); 
-		} else AddFilter( new ScriptFilter( wf_, c ), id );
+		} else AddFilter( new ScriptFilter( wf_, js ), id );
 		return true;
 	}
 public slots:
@@ -216,17 +223,38 @@ public slots:
             lastJSEval_ = wf_->evaluateJavaScript( i->second );
         }   
     }
-          
+    
+    QString read( const QString& path, const QStringList& filters = QStringList() ) {
+        if( path.contains( "://" ) ) return readFromUrl( path, filters );
+        else readFromFile( path, filters );
+    }    
+    
+    //void download( const QString& url, const QString& localPath, const QString& progressFun, const QString& errFun ) {}
+      
     void include( const QString& path, const QStringList& filters = QStringList() ) {
-        if( path.contains( "://" ) ) includeUrl( path );
-        else includeFile( path );
+        if( path.contains( "://" ) ) includeUrl( path, filters );
+        else includeFile( path, filters );
     }    
 
-    QString filter( const QString& text, const QString& filterId ) {
-        FilterMap::iterator i = filterMap_.find( filterId );
-        if( i == filterMap_.end() ) return "";
-        return filterMap_[ filterId ].Filter( text );
+    QString filter( const QString text, const QStringList& filterIds ) {
+        for( QStringList::const_iterator f = filterIds.begin();
+             f != filterIds.end(); ++f ) { 
+            FilterMap::iterator i = filterMap_.find( *f );
+            if( i == filterMap_.end() ) {
+                FilterPtr fp =  filterMap_[ f ];
+                text = fp->Filter( text );
+                if( fp->Error() ) error( fp->lastError() );
+                break;                 
+            }
+        }
+        return text; 
     }
+    void initCode() {
+         for( CodeMap::const_iterator i = codeInitMap_.begin();
+		     i != codeInitMap_.end(); ++i ) {
+            lastJSEval_ = wf_->evaluateJavaScript( i->second );
+        }    
+    }    
     void preLoadCode() {
          for( CodeMap::const_iterator i = codePreLoadMap_.begin();
 		     i != codePreLoadMap_.end(); ++i ) {
@@ -242,25 +270,69 @@ public slots:
     }
 
 	QVariant lastEval() const { return lastJSEval_; }
+
+private slots:
+    void includeUrlFinished( QNetworkReply* nr ) {
+       if( nr->error() != QNetworkReply::NoError ) {
+           error( errorString() );
+       } else {
+           lastJSEval_ = wf_->evaluateJavaScript( filter( nr->readAll(), includeUrlFilters_ ) );
+       }
+       nr->close();
+       includeUrlWaitCond_.wakeAll(); 
+    }
+    void readFromUrlFinished( QNetworkReply* nr ) {
+       if( nr->error() != QNetworkReply::NoError ) {
+           error( errorString() );
+           readFromUrlString_ = "";
+       } else {
+          readFromUrlString_ = filter( nr->readAll(), includeUrlFilters_ );
+       }
+       nr->close();
+       readFromUrlWaitCond_.wakeAll(); 
+    }
 private:
     void Connect() {
         connect( wf_, SIGNAL( javaScriptWindowObjectCleared() ), this, SLOT( addObjectsToJScriptContext() ) );
         connect( wf_, SIGNAL( loadStarted() ), this, SLOT( preLoadCode() ) );
-        connect( wf_, SIGNAL( loadFinished( bool ) ), this, SLOT( postLoadCode( bool ) ) ); 
+        connect( wf_, SIGNAL( loadFinished( bool ) ), this, SLOT( postLoadCode( bool ) ) );
+        connect( &netAccessMgrInclude_, SIGNAL( finished( QNetworkRequest* ) ),
+                 this, SLOT( includeUrlFinished( QNetworkRequest* ) ) );
+        connect( &netAccessMgrRead_, SIGNAL( finished( QNetworkRequest* ) ),
+                 this, SLOT( readFromUrlFinished( QNetworkRequest* ) ) );  
     }
-    void includeUrl( const QString&, const QStringList ) {}
-    void includeFile( const QString& fp, const QStringList ) {
+    QString readFromUrl( const QString& url, const QStringList& filters ) {
+        readFromUrlMutex_.lock();
+        readFromUrlFilters_ = filters;
+        netAccessMgr_.get( QNetworkRequest( QUrl( url ) ) );
+        readFromUrlWaitCond_.wait( readFromUrlMutex_ ); 
+        QString s = readFromUrlString_;  
+        readFromUrlMutex_.unlock();
+        return s;
+    }
+    QString readFromFile( const QString& fp, const QStringList& filters ) {
         QFile f( fp );
         f.open( QIODevice::ReadOnly );
         QString c = f.readAll();
         f.close();
-        for( QStringList::iterator i = filters.begin(); i != filters.end() ) {
-	        c = i->Filter( c );
-		}
-		lastJSEval_ = wf_->evaluateJavaScript( c );
+        return filter( c, filters );
+    }
+    void includeUrl( const QString& url, const QStringList& filters ) {
+        includeUrlMutex_.lock();
+        includeUrlFilters_ = filters;
+        includeUrlReply_ = netAccessMgr_.get( QNetworkRequest( QUrl( url ) ) );
+        includeUrlWaitCond_.wait( includeUrlMutex_ );
+        includeUrlMutex_.unlock(); 
+    }
+    void includeFile( const QString& fp, const QStringList& filters ) {
+        QFile f( fp );
+        f.open( QIODevice::ReadOnly );
+        QString c = f.readAll();
+        f.close();
+        lastJSEval_ = wf_->evaluateJavaScript( filter( c, filters ) );
     }
     //void includeUrl( const QString& url ) {
-    //    //QNetworkRequest r( QUrl( url ) );
+    //   r //QNetworkRequest r( QUrl( url ) );
     //    //connect(reply_, SIGNAL( finished( QNetworkReply ), this, SLOT( finished.... 
     //    //reply_ = nam_->get();
     //}
@@ -277,5 +349,14 @@ private:
     FilterMap filterMap_; 
 	ObjectMap objMap_;
 	QVariant lastJSEval_;
+    QNetworkAccessManager netAccessMgrInclude_;
+    mutable QStringList includeUrlFilters_;
+    QNetworkAccessManager netAccessMgrRead_;
+    mutable QStringList readFromUrlFilters_;
+    QWaitCondition includeUrlWaitCond_;
+    QMutex includeUrlMutex_;
+    QWaitCondition readFromUrlWaitCond_;
+    QMutex readFromUrlMutex_;
+  
 };
 }
