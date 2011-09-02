@@ -20,6 +20,9 @@ public slots:
     void clearErrors() { errors_.clear(); }
     void clearWarnings() { errors_.clear(); }
     void clearLogs() { logs_.clear(); }
+    const QStringList& errors() const { return errors_; }
+    const QStringList& warnings() const { return warnings_; }
+    const QStringList& logs() const { return logs_; }
     //void saveErrors( const QString& fileName ) {
     //    QFile of( fileName );
     //    of.open( QIODevice
@@ -64,7 +67,7 @@ public:
 	{}
 	void SetWF( WebFramePtr wf ) { wf_ = wf; }
 	WebFramePtr GetWF() const { return wf_; }
-	void SetScript( const QString s ) { s_ = s; }
+	void SetScript( const QString& s ) { s_ = s; }
 	const QString& GetScript() { return s_; }
 	void SetType( const QString& t ) { type_ = t; }
 	const QString& GetType() const { return type_; }
@@ -109,6 +112,7 @@ private:
 namespace loco {
 
 typedef Filter* FilterPtr;
+typedef QWebFramePtr WebFramePtr;
 
 class Environment : public QObject, public EWL {
     Q_OBJECT
@@ -120,6 +124,7 @@ public:
         if( wf != 0 ) Connect();
     } 
     void SetWebFrame( QWebFramePtr wf ) { wf_ = wf; if( wf_ != 0 ) Connect(); }
+
 	WebFramePtr GetWebFrame() const { return wf_; }
 
 	void AddObject( QObject* obj, const QString& jscriptName, bool immediateAdd = false ) {
@@ -225,7 +230,7 @@ public slots:
     }
     
     QString read( const QString& path, const QStringList& filters = QStringList() ) {
-        if( path.contains( "://" ) ) return readFromUrl( path, filters );
+        if( path.contains( ":/" ) ) return readFromUrl( path, filters );
         else readFromFile( path, filters );
     }    
     
@@ -274,7 +279,7 @@ public slots:
 private slots:
     void includeUrlFinished( QNetworkReply* nr ) {
        if( nr->error() != QNetworkReply::NoError ) {
-           error( errorString() );
+           error( nr->errorString() );
        } else {
            lastJSEval_ = wf_->evaluateJavaScript( filter( nr->readAll(), includeUrlFilters_ ) );
        }
@@ -283,7 +288,7 @@ private slots:
     }
     void readFromUrlFinished( QNetworkReply* nr ) {
        if( nr->error() != QNetworkReply::NoError ) {
-           error( errorString() );
+           error( nr->errorString() );
            readFromUrlString_ = "";
        } else {
           readFromUrlString_ = filter( nr->readAll(), includeUrlFilters_ );
@@ -357,6 +362,9 @@ private:
     QMutex includeUrlMutex_;
     QWaitCondition readFromUrlWaitCond_;
     QMutex readFromUrlMutex_;
+    mutable QString readFromUrlString_;
+    mutable QString includeUrlString_;
+     
   
 };
 }
