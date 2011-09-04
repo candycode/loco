@@ -38,3 +38,10 @@ loco.env.exec();
 loco.cout.println(e);
 
 }
+
+/*
+var v = loco.create("WebView",{localaccess: true} );
+v.show(...);
+v.executeScript("http://arielrepo.net/.../myscript",["default","lint"]);
+//v.loadPage("...");
+loco.exec();

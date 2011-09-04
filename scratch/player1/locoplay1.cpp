@@ -106,5 +106,46 @@ int main(int argc, char *argv[])
 	//std::cout << r;
 	return 0;
 }
+#endif
+#if 0
+#include "JEnvConfig.h"
+int main(int argc, char *argv[])
+{
+	QApplication a( argc, argv );
+	if( argc < 2 ) {
+		std::cout << "usage: " << argv[ 0 ] << " <.js file >" << std::endl;
+		return 1;
+	}
+	const bool gui = true;//false;
+	QWebPage rootPage;
+	QWebFrame* rootFrame = rootPage.mainFrame();
+
+
+
+
+	QWebView wv;
+	wv.settings()->setAttribute( QWebSettings::LocalContentCanAccessRemoteUrls, true );
+	QFile jsource( argv[ 1 ] );
+	jsource.open( QIODevice::ReadOnly );
+	const QString j = jsource.readAll();
+	jsource.close();
+    QWebFrame* wf = wv.page()->mainFrame();
+	wv.settings()->setAttribute( QWebSettings::JavascriptEnabled, true );
+	JEnvConfig ec( &wv, &a );
+    if(!gui) ec.addObjectsToJScriptContext();
+	//wf->evaluateJavaScript( ec.jsInit() );
+	
+	//loco::Stdout cout_;
+	//const QString jsCode_ = "Loco = function() { "
+	//	                        "  this.cout = lococout__;"
+    //                           	"  return this; }";
+	
+    //wf->addToJavaScriptWindowObject( "lococout__",  &cout_ );
+    //wf->evaluateJavaScript( jsCode_ );
+	wf->evaluateJavaScript( j );
+	//const int r = wf->evaluateJavaScript( j ).toInt();
+	//std::cout << r;
+	return 0;
+}
 
 #endif

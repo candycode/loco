@@ -9,18 +9,13 @@
 #include <QVariantMap>
 #include <QWaitCondition>
 #include <QMutex>
-
-const QString SLEEP =           "  this.sleep = function (milliseconds) {"
-                                "    var start = new Date().getTime();"
-                                "    for (var i = 0; i < 1e10; i++) {"
-                                "      if ((new Date().getTime() - start) > milliseconds){"
-                                "        break;"
-	                            "      }"
-                                "    }";
+#include <QtNetwork/QNetworkAccessManager>
+#include <QtNetwork/QNetworkRequest>
+#include <QtNetwork/QNetworkReply>
 class JEnvConfig : public QObject {
     Q_OBJECT
 public:
-	JEnvConfig( QWebView* wv, QApplication* a ) : wv_( wv ), a_( a ) {
+	JEnvConfig( QWebView* wv, QApplication* a ) : wv_( wv ), a_( a ), redirectCnt_( 0 ) {
 	    connect( wv->page()->mainFrame(), SIGNAL( javaScriptWindowObjectCleared() ), this, SLOT( addObjectsToJScriptContext() ) );
 		jsCode_ = "Loco = function() { "
 		                        "  this.cout = lococout__;"
@@ -50,10 +45,50 @@ public slots:
 		wv_->showFullScreen();
 		std::cout << "showWindow()\n";
 	}
+	void setHtml( const QString& html ) { 
+		wv_->setHtml( html );
+		std::cout << "showWindow()\n";
+	}
 	int exec() { 
 		return a_->exec();
 		std::cout << "exec()\n";
 	}
+
+	QString read( const QString& url ) {
+	    if( redirectCnt_ > 1 ) return "";
+		QNetworkAccessManager *networkMgr = new QNetworkAccessManager(this);
+        QNetworkReply *reply = networkMgr->get( QNetworkRequest( QUrl( url ) ) );
+ 
+        QEventLoop loop;
+        QObject::connect(reply, SIGNAL(readyRead()), &loop, SLOT(quit()));
+ 
+        // Execute the event loop here, now we will wait here until readyRead() signal is emitted
+        // which in turn will trigger event loop quit.
+        loop.exec();
+        QVariant possibleRedirectUrl =  reply->attribute(QNetworkRequest::RedirectionTargetAttribute);
+		QUrl urlRedirectedTo = redirectUrl(possibleRedirectUrl.toUrl(), urlRedirectedTo);
+		
+		// If the URL is not empty, we're being redirected.
+		if(!urlRedirectedTo.isEmpty()) {
+			++redirectCnt_;
+			std::cout << urlRedirectedTo.toString().toStdString() << std::endl;
+			return read( urlRedirectedTo.toString() );
+		}
+		else { redirectCnt_ = 0; return reply->readAll(); }
+	}
+    
+	QString escapeQuotes( QString s ) {
+		//s.replace( "\"", "\\\"" ); 
+	    return "\"" + s + "\"";
+	}
+
+	QUrl redirectUrl(const QUrl& possibleRedirectUrl, const QUrl& oldRedirectUrl) const {
+        QUrl redirectUrl;
+        if(!possibleRedirectUrl.isEmpty() && possibleRedirectUrl != oldRedirectUrl)
+            redirectUrl = possibleRedirectUrl;
+        return redirectUrl;
+    }
+
 	void load( const QString& url, const QString& jsCBack ) {
 		jsCBack_ = jsCBack;
 		std::cout << jsCBack_.toStdString() << std::endl;
@@ -87,5 +122,5 @@ private:
 	loco::Stdout cout_;
 	QString jsCode_;
 	mutable QString jsCBack_;
-	
+	mutable int redirectCnt_;
 };

@@ -22,7 +22,7 @@ set( SRCS_INCLUDE LocoStdout.h LocoWebView.h LocoIWebConfig.h JEnvConfig.h )
 ####CONFIGURE EXECUTABLES
 add_executable( locoplay1 ${SRCS} ${SRCS_INCLUDE} ${MOC_SRCS} )
 
-target_link_libraries( locoplay1 QtWebkit4 ${QT_LIBRARIES} ) 
+target_link_libraries( locoplay1 QtWebkit4 QtNetwork4 ${QT_LIBRARIES} ) 
 if(WIN32)
   target_link_libraries( locoplay1 debug qtmaind optimized qtmain )
 endif(WIN32)  
