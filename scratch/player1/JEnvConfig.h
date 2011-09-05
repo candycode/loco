@@ -13,25 +13,18 @@
 #include <QtNetwork/QNetworkRequest>
 #include <QtNetwork/QNetworkReply>
 
-const QString SLEEP =           "  this.sleep = function (milliseconds) {"
-                                "    var start = new Date().getTime();"
-                                "    for (var i = 0; i < 1e10; i++) {"
-                                "      if ((new Date().getTime() - start) > milliseconds){"
-                                "        break;"
-	                            "      }"
-                                "    }";
 class JEnvConfig : public QObject {
     Q_OBJECT
 public:
-	JEnvConfig( QWebView* wv, QApplication* a ) : wv_( wv ), a_( a ), init_( true ) {
-	    connect( wv->page()->mainFrame(), SIGNAL( javaScriptWindowObjectCleared() ), this, SLOT( addObjectsToJScriptContext() ) );
+    JEnvConfig( QWebView* wv, QApplication* a ) : wv_( wv ), a_( a ), redirectCnt_( 0 ) {
+        connect( wv->page()->mainFrame(), SIGNAL( javaScriptWindowObjectCleared() ), this, SLOT( addObjectsToJScriptContext() ) );
         connect( wv->page()->mainFrame(), SIGNAL( loadFinished(bool) ), this, SLOT( loadFinished(bool) ) );
-		 connect( &netAccessMgrRead_, SIGNAL( finished( QNetworkReply* ) ),
+         connect( &netAccessMgrRead_, SIGNAL( finished( QNetworkReply* ) ),
                  this, SLOT( readFromUrlFinished( QNetworkReply* ) ) ); 
         ///@warning it seems that the objects passed from Qt cannot be set directly into the prototype
         jsCode_ = "Loco = function() {" 
-		          "  this.cout = lococout__;"
-				  "  this.env  = locoenv__;"
+                  "  this.cout = lococout__;"
+                  "  this.env  = locoenv__;"
                   "  return this; }\n"
                   "Loco.prototype.p=function(v){this.cout.println(v);}\n"  
                   "Loco.prototype.cbacks = [];\n"
@@ -41,9 +34,9 @@ public:
                   "Loco.prototype.read = function(url,cb) {"
                   "  this.cbacks.push(cb);"
                   "  this.env.readFromUrl(url); }\n";
-	}
+    }
 public:
-	const QString& jsInit() const { return jsCode_; }
+    const QString& jsInit() const { return jsCode_; }
 public slots:
 
     void readFromUrl( const QString& url ) {
@@ -72,48 +65,88 @@ public slots:
        //readFromUrlWaitCond_.wakeAll(); 
     }
 
-	void addObjectsToJScriptContext() {
-		QWebFrame* wf = wv_->page()->mainFrame();
-		wf->addToJavaScriptWindowObject( "locoenv__", this );
+    void addObjectsToJScriptContext() {
+        QWebFrame* wf = wv_->page()->mainFrame();
+        wf->addToJavaScriptWindowObject( "locoenv__", this );
         //wf_->addToJavaScriptWindowObject( wv_, "locowv__" );
-		//wf->addToJavaScriptWindowObject( "locowf__", wv_->page()->mainFrame() );
-		wf->addToJavaScriptWindowObject( "lococout__",  &cout_ );
-		//std::cout << jsCode_.toStdString() << std::endl;
+        //wf->addToJavaScriptWindowObject( "locowf__", wv_->page()->mainFrame() );
+        wf->addToJavaScriptWindowObject( "lococout__",  &cout_ );
+        //std::cout << jsCode_.toStdString() << std::endl;
         if( init_ ) {
             wf->evaluateJavaScript( jsCode_ );
             init_ = false;
         } 
          
-		std::cout << "addObjectsToJScriptContext()\n";
-	}
-	void showWindow() { 
-		wv_->show();
-		std::cout << "showWindow()\n";
-	}
-	void showFullScreen() { 
-		wv_->showFullScreen();
-		std::cout << "showWindow()\n";
-	}
-	int exec() { 
-		return a_->exec();
-		std::cout << "exec()\n";
-	}
-	void load( const QString& url, const QString& jsCBack = "" ) {
-		jsCBack_ = jsCBack;
-		std::cout << jsCBack_.toStdString() << std::endl;
-		wv_->load( url );
+        std::cout << "addObjectsToJScriptContext()\n";
+    }
+    void showWindow() { 
+        wv_->show();
+        std::cout << "showWindow()\n";
+    }
+    void showFullScreen() { 
+        wv_->showFullScreen();
+        std::cout << "showWindow()\n";
+    }
+    void setHtml( const QString& html ) { 
+        wv_->setHtml( html );
+        std::cout << "showWindow()\n";
+    }
+    int exec() { 
+        return a_->exec();
+        std::cout << "exec()\n";
+    }
+
+    QString read( const QString& url ) {
+        if( redirectCnt_ > 1 ) return "";
+        QNetworkAccessManager *networkMgr = new QNetworkAccessManager(this);
+        QNetworkReply *reply = networkMgr->get( QNetworkRequest( QUrl( url ) ) );
+ 
+        QEventLoop loop;
+        QObject::connect(reply, SIGNAL(readyRead()), &loop, SLOT(quit()));
+ 
+        // Execute the event loop here, now we will wait here until readyRead() signal is emitted
+        // which in turn will trigger event loop quit.
+        loop.exec();
+        QVariant possibleRedirectUrl =  reply->attribute(QNetworkRequest::RedirectionTargetAttribute);
+        QUrl urlRedirectedTo = redirectUrl(possibleRedirectUrl.toUrl(), urlRedirectedTo);
+        
+        // If the URL is not empty, we're being redirected.
+        if(!urlRedirectedTo.isEmpty()) {
+            ++redirectCnt_;
+            std::cout << urlRedirectedTo.toString().toStdString() << std::endl;
+            return read( urlRedirectedTo.toString() );
+        }
+        else { redirectCnt_ = 0; return reply->readAll(); }
+    }
+    
+    QString escapeQuotes( QString s ) {
+        //s.replace( "\"", "\\\"" ); 
+        return "\"" + s + "\"";
+    }
+
+    QUrl redirectUrl(const QUrl& possibleRedirectUrl, const QUrl& oldRedirectUrl) const {
+        QUrl redirectUrl;
+        if(!possibleRedirectUrl.isEmpty() && possibleRedirectUrl != oldRedirectUrl)
+            redirectUrl = possibleRedirectUrl;
+        return redirectUrl;
+    }
+
+    void load( const QString& url, const QString& jsCBack ) {
+        jsCBack_ = jsCBack;
+        std::cout << jsCBack_.toStdString() << std::endl;
+        wv_->load( url );
         //wv_->setUrl( url );
-		std::cout << "load()\n";
-	}
+        std::cout << "load()\n";
+    }
     void set( const QString& url ) {
         std::cout << "set()\n";
         this->load( url );
         
-	}
-	void loadFinished( bool ok ) {
+    }
+    void loadFinished( bool ok ) {
         std::cout << "loadFinished" << std::endl; 
-		if( ok ) {
-			if( !jsCBack_.isEmpty() ) {
+        if( ok ) {
+            if( !jsCBack_.isEmpty() ) {
                 std::cout << "Executing callback javascript code" << std::endl;
                 wv_->page()->mainFrame()->evaluateJavaScript( jsCBack_ );
             } else {
@@ -121,13 +154,13 @@ public slots:
                 wv_->page()->mainFrame()->evaluateJavaScript( 
                     "loco.cout.println(Loco.prototype.cbacks.length);(Loco.prototype.cbacks.pop())();" );
             }
-		}
-		else std::cerr << "error loading page\n";
-	}
-	void sleep(int ms) {
+        }
+        else std::cerr << "error loading page\n";
+    }
+    void sleep(int ms) {
       sleepMutex_.lock();
       sleepWCond_.wait( &sleepMutex_, ms );   // two seconds
-	}
+    }
     QVariant eval( const QString& s ) {
         QVariant v = wv_->page()->mainFrame()->evaluateJavaScript( 
             "try {\n" + s + "\n} catch(e) {\nlocoenv_.riseError( e.description );\n}" );
@@ -136,18 +169,10 @@ public slots:
     void riseError( const QString& s ) { std::cerr << s.toStdString() << std::endl; }
 
 private:
-	QWebView* wv_;
-	QApplication* a_;
-	loco::Stdout cout_;
-	QString jsCode_;
-	mutable QString jsCBack_;
-    QWaitCondition sleepWCond_;
-	QMutex sleepMutex_;
-    bool init_;
-
-    QNetworkAccessManager netAccessMgrRead_;
-    QWaitCondition readFromUrlWaitCond_;
-    QMutex readFromUrlMutex_;
-    QString readFromUrlString_;
-	
+    QWebView* wv_;
+    QApplication* a_;
+    loco::Stdout cout_;
+    QString jsCode_;
+    mutable QString jsCBack_;
+    mutable int redirectCnt_;
 };
