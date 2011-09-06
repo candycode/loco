@@ -7,17 +7,27 @@
 
 #include "EWL.h"
 
+#include "LocoFactory.h"
+
 namespace loco {
+
+class Context;
+
+// Loco objects are created through loco::Factories only
 
 class Object : EWL {
     Q_OBJECT
     Q_PROPERTY( QString name READ name )
     Q_PROPERTY( QString type READ type )
 public:    
-    Object( const QString& n, const QString& type = "" ) 
-    : name_( n ), type_( type ), instanceId_( IncInstanceCount() ) {
+    Object( Factory* f, const QString& n, const QString& type = "" ) 
+    : factory_( f ), name_( n ), type_( type ), instanceId_( IncInstanceCount() ) {
     	jsInstanceName_ = objNamePrefix_ + name() + objNameSuffix_ + QString("%1").arg( instanceId_ ); 
     }
+    void SetFactory( Factory* f ) { factory_ = f; }
+    void SetContext( Context* c ) { context_ = f; }
+    Factory* GetFactory() const { return factory_; }
+    Context* GetContext() const { return context_; }
     const QString& name() const { return name_; }
     const QString& type() const { return type_; }
     void SetName( const QString& n ) { name_ = n; }
@@ -39,8 +49,10 @@ public:
     static void SetObjNamePrefix( const QString& p ) { objNamePrefix_ = p; }
     static void SetObjNameSuffix( const QString& s ) { objNameSuffix_ = s; }      
 public slot:
-    void destroy() { deleteLater(); }    
+    void destroy() { if( factory_ ) factory_->Destroy( this ); else deleteLater(); }    
 private:
+    Context* context_;
+    Factory* factory_;
     QString name_;
     QString type_;
     QString jsInstanceName_;

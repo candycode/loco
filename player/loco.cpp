@@ -37,7 +37,7 @@ CMDLine ParsedCommandsToCMDLine( const CmdLine::ParsedCommands& cmd ) {
 		typedef std::vector< std::string > VS;
 		const VS& vs = i->second();
 		for( VS::const_iterator v = vs.begin(); v != vs.end(); ++v ) {
-			sl << QString( *v->c_str() );
+			sl << QString( v->c_str() );
 		}
 		cl[ i->first().c_str() ] = sl;
 	}
@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
 
 	    // 3 - execute
 	    QVariant ret = wf->evaluateJavaScript( jscriptCode );
-        if( ctx.Error() ) {
+        if( ctx.error() ) {
         	std::cerr << ctx.lastError() << std::endl;
         	return 1;
         }
