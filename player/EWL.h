@@ -11,8 +11,10 @@ namespace loco {
 // errors warnings logs
 class EWL : public QObject {
 	Q_OBJECT
+public:
+    EWL( bool autoDeleteEntries = true ) : autoDelete_( autoDeleteEntries ) {}
 public slots:
-    QString& lastError() const { 
+    QString lastError() const { 
 	    QString e = errors_.back();
 	    if( autoDelete_ ) errors_.removeLast();
 	    return e;
@@ -23,11 +25,11 @@ public slots:
 	    return w;
 	}
     QString lastLog() const { 
-	    QString l = return logs_.back();
+	    QString l = logs_.back();
 	    if( autoDelete_ ) logs_.removeLast();
 	    return l;
 	}
-    void error( const QString& emsg ) { 
+    void error( const QString& emsg ) const { 
 	    errors_.push_back( emsg );
 	    emit onError( emsg );
 	}
@@ -49,10 +51,10 @@ public slots:
     
     bool error() const { return !errors_.empty(); }
 
-public signals:
-    void onError( const QString& );
-    void onWarning( const QString& );
-    void onLog( const QString&  );     
+signals:
+    void onError( const QString& ) const;
+    void onWarning( const QString& ) const;
+    void onLog( const QString& ) const;     
 private:
     typedef QStringList Errors;
 	typedef QStringList Warnings;
@@ -60,6 +62,7 @@ private:
 	mutable Errors errors_;
 	mutable Warnings warnings_;
 	mutable Logs logs_;
+    bool autoDelete_;
 };
 
 }

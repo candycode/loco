@@ -11,16 +11,16 @@ include_directories( ${QT_LIBRARY_DIR}
 link_directories( ${QT_LIBRARY_DIR} )
 
 ####SETUP APPLICATION
-set( MOC_HEADERS LocoConsole.h LocoContext.h EWL.h ) 
-QT4_WRAP_CPP( MOC_SRCS ${MOC_HEADERS} ) #<- generate processed Qt files
+set( MOC_HEADERS LocoConsole.h LocoContext.h EWL.h LocoObject.h LocoFilter.h LocoFactory.h LocoScriptFilter.h ) 
+QT4_WRAP_CPP( MOC_SRCS ${MOC_HEADERS} ) 
 
-# App 1
-set( SRCS loco.cpp LocoContext.cpp ) #<- add application source and header files
-set( SRCS_INCLUDE LocoConsole.h LocoContext.h EWL.h CmdLine.h )
+# App
+set( SRCS loco.cpp LocoObject.cpp ) 
+set( SRCS_INCLUDE ${MOC_HEADERS} CmdLine.h  )
 
 ####SETUP PLUGIN
-set( MOC_HEADERS_PLUGIN LocoFSystem.h ) #<- Add header files to be processed by moc
-QT4_WRAP_CPP( MOC_SRCS_PLUGIN ${MOC_HEADERS_PLUGIN} ) #<- generate processed Qt files
+#set( MOC_HEADERS_PLUGIN LocoFSystem.h ) 
+#QT4_WRAP_CPP( MOC_SRCS_PLUGIN ${MOC_HEADERS_PLUGIN} ) s
 
 ####CONFIGURE EXECUTABLES
 add_executable( loco ${SRCS} ${SRCS_INCLUDE} ${MOC_SRCS} )
@@ -31,5 +31,5 @@ if(WIN32)
 endif(WIN32)
 
 ####CONFIGURE PLUGINS
-add_library( loco_FSystem SHARED ${MOC_SRCS_PLUGIN} )
-target_link_libraries( loco_FSystem ${QT_LIBRARIES} )  
+#add_library( loco_FSystem SHARED ${MOC_SRCS_PLUGIN} )
+#target_link_libraries( loco_FSystem ${QT_LIBRARIES} )  

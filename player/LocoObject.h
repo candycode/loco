@@ -7,15 +7,15 @@
 
 #include "EWL.h"
 
-#include "LocoFactory.h"
-
 namespace loco {
 
 class Context;
 
+class Factory;
+
 // Loco objects are created through loco::Factories only
 
-class Object : EWL {
+class Object : public EWL {
     Q_OBJECT
     Q_PROPERTY( QString name READ name )
     Q_PROPERTY( QString type READ type )
@@ -25,7 +25,7 @@ public:
     	jsInstanceName_ = objNamePrefix_ + name() + objNameSuffix_ + QString("%1").arg( instanceId_ ); 
     }
     void SetFactory( Factory* f ) { factory_ = f; }
-    void SetContext( Context* c ) { context_ = f; }
+    void SetContext( Context* c ) { context_ = c; }
     Factory* GetFactory() const { return factory_; }
     Context* GetContext() const { return context_; }
     const QString& name() const { return name_; }
@@ -36,11 +36,11 @@ public:
     void setJSInstanceName( const QString& jsi ) { jsInstanceName_ = jsi; }
     virtual ~Object() { DecInstanceCount(); }
 public:
-    static int IncInstaceCount()  { 
+    static int IncInstanceCount()  { 
 	    const int c = instanceCount_.fetchAndAddAcquire( 1 );
 	    return c + 1; 
 	}
-    static void DecInstaceCount()  { 
+    static void DecInstanceCount()  { 
 	    const int c = instanceCount_.fetchAndAddAcquire( -1 );
 	}
     static int  GetInstanceCount() { return instanceCount_; }
@@ -48,14 +48,15 @@ public:
     static const QString& ObjNameSuffix() { return objNameSuffix_; }
     static void SetObjNamePrefix( const QString& p ) { objNamePrefix_ = p; }
     static void SetObjNameSuffix( const QString& s ) { objNameSuffix_ = s; }      
-public slot:
-    void destroy() { if( factory_ ) factory_->Destroy( this ); else deleteLater(); }    
+public slots:
+    void destroy(); 
 private:
     Context* context_;
     Factory* factory_;
     QString name_;
     QString type_;
     QString jsInstanceName_;
+    int instanceId_;
 private:
     static QAtomicInt instanceCount_;
     static QString objNamePrefix_;

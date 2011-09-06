@@ -9,7 +9,7 @@
 #include <QString>
 #include <QVariant>
 #include <QMap>
-#include <QStrinList>
+#include <QStringList>
 #include <QtWebKit/QWebPage>
 #include <QtWebKit/QWebFrame> 
 #include <QFile>
@@ -30,16 +30,16 @@ static const std::string HELP_TEXT = "Usage: loco --script <javascript file>\n"
 typedef QVariantMap CMDLine;
 
 //------------------------------------------------------------------------------
-CMDLine ParsedCommandsToCMDLine( const CmdLine::ParsedCommands& cmd ) {
+CMDLine ParsedCommandsToCMDLine( const CmdLine::ParsedEntries& cmd ) {
 	CMDLine cl;
-	for( CmdLine::ParsedCommands::const_iterator i = cmd.begin(); i != cmd.end(); ++i ) {
+	for( CmdLine::ParsedEntries::const_iterator i = cmd.begin(); i != cmd.end(); ++i ) {
 		QStringList sl;
 		typedef std::vector< std::string > VS;
-		const VS& vs = i->second();
+		const VS& vs = i->second;
 		for( VS::const_iterator v = vs.begin(); v != vs.end(); ++v ) {
 			sl << QString( v->c_str() );
 		}
-		cl[ i->first().c_str() ] = sl;
+		cl[ i->first.c_str() ] = sl;
 	}
 	return cl;
 }
@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
         static const bool OPTIONAL = true;
         CmdLine cl( DO_NOT_REPORT_UNKNOWN_PARAMS );
         cl.Add( "Script to execute", "script", "s", std::make_pair( 1, 1 ), OPTIONAL );
-        CmdLine::ParsedCommands pc = cl.ParseCommandLine( argc, argv );
+        CmdLine::ParsedEntries pc = cl.ParseCommandLine( argc, argv );
         const QString scriptFileName = pc.find( "script" ) == pc.end() ? DEFAULT_BOOTSTRAP_NAME 
                                       : pc[ "script" ][ 0 ].c_str();
         QFile scriptFile( scriptFileName );
@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
 	    // 3 - execute
 	    QVariant ret = wf->evaluateJavaScript( jscriptCode );
         if( ctx.error() ) {
-        	std::cerr << ctx.lastError() << std::endl;
+        	std::cerr << ctx.lastError().toStdString() << std::endl;
         	return 1;
         }
         if( ret.isValid() ) {

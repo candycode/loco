@@ -1,7 +1,17 @@
 //#SRCHEADER
 #include "LocoObject.h"
+
+#include "LocoFactory.h"
+
 namespace loco {
 	QAtomicInt Object::instanceCount_;
-	QAtomicInt Object::objNamePrefix_ = "loco_";
-	QAtomicInt Object::objNameSuffix  = "__";
+	QString Object::objNamePrefix_ = "loco_";
+	QString Object::objNameSuffix_ = "__";
+
+
+void Object::destroy() { 
+    if( factory_ ) factory_->Destroy( this );
+    else deleteLater();     
+}
+
 }

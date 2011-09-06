@@ -9,14 +9,16 @@
 #include <QVariantMap>
 #include <QPluginLoader>
 #include <QProcess>
-#include <QProcessMap>
+#include <QProcessEnvironment>
 
 #include <cstdlib>
 
 #include "EWL.h"
 #include "LocoFactory.h"
 #include "LocoFilter.h"
-
+#include "LocoObject.h"
+#include "LocoConsole.h"
+#include "LocoScriptFilter.h"
 
 
 namespace loco {
@@ -30,11 +32,11 @@ typedef QList< Object* > JScriptObjCtxInstances;
 
 
 class Context : public Object {
-    
     Q_OBJECT
-    
+
+public:    
     Context( QWebFrame* wf, QApplication* app, const CMDLine& cmdLine,
-             Context* parent = 0 ) : Object( "LocoContext", "Loco/Context" ),
+             Context* parent = 0 ) : Object( 0, "LocoContext", "Loco/Context" ),
         webFrame_( wf ), app_( app ), parent_( parent ), cmdLine_( cmdLine ) {
         connect( webFrame_, SIGNAL( javaScriptWindowObjectCleared() ),
                  this, SLOT( RemoveInstanceObjects() ) );
@@ -47,8 +49,8 @@ class Context : public Object {
         connect( this, SIGNAL( destroyed() ), this, SLOT( RemoveStdObjects() ) );
         connect( this, SIGNAL( destroyed() ), this, SLOT( RemoveFilters() ) );
         
-        AddJSStdOBject( this );
-        AddJSStdObject( &console );     
+        AddJSStdObject( this );
+        AddJSStdObject( &console_ );     
         ///@todo should we call AddJavaScriptObjects() here ?
         //AddJavaScriptObjects();
     }
@@ -67,7 +69,7 @@ public slots:
     void AddJavascriptObjects() {
         for( JScriptObjCtxInstances::const_iterator i = jscriptStdObjects_.begin();
             i != jscriptStdObjects_.end(); ++i ) {
-            webFrame_->addToJavascriptWindowObject( i->jsInstanceName(), &(*i) );  
+            webFrame_->addToJavaScriptWindowObject( (*i)->jsInstanceName(), *i );  
         }
         ///@todo sjould we add parent's context std objects or parent's instance objects ?
         /// Parent()->jscriptsStdObjects()
@@ -77,36 +79,36 @@ public slots:
     void RemoveInstanceObjects() {
         for( JScriptObjCtxInstances::iterator i = jscriptCtxInstances_.begin();
             i != jscriptCtxInstances_.end(); ++i ) {
-            i->destroy();
+            (*i)->destroy();
         }
         for( Factories::iterator i = ctxFactories_.begin();
             i != ctxFactories_.end(); ++i ) {
-            i->deleteLater();
+            (*i)->Destroy();
         }
         for( PluginLoaders::iterator i = ctxPluginLoaders_.begin();
             i != ctxPluginLoaders_.end(); ++i ) {
-            i->unload();
-            i->deleteLater();
+            (*i)->unload();
+            (*i)->deleteLater();
         }
        
         jscriptCtxInstances_.clear();
-        ctxfactories_.clear();
+        ctxFactories_.clear();
         ctxPluginLoaders_.clear();
     }
 
     void RemoveStdObjects() {
-        for( JScriptObjCtxInstances::iterator i = jscriptStdObj_.begin();
-            i != jscriptStdObj_.end(); ++i ) {
-            i->destroy();
+        for( JScriptObjCtxInstances::iterator i = jscriptStdObjects_.begin();
+            i != jscriptStdObjects_.end(); ++i ) {
+            (*i)->destroy();
         }
         for( Factories::iterator i = stdFactories_.begin();
             i != stdFactories_.end(); ++i ) {
-            i->deleteLater();
+            (*i)->Destroy();
         }
         for( PluginLoaders::iterator i = stdPluginLoaders_.begin();
             i != stdPluginLoaders_.end(); ++i ) {
-            i->unload();
-            i->deleteLater();
+            (*i)->unload();
+            (*i)->deleteLater();
         }
        
         jscriptStdObjects_.clear();
@@ -117,13 +119,13 @@ public slots:
    void RemoveFilters() {
         for( Filters::iterator i = filters_.begin();
             i != filters_.end(); ++i ) {
-            i->second->deleteLater();
+            i.value()->deleteLater();
         }
         filters_.clear();
         for( PluginLoaders::iterator i = filterPluginLoaders_.begin();
              i != filterPluginLoaders_.end(); ++i ) {
-            i->unload();
-            i->deleteLater();
+            (*i)->unload();
+            (*i)->deleteLater();
         } 
         filterPluginLoaders_.clear(); 
    }  
@@ -134,9 +136,9 @@ public slots: // js interface
     
     QVariant eval( QString code, const QStringList& filters = QStringList() ) {
     	code = filter( code, filters );
-    	if( !error() ) return wf_->evaluateJavaScript( code );
+    	if( !error() ) return webFrame_->evaluateJavaScript( code );
     	else {
-            wf_->evaluateJavaScript( errCBak_ );
+            webFrame_->evaluateJavaScript( jsErrCBack_ );
             return QVariant();
         } 
     }
@@ -146,8 +148,8 @@ public slots: // js interface
              f != filterIds.end(); ++f ) { 
             Filters::iterator i = filters_.find( *f );
             if( i != filters_.end() ) {
-                Filter* fp =  i->second;
-                code = fp->Filter( code );
+                Filter* fp =  i.value();
+                code = fp->Apply( code );
                 if( fp->error() ) error( fp->lastError() );
                 break;                 
             }
@@ -166,13 +168,13 @@ public slots: // js interface
         if( !pl->load() ) {
             delete pl;
             error( pl->errorString() );
-            webFrame_->evaluateJavaScript( errCBack_ );
+            webFrame_->evaluateJavaScript( jsErrCBack_ );
             return QVariant();
         } else {
             loco::Factory* lf = qobject_cast< loco::Factory* >( pl->instance() );
             if( lf == 0 ) {
                 error( "Wrong plugin type" );
-                webFrame_->evaluateJavaScript( errCBack_ );    
+                webFrame_->evaluateJavaScript( jsErrCBack_ );    
             }
             lf->SetContext( this );
             if( persist ) {
@@ -182,7 +184,7 @@ public slots: // js interface
                 ctxPluginLoaders_.push_back( pl );
                 ctxFactories_.push_back( lf );
             }
-            webFrame_->addToJavascriptWindowObject( lf->jsInstanceName(), lf );
+            webFrame_->addToJavaScriptWindowObject( lf->jsInstanceName(), lf );
             return webFrame_->evaluateJavaScript( lf->jsInstanceName() ); 
         }     
     }
@@ -191,12 +193,12 @@ public slots: // js interface
         QPluginLoader* pl = new QPluginLoader( uri );
         if( !pl->load() ) {
             error( pl->errorString() );
-            webFrame_->evaluateJavaScript( errCBack_ );
+            webFrame_->evaluateJavaScript( jsErrCBack_ );
         } else {
             loco::Filter* lf = qobject_cast< loco::Filter* >( pl->instance() );
             if( lf == 0 ) {
                 error( "Wrong filter type" );
-                webFrame_->evaluateJavaScript( errCBack_ );    
+                webFrame_->evaluateJavaScript( jsErrCBack_ );    
             }
             filters_[ id ] = lf;
             filterPluginLoaders_.push_back( pl );
@@ -205,25 +207,11 @@ public slots: // js interface
 
     bool hasFilter( const QString& id ) { return filters_.find( id ) != filters_.end(); }
 
-    bool addScriptFilter( const QString& js,
-                          const QString& id,
+    void addScriptFilter( const QString& id,
                           const QString& jfun,
                           const QString& jerrfun = "",
-                          const QString& codePlaceHolder = "",
-                          const QStringList& filtersOnFilter = QStringList() ) {
-        if( !filtersOnFilter.empty() ) {
-            QString c = js;
-            for( QStringList::iterator i = filters_.begin(); i != filters_.end() ) {
-                c = i->Filter( c );
-                if( i->error() ) {
-                    error( i->getLastError() );
-                    break;
-                }
-            }
-            if( error() ) return false;
-            filters_[ id ] = new ScriptFilter( wf_, c, jfun, jerrfun, codePlaceHolder );
-        } else filters_[ id ] = new ScriptFilter( wf_, js );
-        return true;     
+                          const QString& codePlaceHolder = "" ) {
+        filters_[ id ] = new ScriptFilter( webFrame_, jfun, jerrfun, codePlaceHolder );
     }
 
     QVariantMap cmdLine() const { return cmdLine_; }
@@ -237,38 +225,29 @@ public slots: // js interface
     QString system( const QString& program,
                     const QStringList& args,
                     const QVariantMap& env,
-                    int timeout = 10000 ) {
-        QProcessMap pm;
+                    int timeout = 10000 ) const {
+        QProcessEnvironment pe;
         for( QVariantMap::const_iterator i = env.begin();
              i != env.end(); ++i ) {
-            const QString& envVar = i->first;
+            const QString& envVar = i.key();
             if( envVar.size() == 0 ) continue;
-            const QVariant& v = i->second;
-            if( v.isNull() || !v.isValid() || v.toString().size() = 0 ) continue;
-            pm.insert( i->first, v.toString() );
+            const QVariant& v = i.value();
+            if( v.isNull() || !v.isValid() /*|| v.toString().isEmtpy()*/ ) continue;
+            pe.insert( i.key(), v.toString() );
         }
         QProcess p;
-        p.setProcessEnvironment( pm );
+        p.setProcessEnvironment( pe );
         p.start( program, args );
         const bool wff = p.waitForFinished( timeout );
         if( !wff ) {
-            switch( p.error() ) {
-            case QProcess::FailedToStart: error( "QProcess: FailedToStart" );
-                                          break;
-            case QProcess::Crashed:       error( "QProcess: Crashed" );
-                                          break;
-            case QProcess::Timedout:      error( "QProcess: Timedout" );
-                                          break;
-            case QProcess::WriteError:    error( "QProcess: WriteError" );
-                                          break;
-            case QProcess::ReadError:     error( "QProcess: ReadError" );
-                                          break;
-            case QProcess::UnknownError:  error( "QProcess: UnknownError" );
-                                          break;
-            default: error( "Unknown QProcess::start error" );
-                     break;
-            }
-            wf_->evaluateJavaScript( errCBack_ );
+            if( p.error() == QProcess::FailedToStart     ) error( "QProcess: FailedToStart" );
+            else if( p.error() == QProcess::Crashed      ) error( "QProcess: Crashed" );
+            else if( p.error() == QProcess::Timedout     ) error( "QProcess: Timedout" );
+            else if( p.error() == QProcess::WriteError   ) error( "QProcess: WriteError" );
+            else if( p.error() == QProcess::ReadError    ) error( "QProcess: ReadError" );
+            else if( p.error() == QProcess::UnknownError ) error( "QProcess: UnknownError" );
+            else error( "Unknown QProcess::start error" );
+            webFrame_->evaluateJavaScript( jsErrCBack_ );
             return "";
         } else {
             QString output = p.readAllStandardOutput();
@@ -277,7 +256,21 @@ public slots: // js interface
         }                          
     }
 
-    QVariantMap env() {
+    QString qtVersion() const { return qVersion(); }
+
+    QString os() const {
+        #if defined( Q_WS_X11 )
+            return "UNIX";
+        #elif defined( Q_WS_WIN )
+            return "WINDOWS";
+        #elif defined( Q_WS_MAC )
+            return "MAC"
+        #else
+            return "";
+        #endif                 
+    }
+
+    QVariantMap env() const {
         QProcessEnvironment pe = QProcessEnvironment::systemEnvironment();
         QStringList e = pe.toStringList();
         QVariantMap vm;
@@ -300,10 +293,11 @@ private:
     Factories stdFactories_;
     Factories ctxFactories_;     
     PluginLoaders stdPluginLoaders_;
-    PluginLoaders ctxPluginLoaders_;    
+    PluginLoaders ctxPluginLoaders_;
+    PluginLoaders filterPluginLoaders_;    
     JScriptObjCtxInstances jscriptStdObjects_;
-    JScriptObjCtxInstances jscriptCtxObjects_;
-    QString jsErrBack_;
+    JScriptObjCtxInstances jscriptCtxInstances_;
+    QString jsErrCBack_;
 };
 
 }
