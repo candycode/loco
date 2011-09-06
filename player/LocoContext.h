@@ -44,6 +44,8 @@ public:
                  this, SLOT( RemoveFilters() ) );
         connect( webFrame_, SIGNAL( javaScriptWindowObjectCleared() ),
                  this, SLOT( AddJavaScriptObjects() ) );
+        connect( webFrame_, SIGNAL( javaScriptWindowObjectCleared() ),
+                 this, SLOT( InitJScript() ) );
 
         connect( this, SIGNAL( destroyed() ), this, SLOT( RemoveInstanceObjects() ) );
         connect( this, SIGNAL( destroyed() ), this, SLOT( RemoveStdObjects() ) );
@@ -65,8 +67,20 @@ public:
     void AddFilter( const QString& id, Filter* f ) { filters_[ id ] = f; }
             
 public slots:
+
+    /// 
+    void InitJScript() {
+        QStringList initCode;
+        static const QString GL = "Loco";
+        initCode << "var " << GL << " = {}\n"
+                 << GL << ".ctx = " + this->jsInstanceName() + ";\n"
+                 << GL << ".console = " + console_.jsInstanceName() + ";\n";
+        webFrame_->evaluateJavaScript( initCode.join( "" ) );
+std::cout << initCode.join( "" ).toStdString() << std::endl;
+    }
+
     /// Add javascript objects that need to be available at initialization time
-    void AddJavascriptObjects() {
+    void AddJavaScriptObjects() {
         for( JScriptObjCtxInstances::const_iterator i = jscriptStdObjects_.begin();
             i != jscriptStdObjects_.end(); ++i ) {
             webFrame_->addToJavaScriptWindowObject( (*i)->jsInstanceName(), *i );  
@@ -223,8 +237,8 @@ public slots: // js interface
     void registerErrCBack( const QString& code ) { jsErrCBack_ = code; }
 
     QString system( const QString& program,
-                    const QStringList& args,
-                    const QVariantMap& env,
+                    const QStringList& args = QStringList(),
+                    const QVariantMap& env  = QVariantMap(),
                     int timeout = 10000 ) const {
         QProcessEnvironment pe;
         for( QVariantMap::const_iterator i = env.begin();
