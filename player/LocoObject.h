@@ -64,3 +64,5 @@ private:
 };
 
 }
+
+Q_DECLARE_INTERFACE( loco::Object, "Loco/Object:1.0" )

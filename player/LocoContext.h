@@ -76,7 +76,6 @@ public slots:
                  << GL << ".ctx = " + this->jsInstanceName() + ";\n"
                  << GL << ".console = " + console_.jsInstanceName() + ";\n";
         webFrame_->evaluateJavaScript( initCode.join( "" ) );
-std::cout << initCode.join( "" ).toStdString() << std::endl;
     }
 
     /// this slot can be called from child contexts to make objects
@@ -169,6 +168,16 @@ public slots: // js interface
             return QVariant();
         } 
     }
+
+    ///\todo properly handle memory
+    QVariant loadObject( const QString& uri ) { //used as a regular file path for now
+        QPluginLoader* pl = new QPluginLoader( uri );
+        if( !pl->load() ) throw std::runtime_error( "Cannot load " + uri.toStdString() );
+        Object* obj = qobject_cast< ::loco::Object* >( pl->instance() );
+        if( !obj ) throw std::runtime_error( "Not a loco::Object" );
+        webFrame_->addToJavaScriptWindowObject( obj->jsInstanceName(), obj );
+        return webFrame_->evaluateJavaScript( obj->jsInstanceName() );
+    }      
     
     QString filter( QString code, const QStringList& filterIds = QStringList() ) {
         for( QStringList::const_iterator f = filterIds.begin();

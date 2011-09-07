@@ -19,8 +19,9 @@ set( SRCS loco.cpp LocoObject.cpp )
 set( SRCS_INCLUDE ${MOC_HEADERS} CmdLine.h  )
 
 ####SETUP PLUGIN
-#set( MOC_HEADERS_PLUGIN LocoFSystem.h ) 
-#QT4_WRAP_CPP( MOC_SRCS_PLUGIN ${MOC_HEADERS_PLUGIN} ) s
+set( MOC_HEADERS_PLUGIN EWL.h LocoObject.h plugins/LocoTestPlugin.h ) 
+QT4_WRAP_CPP( MOC_SRCS_PLUGIN ${MOC_HEADERS_PLUGIN} )
+set( SRCS_PLUGIN LocoObject.cpp plugins/LocoTestPlugin.cpp )
 
 ####CONFIGURE EXECUTABLES
 add_executable( loco ${SRCS} ${SRCS_INCLUDE} ${MOC_SRCS} )
@@ -31,5 +32,5 @@ if(WIN32)
 endif(WIN32)
 
 ####CONFIGURE PLUGINS
-#add_library( loco_FSystem SHARED ${MOC_SRCS_PLUGIN} )
-#target_link_libraries( loco_FSystem ${QT_LIBRARIES} )  
+add_library( loco_TestPlugin SHARED ${SRCS_PLUGIN} ${MOC_SRCS_PLUGIN} )
+target_link_libraries( loco_TestPlugin ${QT_LIBRARIES} )  

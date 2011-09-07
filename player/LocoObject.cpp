@@ -10,8 +10,8 @@ namespace loco {
 
 
 void Object::destroy() { 
-    if( factory_ ) factory_->Destroy( this );
-    else deleteLater();     
+    //if( factory_ ) factory_->Destroy( this );
+    /*else*/ deleteLater();     
 }
 
 }
