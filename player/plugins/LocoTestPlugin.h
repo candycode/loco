@@ -1,6 +1,7 @@
 #pragma once
 //#SRCHEADER
 
+#include <iostream>
 
 #include <QObject>
 #include <QtPlugin>
@@ -15,6 +16,8 @@ class TestPlugin : public Object {
 public:
     TestPlugin() : Object( 0, "TestPlugin" ) {}
 public slots:
-    void hello() const;
+	void hello() const { std::cout << "Hello from a loco Plugin :o" << std::endl; }
 };
 }
+
+Q_EXPORT_PLUGIN2( loco_TestPlugin, loco::TestPlugin )
