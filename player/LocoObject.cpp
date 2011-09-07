@@ -1,8 +1,6 @@
 //#SRCHEADER
 #include "LocoObject.h"
 
-#include "LocoFactory.h"
-
 namespace loco {
 	QAtomicInt Object::instanceCount_;
 	QString Object::objNamePrefix_ = "loco_";

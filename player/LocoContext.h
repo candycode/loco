@@ -10,11 +10,11 @@
 #include <QPluginLoader>
 #include <QProcess>
 #include <QProcessEnvironment>
+#include <QDir>
 
 #include <cstdlib>
 
 #include "EWL.h"
-#include "LocoFactory.h"
 #include "LocoFilter.h"
 #include "LocoObject.h"
 #include "LocoConsole.h"
@@ -25,7 +25,6 @@ namespace loco {
 
 typedef QVariantMap CMDLine;
 
-typedef QList< Factory* > Factories;
 typedef QMap< QString, Filter*  > Filters;
 typedef QList< QPluginLoader* > PluginLoaders;
 typedef QList< Object* > JScriptObjCtxInstances; 
@@ -74,7 +73,10 @@ public slots:
         static const QString GL = "Loco";
         initCode << "var " << GL << " = {}\n"
                  << GL << ".ctx = " + this->jsInstanceName() + ";\n"
-                 << GL << ".console = " + console_.jsInstanceName() + ";\n";
+                 << GL << ".console = " + console_.jsInstanceName() + ";\n"
+				 << GL << ".errcback = function() {\n"
+				 <<       "  throw 'LocoException: ' + this.ctx.lastError(); } }\n"; 
+		jsErrCBack_ = "Loco.errcback();";
         webFrame_->evaluateJavaScript( initCode.join( "" ) );
     }
 
@@ -107,10 +109,6 @@ public slots:
             i != jscriptCtxInstances_.end(); ++i ) {
             if( (*i)->GetContext() == this ) (*i)->destroy();
         }
-        for( Factories::iterator i = ctxFactories_.begin();
-            i != ctxFactories_.end(); ++i ) {
-            (*i)->Destroy();
-        }
         for( PluginLoaders::iterator i = ctxPluginLoaders_.begin();
             i != ctxPluginLoaders_.end(); ++i ) {
             (*i)->unload();
@@ -118,7 +116,6 @@ public slots:
         }
        
         jscriptCtxInstances_.clear();
-        ctxFactories_.clear();
         ctxPluginLoaders_.clear();
     }
 
@@ -127,10 +124,6 @@ public slots:
             i != jscriptStdObjects_.end(); ++i ) {
             (*i)->destroy();
         }
-        for( Factories::iterator i = stdFactories_.begin();
-            i != stdFactories_.end(); ++i ) {
-            (*i)->Destroy();
-        }
         for( PluginLoaders::iterator i = stdPluginLoaders_.begin();
             i != stdPluginLoaders_.end(); ++i ) {
             (*i)->unload();
@@ -138,7 +131,6 @@ public slots:
         }
        
         jscriptStdObjects_.clear();
-        stdFactories_.clear();
         stdPluginLoaders_.clear();
     }    
 
@@ -157,9 +149,30 @@ public slots:
    }  
 
 public slots: // js interface
-    //void require( const QString& path, const QStringList& filters = QStringList() );
-    //QString read( const QString& path, const QStringList& filters = QStringList() );
     
+	//void require( const QString& path, const QStringList& filters = QStringList() );
+    
+	//QString read( const QString& path, const QStringList& filters = QStringList() ) {
+	//}
+    
+	QStringList pluginPath() const { return QApplication::libraryPaths(); }
+
+	void setPluginPath( const QStringList& paths ) { QApplication::setLibraryPaths( paths ); }
+
+	QString appFilePath() const { return QApplication::applicationFilePath(); }
+
+	QString appDirPath() const { return QApplication::applicationDirPath(); }
+
+	QString appName() const { return QApplication::applicationName(); }
+
+	QString appVersion() const { return QApplication::applicationVersion(); }
+
+	QString appVendor() const { return QApplication::organizationName(); }
+
+	QString currentDir() const { return QDir::current().absolutePath(); }
+
+	QString homeDir() const { return QDir::home().absolutePath(); }
+
     QVariant eval( QString code, const QStringList& filters = QStringList() ) {
     	code = filter( code, filters );
     	if( !error() ) return webFrame_->evaluateJavaScript( code );
@@ -170,11 +183,29 @@ public slots: // js interface
     }
 
     ///\todo properly handle memory
-    QVariant loadObject( const QString& uri ) { //used as a regular file path for now
+    QVariant loadObject( const QString& uri, bool persistent = false ) { //used as a regular file path for now
         QPluginLoader* pl = new QPluginLoader( uri );
-        if( !pl->load() ) throw std::runtime_error( "Cannot load " + uri.toStdString() );
+		if( !pl->load() ) {
+			delete pl;
+			error( "Cannot load " + uri );
+			webFrame_->evaluateJavaScript( jsErrCBack_ );
+			return QVariant();
+		} 			
         Object* obj = qobject_cast< ::loco::Object* >( pl->instance() );
-        if( !obj ) throw std::runtime_error( "Not a loco::Object" );
+        if( !obj ) {
+			delete pl;
+			error( "Wrong object type " + uri );
+			webFrame_->evaluateJavaScript( jsErrCBack_ );
+			return QVariant();
+		}
+		obj->SetContext( this );
+		if( persistent ) {
+			jscriptStdObjects_.push_back( obj );
+			stdPluginLoaders_.push_back( pl );
+		} else {
+			jscriptCtxInstances_.push_back( obj );
+			ctxPluginLoaders_.push_back( pl );
+		}
         webFrame_->addToJavaScriptWindowObject( obj->jsInstanceName(), obj );
         return webFrame_->evaluateJavaScript( obj->jsInstanceName() );
     }      
@@ -199,31 +230,6 @@ public slots: // js interface
 
     int exec() { return app_->exec(); }
     
-    QVariant factory( const QString& uri, bool persist ) {
-        QPluginLoader* pl = new QPluginLoader( uri );
-        if( !pl->load() ) {
-            delete pl;
-            error( pl->errorString() );
-            webFrame_->evaluateJavaScript( jsErrCBack_ );
-            return QVariant();
-        } else {
-            loco::Factory* lf = qobject_cast< loco::Factory* >( pl->instance() );
-            if( lf == 0 ) {
-                error( "Wrong plugin type" );
-                webFrame_->evaluateJavaScript( jsErrCBack_ );    
-            }
-            lf->SetContext( this );
-            if( persist ) {
-                stdPluginLoaders_.push_back( pl );
-                stdFactories_.push_back( lf );
-            } else {
-                ctxPluginLoaders_.push_back( pl );
-                ctxFactories_.push_back( lf );
-            }
-            webFrame_->addToJavaScriptWindowObject( lf->jsInstanceName(), lf );
-            return webFrame_->evaluateJavaScript( lf->jsInstanceName() ); 
-        }     
-    }
 
     void addFilter( const QString& id, const QString& uri ) {
         QPluginLoader* pl = new QPluginLoader( uri );
@@ -326,8 +332,6 @@ private:
 
 private:
     Filters filters_;
-    Factories stdFactories_;
-    Factories ctxFactories_;     
     PluginLoaders stdPluginLoaders_;
     PluginLoaders ctxPluginLoaders_;
     PluginLoaders filterPluginLoaders_;    
