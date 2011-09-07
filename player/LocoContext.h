@@ -79,12 +79,25 @@ public slots:
 std::cout << initCode.join( "" ).toStdString() << std::endl;
     }
 
-    /// Add javascript objects that need to be available at initialization time
-    void AddJavaScriptObjects() {
+    /// this slot can be called from child contexts to make objects
+    /// in the parent context available within the child context
+    void AddJSStdObjects( QWebFrame* wf ) {
         for( JScriptObjCtxInstances::const_iterator i = jscriptStdObjects_.begin();
             i != jscriptStdObjects_.end(); ++i ) {
-            webFrame_->addToJavaScriptWindowObject( (*i)->jsInstanceName(), *i );  
+            wf->addToJavaScriptWindowObject( (*i)->jsInstanceName(), *i );  
         }
+    }
+
+    void AddJSCtxObjects( QWebFrame* wf ) {
+        for( JScriptObjCtxInstances::const_iterator i = jscriptCtxInstances_.begin();
+            i != jscriptCtxInstances_.end(); ++i ) {
+            wf->addToJavaScriptWindowObject( (*i)->jsInstanceName(), *i );  
+        }
+    }
+
+    /// Add javascript objects that need to be available at initialization time
+    void AddJavaScriptObjects() {
+        AddJSStdObjects( webFrame_ );
         ///@todo sjould we add parent's context std objects or parent's instance objects ?
         /// Parent()->jscriptsStdObjects()
     }
@@ -93,7 +106,7 @@ std::cout << initCode.join( "" ).toStdString() << std::endl;
     void RemoveInstanceObjects() {
         for( JScriptObjCtxInstances::iterator i = jscriptCtxInstances_.begin();
             i != jscriptCtxInstances_.end(); ++i ) {
-            (*i)->destroy();
+            if( (*i)->GetContext() == this ) (*i)->destroy();
         }
         for( Factories::iterator i = ctxFactories_.begin();
             i != ctxFactories_.end(); ++i ) {

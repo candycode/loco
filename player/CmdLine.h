@@ -45,16 +45,26 @@ public:
     /// \param helpShortName short command line parameter name for help e.g. 'help'
     /// \param longPrefix prefix to append to long command names e.g. '--'
     /// \param shortPrefix prefix to append to short command names e.g. '-'
-    CmdLine( bool reportUnknownParameters = true,
+    CmdLine( bool reportUnknownParameters = false,
              const std::string& helpLongName = "help",
              const std::string& helpShortName = "h",
              const std::string& longPrefix = "--",
-             const std::string& shortPrefix = "-" ) :
-                longPrefix_( longPrefix ), shortPrefix_( shortPrefix ),
-                    reportUnknown_( reportUnknownParameters )
+             const std::string& shortPrefix = "-", 
+             const std::string& freeArgKey = " ", //add command line items not in parameter lists to this map[key] item 
+             const std::string& paramExistsTag = "true" // value inserted for parameters with zero args 
+            )
+                : longPrefix_( longPrefix ), shortPrefix_( shortPrefix ),
+                  reportUnknown_( reportUnknownParameters ), freeArgKey_( freeArgKey ),
+                  paramExistsTag_( paramExistsTag )
     {
         Add( helpLongName, helpLongName, helpShortName, std::make_pair( 0, 0 ), true );
     }
+
+    /// The "free argument key" is the key in the <name,values> argument map where arguments
+    /// not associated with any parameter are stored.
+    /// \return map key of "free" arguments 
+    const std::string& GetFreeArgKey() const { return freeArgKey_; } 
+
     /// Add command line parameter.
     /// \param description description of command
     /// \param longName long name of command
@@ -148,10 +158,9 @@ public:
             }
             else
             {
-                // disabling the report of unknown items allows to pass the argc,argv parameter
-                // directly
-                if( reportUnknown_ ) throw std::logic_error( "Error - unknown parameter " + arg );
-                else ++i;
+                //not a parameter, add it to the list of free (not tied to a parameter) command line arguments 
+                parsedEntries[ freeArgKey_ ].push_back( arg );
+                ++i;
             }
         }
         if( !mandatoryCommands.empty() )
@@ -186,8 +195,9 @@ public:
 private:
     int AddParameterArguments( CommandParameters& cp, int numArgs, char** args, int i ) const
     {
-        while( i < numArgs )
-        {
+        if( numArgs == 0 ) {
+            cp.push_back( paramExistsTag_ );
+        } else while( i < numArgs ) {
             if( IsParameter( args[ i ] ) ) break;
             cp.push_back( args[ i ] );
             ++i;
@@ -212,6 +222,8 @@ private:
     Entries entries_;
     Synonyms synonyms_;
     bool reportUnknown_;
+    std::string freeArgKey_;
+    std::string paramExistsTag_;
 private:
     CmdLine( const CmdLine& );
     CmdLine operator=( const CmdLine& );
