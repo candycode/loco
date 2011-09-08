@@ -28,14 +28,14 @@ public slots:
     uint count () const                 { return dir_.count(); }
     QString dirName() const             { return dir_.dirName(); }
     QVariantMap entries( const QStringList& filters = QStringList() ) const {
-        return MakeEntries( filters );
+        QFileInfoList fi = dir_.entryInfoList( filters );
+        return MakeEntries( fi );
     }
     bool exists() const                 { return dir_.exists(); }  
 
 private:
-
-    QVariantMap MakeEntries( const QStringList& filters ) const {
-        QFileInfoList fi = dir_.entryInfoList( filters );
+    friend class FileSystem;
+    static QVariantMap MakeEntries( QFileInfoList fi ) {
         QVariantMap e;
         for( QFileInfoList::const_iterator i = fi.begin(); i != fi.end(); ++i ) {
             QVariantMap p;

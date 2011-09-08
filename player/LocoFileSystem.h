@@ -46,44 +46,25 @@ public slots:
 
     QString symLinkTarget( const QString& f ) const { return QFile::symLinkTarget( f ); } 
 
-    QMap<QString, QStringList> permissions( const QString& f ) const {
+    QVariantMap permissions( const QString& f ) const {
         return MapPermissions( QFile::permissions( f ) );
     } 
 
-private:
-    QMap<QString, QStringList> MapPermissions( QFile::Permissions fp ) const {
+    QString home() const { return QDir::homePath(); }
 
-        typedef QMap<QString, QStringList> PM;
-        if( fp == 0 ) return PM();
-        PM pm;
-        QStringList sl;
-        //owner
-        if( QFile::ReadOwner  & fp ) sl << "r";
-        if( QFile::WriteOwner & fp ) sl << "w";
-        if( QFile::ExeOwner   & fp ) sl << "x";
-        pm[ "owner" ] = sl;
-        sl.clear();
-        //user
-        if( QFile::ReadUser  & fp ) sl << "r";
-        if( QFile::WriteUser & fp ) sl << "w";
-        if( QFile::ExeUser   & fp ) sl << "x";
-        pm[ "user" ] = sl;
-        sl.clear();
-        //group
-        if( QFile::ReadGroup  & fp ) sl << "r";
-        if( QFile::WriteGroup & fp ) sl << "w";
-        if( QFile::ExeGroup   & fp ) sl << "x";
-        pm[ "group" ] = sl;
-        sl.clear();
-        //world
-        if( QFile::ReadOther  & fp ) sl << "r";
-        if( QFile::WriteOther & fp ) sl << "w";
-        if( QFile::ExeOther   & fp ) sl << "x";
-        pm[ "world" ] = sl;      
-        return pm;
-    }      
+    QString root() const { return QDir::rootPath(); }
+
+    QString curDir() const { return QDir::currentPath(); }
+
+    QString tempPath() const { return QDir::tempPath(); }
+
+    QChar separator() const { return QDir::separator(); }
+
+    QVariantMap drives() const; //windows 
+
 private:
-    QFile file_;
+    QVariantMap MapPermissions( QFile::Permissions fp ) const;
+
 };
 
 }
