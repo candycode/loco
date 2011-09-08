@@ -11,6 +11,10 @@
 #include "EWL.h"
 #include "LocoObjectInfo.h"
 
+//temporary
+#include <iostream>
+
+
 namespace loco {
 
 class Context;
@@ -44,7 +48,19 @@ public:
     void SetType( const QString& t ) { type_ = t; }
     const QString& jsInstanceName() const { return jsInstanceName_; }
     void setJSInstanceName( const QString& jsi ) { jsInstanceName_ = jsi; }
-    virtual ~Object() { DecInstanceCount(); if( info_ ) info_->deleteLater(); }
+    virtual ~Object() { 
+std::cout << "~Object()" << std::endl;        
+        DecInstanceCount(); 
+        if( info_ ) info_->deleteLater();
+    }
+    void Error( const QString& msg ) { 
+        error( msg );
+        emit RiseError( this );
+    }
+ 
+signals:
+    void RiseError( Object* );
+    
 public:
     static int IncInstanceCount()  { 
 	    const int c = instanceCount_.fetchAndAddAcquire( 1 );
