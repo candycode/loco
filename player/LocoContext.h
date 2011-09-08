@@ -54,6 +54,7 @@ public:
         connect( this, SIGNAL( destroyed() ), this, SLOT( RemoveFilters() ) );
         
         AddJSStdObject( this );
+        fileMgr_.SetContext( this );
         AddJSStdObject( &fileMgr_ );
         AddJSStdObject( &console_ );     
         ///@todo should we call AddJavaScriptObjects() here ?
@@ -72,12 +73,12 @@ public:
     // the current context and have the object's lifetime managed by javascript
     // NEVER add root objects from plugins because such objects must be deleted
     // through the plusgin loader's unload method
-    QVariant AddObjToJSContext( Object* obj ) { 
+    QVariant AddObjToJSContext( Object* obj ) {
         webFrame_->addToJavaScriptWindowObject( obj->jsInstanceName(),
                                                 obj,
                                                 QScriptEngine::ScriptOwnership );
         connect( obj, SIGNAL( RiseError( Object* ) ), this, SLOT( OnObjectError( Object* ) ) );
-        return webFrame_->evaluateJavaScript( obj->jsInstanceName() ); 
+        return webFrame_->evaluateJavaScript( obj->jsInstanceName() );
     }
 
     void AddFilter( const QString& id, Filter* f ) { filters_[ id ] = f; }
@@ -94,8 +95,10 @@ private slots:
                  << GL << ".console = " + console_.jsInstanceName() + ";\n"
                  << GL << ".fs = " + fileMgr_.jsInstanceName() + ";\n"
 				 << GL << ".errcback = function() {\n"
-				 <<       "  throw 'LocoException: ' + this.ctx.lastError(); } }\n"; 
+				 <<       "  throw 'LocoException: ' + this.ctx.lastError();\n}"; 
 		jsErrCBack_ = GL + ".errcback();";
+        std::cout << initCode.join("").toStdString() << std::endl << std::endl;
+        std::cout << jsErrCBack_.toStdString() << std::endl;
         webFrame_->evaluateJavaScript( initCode.join( "" ) );
     }
 

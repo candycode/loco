@@ -34,9 +34,6 @@ public slots:
         if( file_.fileName().isEmpty() ) {
             Error( "Empty file name" );
             return false; 
-        } else if( !file_.exists() ) { 
-            Error( "File " + file_.fileName() + " doesn't exist" );
-            return false;
         } else if( !file_.open( MapOpenMode( openMode ) ) ) {
             Error( "File " + file_.fileName() + " open failed" );
             return false;
