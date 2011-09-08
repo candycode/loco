@@ -14,3 +14,5 @@ public:
 };
 
 }
+
+Q_DECLARE_INTERFACE( loco::Filter, "Loco.Filter:1.0" )

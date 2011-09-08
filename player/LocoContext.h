@@ -63,6 +63,14 @@ public:
     
     void AddJSCtxObject( Object* obj ) { jscriptCtxInstances_.push_back( obj ); }
 
+    // call this method from factory objects willing to add new objects into
+    // the current context and have the object's lifetime managed by javascript
+    void AddObjToJSContext( Object* obj ) { 
+        webFrame_->addToJavaScriptWindowObject( obj->jsInstanceName(),
+                                                obj,
+                                                QScriptEngine::ScriptOwnership );
+    }
+
     void AddFilter( const QString& id, Filter* f ) { filters_[ id ] = f; }
             
 public slots:
@@ -107,6 +115,7 @@ public slots:
     void RemoveInstanceObjects() {
         for( JScriptObjCtxInstances::iterator i = jscriptCtxInstances_.begin();
             i != jscriptCtxInstances_.end(); ++i ) {
+            if( (*i) == 0 ) continue;
             if( (*i)->GetContext() == this ) (*i)->destroy();
         }
         for( PluginLoaders::iterator i = ctxPluginLoaders_.begin();
@@ -114,7 +123,7 @@ public slots:
             (*i)->unload();
             (*i)->deleteLater();
         }
-       
+        
         jscriptCtxInstances_.clear();
         ctxPluginLoaders_.clear();
     }
@@ -122,29 +131,25 @@ public slots:
     void RemoveStdObjects() {
         for( JScriptObjCtxInstances::iterator i = jscriptStdObjects_.begin();
             i != jscriptStdObjects_.end(); ++i ) {
-            (*i)->destroy();
-        }
+            if( (*i) == 0 ) continue;
+            if( (*i)->GetContext() == this ) (*i)->destroy();
+        }      
         for( PluginLoaders::iterator i = stdPluginLoaders_.begin();
             i != stdPluginLoaders_.end(); ++i ) {
             (*i)->unload();
             (*i)->deleteLater();
         }
-       
         jscriptStdObjects_.clear();
         stdPluginLoaders_.clear();
     }    
 
    void RemoveFilters() {
-        for( Filters::iterator i = filters_.begin();
-            i != filters_.end(); ++i ) {
-            i.value()->deleteLater();
-        }
-        filters_.clear();
         for( PluginLoaders::iterator i = filterPluginLoaders_.begin();
              i != filterPluginLoaders_.end(); ++i ) {
-            (*i)->unload();
+            (*i)->unload(); // deletes all root (created with instance()) objects
             (*i)->deleteLater();
         } 
+        filters_.clear();
         filterPluginLoaders_.clear(); 
    }  
 
@@ -199,14 +204,17 @@ public slots: // js interface
 			return QVariant();
 		}
 		obj->SetContext( this );
+        obj->SetPluginLoader( pl );
 		if( persistent ) {
 			jscriptStdObjects_.push_back( obj );
+            obj->SetContextPointerToThis( &( jscriptStdObjects_.back() ) );
 			stdPluginLoaders_.push_back( pl );
 		} else {
 			jscriptCtxInstances_.push_back( obj );
+            obj->SetContextPointerToThis( &( jscriptCtxInstances_.back() ) );  
 			ctxPluginLoaders_.push_back( pl );
 		}
-        webFrame_->addToJavaScriptWindowObject( obj->jsInstanceName(), obj );
+        webFrame_->addToJavaScriptWindowObject( obj->jsInstanceName(), obj, QScriptEngine::AutoOwnership );
         return webFrame_->evaluateJavaScript( obj->jsInstanceName() );
     }      
     
