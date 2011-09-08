@@ -3,10 +3,12 @@
 
 #include <QString>
 #include <QFile>
+#include <QDir>
 #include <QMap>
 #include <QStringList>
 
 #include "LocoFile.h"
+#include "LocoDir.h"
 #include "LocoObject.h"
 
 
@@ -22,11 +24,19 @@ public slots:
     
     QVariant fopen( const QString& fname, const QStringList& mode );
 
-    //QVariant dopen() ...directory  
+    QVariant dir( const QString& dirPath = "" );  
 
     bool copy( const QString& f1, const QString& f2 ) const { return QFile::copy( f1, f2); }
 
-    bool exists( const QString& f ) const { return QFile::exists( f ); }
+    bool fexists( const QString& f ) const { 
+        return QFile::exists( f ) && QFileInfo( f ).isFile();
+    }
+
+    bool dexists( const QString& dir ) const { 
+        QDir d;
+        d.setPath( dir );
+        return d.exists() && QFileInfo( dir ).isDir();
+    }
 
     bool link( const QString& target, const QString& lnk ) const { return QFile::link( target, lnk ); }
 
