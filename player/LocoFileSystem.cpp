@@ -1,6 +1,7 @@
 //#SRCHEADER
 #include "LocoContext.h"
 #include "LocoFileSystem.h"
+#include "LocoFSWatcher.h"
 
 namespace loco {
 
@@ -23,6 +24,17 @@ QVariant FileSystem::dir( const QString& dir ) {
     Dir* d = new Dir;   
     QVariant obj = GetContext()->AddObjToJSContext( d );
     if( !dir.isEmpty() ) d->setPath( dir );
+    return obj;
+}
+
+QVariant FileSystem::watcher( const QString& path  ) {    
+    if( GetContext() == 0 ) {
+        error( "NULL Context" );
+        return QVariant();
+    }
+    FSWatcher* f = new FSWatcher;   
+    QVariant obj = GetContext()->AddObjToJSContext( f );
+    if( !path.isEmpty() ) f->addPath( path );
     return obj;
 }
 

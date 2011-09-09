@@ -1,6 +1,8 @@
 #pragma once
 //#SRCHEADER
 
+#include <cstdlib> //for dupenv (win), putenv, getenv
+
 #include <QtWebKit/QWebFrame>
 #include <QApplication>
 #include <QString>
@@ -78,6 +80,7 @@ public:
                                                 obj,
                                                 QScriptEngine::ScriptOwnership );
         ConnectErrCBack( obj );
+        instanceObjs_.push_back( obj );
         return webFrame_->evaluateJavaScript( obj->jsInstanceName() );
     }
 
@@ -145,6 +148,7 @@ private slots:
         ctxPluginLoaders_.clear();
         const bool TEMPORARY = false;
         uriObjectMap_[ TEMPORARY ].clear();
+        instanceObjs_.clear();
     }
 
     void RemoveStdObjects() {
@@ -164,7 +168,7 @@ private slots:
         uriObjectMap_[ PERSISTENT ].clear();
     }    
 
-   void RemoveFilters() {
+    void RemoveFilters() {
         for( PluginLoaders::iterator i = filterPluginLoaders_.begin();
              i != filterPluginLoaders_.end(); ++i ) {
             (*i)->unload(); // deletes all root (created with instance()) objects
@@ -172,7 +176,25 @@ private slots:
         } 
         filters_.clear();
         filterPluginLoaders_.clear(); 
-   }  
+    }
+
+    Object* Find( const QString& jsInstanceName ) {
+        for( JScriptObjCtxInstances::iterator i = instanceObjs_.begin();
+             i != instanceObjs_.end(); ++i ) {
+            if( *i && (*i)->jsInstanceName() == jsInstanceName ) return *i;
+        }
+        for( JScriptObjCtxInstances::iterator i = jscriptStdObjects_.begin();
+             i != jscriptStdObjects_.end(); ++i ) {
+            if( *i && (*i)->jsInstanceName() == jsInstanceName ) return *i;
+        }
+        for( JScriptObjCtxInstances::iterator i = jscriptCtxInstances_.begin();
+             i != jscriptCtxInstances_.end(); ++i ) {
+            if( *i && (*i)->jsInstanceName() == jsInstanceName ) return *i;
+        }
+        return 0;
+    }  
+
+        
 
 public slots:
     // loco::Objects should be connected to this slot to have errors handled by the context
@@ -317,7 +339,17 @@ public slots: // js interface
     QVariantMap cmdLine() const { return cmdLine_; }
     
     QString env( const QString& envVarName ) const {
+#if !defined( Q_WS_WIN )
         return ::getenv( envVarName.toAscii().constData() );
+#else
+        char* p = 0;
+        size_t len = 0;
+        errno_t err = _dupenv_s( &p, &len, envVarName.toStdString().c_str() );
+        if( err ) return "";
+        QString ret( p );
+        free( p );
+        return ret;
+#endif
     }
     
     void registerErrCBack( const QString& code ) { jsErrCBack_ = code; }
@@ -402,9 +434,11 @@ private:
     PluginLoaders filterPluginLoaders_;    
     JScriptObjCtxInstances jscriptStdObjects_;
     JScriptObjCtxInstances jscriptCtxInstances_;
+    JScriptObjCtxInstances instanceObjs_; 
     QString jsErrCBack_;
     URIObjectMap uriObjectMap_;
     URIFilterMap uriFilterMap_;
+    
 };
 
 }

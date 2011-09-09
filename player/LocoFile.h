@@ -83,7 +83,7 @@ public slots:
 
 private:
     
-    QIODevice::OpenMode MapOpenMode( const QStringList& mode ) {
+    static QIODevice::OpenMode MapOpenMode( const QStringList& mode ) {
         QIODevice::OpenMode om = 0;
         for( QStringList::const_iterator i = mode.begin(); i != mode.end(); ++i ) {
             const QString& m = *i;

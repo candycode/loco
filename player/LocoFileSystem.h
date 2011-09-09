@@ -24,7 +24,9 @@ public slots:
     
     QVariant fopen( const QString& fname, const QStringList& mode );
 
-    QVariant dir( const QString& dirPath = "" );  
+    QVariant dir( const QString& dirPath = "" );
+
+    QVariant watcher( const QString& path = "" );  
 
     bool copy( const QString& f1, const QString& f2 ) const { return QFile::copy( f1, f2); }
 

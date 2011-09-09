@@ -25,6 +25,7 @@ class Object : public EWL {
     Q_OBJECT
     Q_PROPERTY( QString name READ name )
     Q_PROPERTY( QString type READ type )
+    Q_PROPERTY( QString jsInstance READ jsInstanceName )
 public:    
     Object( Context* c, 
 		    const QString& n,

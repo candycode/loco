@@ -18,7 +18,7 @@ class Dir : public Object {
     Q_OBJECT
 
 public:
-   Dir() : Object( 0, "LocoDir", "Loco/System/Dir" ) {}
+   Dir() : Object( 0, "LocoDir", "Loco/System/Dir" ) {} 
 
 public slots:
 
@@ -81,11 +81,10 @@ private:
             else if( s == "sys"      ) f |= QDir::System;
             else if( s == "case"     ) f |= QDir::CaseSensitive;
         }
-        return f;  
-    }
+    } 
     static QDir::SortFlags MakeSortFlags( const QStringList& sortFlags ) {
-        if( sortFlags.isEmpty() ) return  QDir::NoSort;
-        QDir::SortFlags f = 0; 
+        if( sortFlags.isEmpty() ) return QDir::NoSort;
+        QDir::SortFlags f = 0;
         for( QStringList::const_iterator i = sortFlags.begin();
              i != sortFlags.end(); ++i ) {
             const QString& s = *i;
@@ -109,22 +108,4 @@ private:
 };
 
 }
-/*
-QDir::Dirs	0x001	List directories that match the filters.
-QDir::AllDirs	0x400	List all directories; i.e. don't apply the filters to directory names.
-QDir::Files	0x002	List files.
-QDir::Drives	0x004	List disk drives (ignored under Unix).
-QDir::NoSymLinks	0x008	Do not list symbolic links (ignored by operating systems that don't support symbolic links).
-QDir::NoDotAndDotDot	0x1000	Do not list the special entries "." and "..".
-QDir::NoDot	0x2000	Do not list the special entry ".".
-QDir::NoDotDot	0x4000	Do not list the special entry "..".
-QDir::AllEntries	Dirs | Files | Drives	List directories, files, drives and symlinks (this does not list broken symlinks unless you specify System).
-QDir::Readable	0x010	List files for which the application has read access. The Readable value needs to be combined with Dirs or Files.
-QDir::Writable	0x020	List files for which the application has write access. The Writable value needs to be combined with Dirs or Files.
-QDir::Executable	0x040	List files for which the application has execute access. The Executable value needs to be combined with Dirs or Files.
-QDir::Modified	0x080	Only list files that have been modified (ignored on Unix).
-QDir::Hidden	0x100	List hidden files (on Unix, files starting with a ".").
-QDir::System	0x200	List system files (on Unix, FIFOs, sockets and device files are included; on Windows, .lnk files are included)
-QDir::CaseSensitive	0x800	The filter should be case sensitive.
 
-*/
