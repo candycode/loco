@@ -32,10 +32,10 @@ public slots:
    
     bool open( const QStringList& openMode ) {
         if( file_.fileName().isEmpty() ) {
-            Error( "Empty file name" );
+            error( "Empty file name" );
             return false; 
         } else if( !file_.open( MapOpenMode( openMode ) ) ) {
-            Error( "File " + file_.fileName() + " open failed" );
+            error( "File " + file_.fileName() + " open failed" );
             return false;
         }
         else return true;             
@@ -43,7 +43,7 @@ public slots:
 
     void close() {
         if( !file_.isOpen() ) {
-            Error( "File close requested on non-open file" );
+            error( "File close requested on non-open file" );
         } else file_.close();
     }
 

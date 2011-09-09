@@ -5,7 +5,10 @@
 namespace loco {
 
 QVariant FileSystem::fopen( const QString& fname, const QStringList& mode ) {
-    if( GetContext() == 0 ) Error( "NULL Context" );
+    if( GetContext() == 0 ) {
+        error( "NULL Context" );
+        return QVariant();
+    }
     File* f = new File;
     QVariant obj = GetContext()->AddObjToJSContext( f );
     f->open( fname, mode );
@@ -13,7 +16,10 @@ QVariant FileSystem::fopen( const QString& fname, const QStringList& mode ) {
 }
 
 QVariant FileSystem::dir( const QString& dir ) {    
-    if( GetContext() == 0 ) Error( "NULL Context" );
+    if( GetContext() == 0 ) {
+        error( "NULL Context" );
+        return QVariant();
+    }
     Dir* d = new Dir;   
     QVariant obj = GetContext()->AddObjToJSContext( d );
     if( !dir.isEmpty() ) d->setPath( dir );

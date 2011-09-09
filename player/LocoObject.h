@@ -48,19 +48,16 @@ public:
     void SetType( const QString& t ) { type_ = t; }
     const QString& jsInstanceName() const { return jsInstanceName_; }
     void setJSInstanceName( const QString& jsi ) { jsInstanceName_ = jsi; }
+    virtual void error( const QString& em ) const { EWL::error( FormatEWLMsg( em ) ); }
+    virtual void warning( const QString& em ) const { EWL::warn( FormatEWLMsg( em ) ); }
+    virtual void log( const QString& em ) const { EWL::log( FormatEWLMsg( em ) ); }
+    virtual bool error() const { return EWL::error(); }
     virtual ~Object() { 
 std::cout << "~Object()" << std::endl;        
         DecInstanceCount(); 
         if( info_ ) info_->deleteLater();
     }
-    void Error( const QString& msg ) { 
-        error( msg );
-        emit RiseError( this );
-    }
- 
-signals:
-    void RiseError( Object* );
-    
+  
 public:
     static int IncInstanceCount()  { 
 	    const int c = instanceCount_.fetchAndAddAcquire( 1 );
@@ -86,6 +83,10 @@ public slots:
         if( contextPtrToThis_ && *contextPtrToThis_ ) {
              *contextPtrToThis_ = 0;
         }
+    }
+private:
+    QString FormatEWLMsg( const QString& msg ) const {
+        return type_ + " " + jsInstanceName_ + ": " + msg; 
     }
 private:
     Context* context_;

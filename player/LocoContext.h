@@ -77,7 +77,7 @@ public:
         webFrame_->addToJavaScriptWindowObject( obj->jsInstanceName(),
                                                 obj,
                                                 QScriptEngine::ScriptOwnership );
-        connect( obj, SIGNAL( RiseError( Object* ) ), this, SLOT( OnObjectError( Object* ) ) );
+        ConnectErrCBack( obj );
         return webFrame_->evaluateJavaScript( obj->jsInstanceName() );
     }
 
@@ -95,7 +95,7 @@ private slots:
                  << GL << ".console = " + console_.jsInstanceName() + ";\n"
                  << GL << ".fs = " + fileMgr_.jsInstanceName() + ";\n"
 				 << GL << ".errcback = function() {\n"
-				 <<       "  throw 'LocoException: ' + this.ctx.lastError();\n}"; 
+				 <<       "  throw 'LocoException: ' + Loco.ctx.lastError();\n}"; 
 		jsErrCBack_ = GL + ".errcback();";
         std::cout << initCode.join("").toStdString() << std::endl << std::endl;
         std::cout << jsErrCBack_.toStdString() << std::endl;
@@ -106,16 +106,16 @@ private slots:
     /// in the parent context available within the child context
     void AddJSStdObjects( QWebFrame* wf ) {
         for( JScriptObjCtxInstances::const_iterator i = jscriptStdObjects_.begin();
-            i != jscriptStdObjects_.end(); ++i ) {
-            connect( *i, SIGNAL( RiseError( Object* ) ), this, SLOT( OnObjectError( Object* ) ) );
+             i != jscriptStdObjects_.end(); ++i ) {
+            ConnectErrCBack( *i );
             wf->addToJavaScriptWindowObject( (*i)->jsInstanceName(), *i );  
         } 
     }
 
     void AddJSCtxObjects( QWebFrame* wf ) {
         for( JScriptObjCtxInstances::const_iterator i = jscriptCtxInstances_.begin();
-            i != jscriptCtxInstances_.end(); ++i ) {
-            connect( *i, SIGNAL( RiseError( Object* ) ), this, SLOT( OnObjectError( Object* ) ) );
+             i != jscriptCtxInstances_.end(); ++i ) {
+             ConnectErrCBack( *i );
             wf->addToJavaScriptWindowObject( (*i)->jsInstanceName(), *i );  
         }
     }
@@ -178,8 +178,8 @@ public slots:
     // loco::Objects should be connected to this slot to have errors handled by the context
     // and indirectly by javascript
     // an object RaiseError signal must be connected to one and only one context instance
-    void OnObjectError( Object* obj ) {
-        error( obj->jsInstanceName() + ": " + obj->lastError() );
+    void OnObjectError( const QString& err ) {
+        error( err );
         webFrame_->evaluateJavaScript( jsErrCBack_ ); 
     } 
 
@@ -379,6 +379,12 @@ public slots: // js interface
             vm[ *kv.begin() ] = *( ++kv.begin() );
         }
         return vm;          
+    }
+
+private:
+    void ConnectErrCBack( Object* obj ) {
+       if( obj == this ) return;  
+       connect( obj, SIGNAL( onError( const QString& ) ), this, SLOT( OnObjectError( const QString& ) ) );
     }
 
 private:
