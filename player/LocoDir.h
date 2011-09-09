@@ -81,6 +81,7 @@ private:
             else if( s == "sys"      ) f |= QDir::System;
             else if( s == "case"     ) f |= QDir::CaseSensitive;
         }
+        return f;
     } 
     static QDir::SortFlags MakeSortFlags( const QStringList& sortFlags ) {
         if( sortFlags.isEmpty() ) return QDir::NoSort;

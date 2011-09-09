@@ -97,8 +97,8 @@ public slots:
         }
         return penv;
     }
-    QByteArray	readAllStandardError() { return p_.readAllStandardError(); }
-    QByteArray	readAllStandardOutput() { return p_.readAllStandardError(); }
+    QString	readAllStandardError() { return p_.readAllStandardError(); }
+    QString	readAllStandardOutput() { return p_.readAllStandardError(); }
     QString readChannel () const {
         if( p_.readChannel() == QProcess::StandardOutput ) return "stdout";
         else if( p_.readChannel() == QProcess::StandardError ) return "stderr";
@@ -128,6 +128,11 @@ public slots:
     bool waitForFinished( int msecs = 30000 ) { return p_.waitForFinished( msecs ); }
     bool waitForStarted ( int msecs = 30000 ) { return p_.waitForStarted( msecs ); }
     QString	workingDirectory() const { return p_.workingDirectory(); }
+    QString read( qint64 maxSize ) { return p_.read( maxSize ); }
+    QString readLine() { return p_.readLine(); } 
+    qint64 write( const QString& d ) { return p_.write( d.toAscii().constData() ); }
+    qint64 write( const QString& d, qint64 maxSize ) { return  p_.write( d.toAscii().constData(), maxSize ); }
+    QString readAll() { return p_.readAll(); }  
 
 private:
     static QIODevice::OpenMode MapOpenMode( const QStringList& mode ) {
@@ -158,7 +163,9 @@ private:
         else error( "Unknown channel mode" );
         return pcm;
     }
-
+   
+private:
+    
     QProcess& GetProcess() { return p_; }   
 
 private:

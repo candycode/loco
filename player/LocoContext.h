@@ -22,6 +22,7 @@
 #include "LocoConsole.h"
 #include "LocoScriptFilter.h"
 #include "LocoFileSystem.h"
+#include "LocoSystem.h"
 
 
 namespace loco {
@@ -58,6 +59,8 @@ public:
         AddJSStdObject( this );
         fileMgr_.SetContext( this );
         AddJSStdObject( &fileMgr_ );
+        system_.SetContext( this );
+        AddJSStdObject( &system_ );
         AddJSStdObject( &console_ );     
         ///@todo should we call AddJavaScriptObjects() here ?
         //AddJavaScriptObjects();
@@ -114,11 +117,10 @@ private slots:
                  << GL << ".ctx = " + this->jsInstanceName() + ";\n"
                  << GL << ".console = " + console_.jsInstanceName() + ";\n"
                  << GL << ".fs = " + fileMgr_.jsInstanceName() + ";\n"
+                 << GL << ".sys = " + system_.jsInstanceName() + ";\n"
 				 << GL << ".errcback = function() {\n"
-				 <<       "  throw 'LocoException: ' + Loco.ctx.lastError();\n}"; 
+				 <<       "  throw 'LocoException: ' + this.ctx.lastError();\n}"; 
 		jsErrCBack_ = GL + ".errcback();";
-        std::cout << initCode.join("").toStdString() << std::endl << std::endl;
-        std::cout << jsErrCBack_.toStdString() << std::endl;
         webFrame_->evaluateJavaScript( initCode.join( "" ) );
     }
 
@@ -427,6 +429,7 @@ private:
     Context* parent_;
     CMDLine cmdLine_;
     FileSystem fileMgr_;
+    System system_;
 
 private:
     Filters filters_;
