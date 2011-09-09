@@ -86,6 +86,23 @@ public:
 
     void AddFilter( const QString& id, Filter* f ) { filters_[ id ] = f; }
 
+    Object* Find( const QString& jsInstanceName ) {
+        for( JScriptObjCtxInstances::iterator i = instanceObjs_.begin();
+             i != instanceObjs_.end(); ++i ) {
+            if( *i && (*i)->jsInstanceName() == jsInstanceName ) return *i;
+        }
+        for( JScriptObjCtxInstances::iterator i = jscriptStdObjects_.begin();
+             i != jscriptStdObjects_.end(); ++i ) {
+            if( *i && (*i)->jsInstanceName() == jsInstanceName ) return *i;
+        }
+        for( JScriptObjCtxInstances::iterator i = jscriptCtxInstances_.begin();
+             i != jscriptCtxInstances_.end(); ++i ) {
+            if( *i && (*i)->jsInstanceName() == jsInstanceName ) return *i;
+        }
+        return 0;
+    }  
+
+
 // attched to internal signals            
 private slots:
 
@@ -177,24 +194,7 @@ private slots:
         filters_.clear();
         filterPluginLoaders_.clear(); 
     }
-
-    Object* Find( const QString& jsInstanceName ) {
-        for( JScriptObjCtxInstances::iterator i = instanceObjs_.begin();
-             i != instanceObjs_.end(); ++i ) {
-            if( *i && (*i)->jsInstanceName() == jsInstanceName ) return *i;
-        }
-        for( JScriptObjCtxInstances::iterator i = jscriptStdObjects_.begin();
-             i != jscriptStdObjects_.end(); ++i ) {
-            if( *i && (*i)->jsInstanceName() == jsInstanceName ) return *i;
-        }
-        for( JScriptObjCtxInstances::iterator i = jscriptCtxInstances_.begin();
-             i != jscriptCtxInstances_.end(); ++i ) {
-            if( *i && (*i)->jsInstanceName() == jsInstanceName ) return *i;
-        }
-        return 0;
-    }  
-
-        
+      
 
 public slots:
     // loco::Objects should be connected to this slot to have errors handled by the context
@@ -418,6 +418,7 @@ private:
        if( obj == this ) return;  
        connect( obj, SIGNAL( onError( const QString& ) ), this, SLOT( OnObjectError( const QString& ) ) );
     }
+
 
 private:
     Console console_;

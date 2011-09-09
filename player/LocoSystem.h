@@ -24,7 +24,7 @@ public:
 public slots:
 
     bool putEnv( const QString& var, const QString& val ) {
-        return ::putenv( ( var + "=" + val ).toAscii().constData() ) == 0;
+        return ::_putenv( ( var + "=" + val ).toAscii().constData() ) == 0;
     }
     
     QString getEnv( const QString& envVarName ) const {
@@ -79,7 +79,6 @@ public slots:
             else if( p.error() == QProcess::ReadError    ) error( "QProcess: ReadError" );
             else if( p.error() == QProcess::UnknownError ) error( "QProcess: UnknownError" );
             else error( "Unknown QProcess::start error" );
-            webFrame_->evaluateJavaScript( jsErrCBack_ );
             return "";
         } else {
             QString output = p.readAllStandardOutput();

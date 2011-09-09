@@ -13,11 +13,12 @@ link_directories( ${QT_LIBRARY_DIR} )
 ####SETUP APPLICATION
 set( MOC_HEADERS 
   LocoConsole.h LocoContext.h EWL.h LocoObject.h LocoFilter.h
-  LocoScriptFilter.h LocoFileSystem.h LocoFile.h LocoDir.h LocoFSWatcher.h ) 
+  LocoScriptFilter.h LocoFileSystem.h LocoFile.h LocoDir.h
+  LocoSystem.h LocoProcess.h LocoFSWatcher.h ) 
 QT4_WRAP_CPP( MOC_SRCS ${MOC_HEADERS} ) 
 
 # App
-set( SRCS loco.cpp LocoObject.cpp LocoFileSystem.cpp ) 
+set( SRCS loco.cpp LocoObject.cpp LocoFileSystem.cpp LocoSystem.cpp LocoProcess.cpp ) 
 set( SRCS_INCLUDE ${MOC_HEADERS} CmdLine.h )
 
 ####SETUP PLUGIN
