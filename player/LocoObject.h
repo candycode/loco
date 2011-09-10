@@ -31,16 +31,18 @@ public:
 		    const QString& n,
 			const QString& type = "", 
 			const QString& module = "",
+            bool destroyable = false,
 			ObjectInfo* objInfo = 0 ) // used only for creating js instance names w/ dynamic loading 
     : context_( c ), name_( n ), type_( type ),
 	  instanceId_( IncInstanceCount() ), module_( module ), info_( objInfo ),
-      contextPtrToThis_( 0 ), pluginLoader_( 0 )  {
+        pluginLoader_( 0 ), destroyable_( destroyable )  {
     	jsInstanceName_ = objNamePrefix_ + module_ + "_" + 
-			              name() + objNameSuffix_ + QString("%1").arg( instanceId_ ); 
+			              name() + objNameSuffix_ + QString("%1").arg( instanceId_ );
+        setObjectName( jsInstanceName_ ); //choose unique name for Qt object instance                   
     }
 	const QString& GetModule() const { return module_; }  
-    void SetContextPointerToThis( Object** ptrToThis ) { contextPtrToThis_ = ptrToThis; }
     void SetPluginLoader( QPluginLoader* pl ) { pluginLoader_ = pl; }
+	QPluginLoader* GetPluginLoader() const { return pluginLoader_; }
     void SetContext( Context* c ) { context_ = c; }
     Context* GetContext() const { return context_; }
     const QString& name() const { return name_; }
@@ -48,18 +50,21 @@ public:
     void SetName( const QString& n ) { name_ = n; }
     void SetType( const QString& t ) { type_ = t; }
     const QString& jsInstanceName() const { return jsInstanceName_; }
-    void setJSInstanceName( const QString& jsi ) { jsInstanceName_ = jsi; }
+    void SetJSInstanceName( const QString& jsi ) { jsInstanceName_ = jsi; }
+    void SetDestroyable( bool d ) { destroyable_ = d; }
+    bool GetDestroyable() const { return destroyable_; }
     virtual void error( const QString& em ) const { EWL::error( FormatEWLMsg( em ) ); }
     virtual void warning( const QString& em ) const { EWL::warn( FormatEWLMsg( em ) ); }
     virtual void log( const QString& em ) const { EWL::log( FormatEWLMsg( em ) ); }
     virtual bool error() const { return EWL::error(); }
-    virtual ~Object() { 
+    virtual ~Object() {
+///@todo remove following line     
 std::cout << "~Object()" << std::endl;        
         DecInstanceCount(); 
         if( info_ ) info_->deleteLater();
     }
   
-public:
+private:
     static int IncInstanceCount()  { 
 	    const int c = instanceCount_.fetchAndAddAcquire( 1 );
 	    return c + 1; 
@@ -67,6 +72,7 @@ public:
     static void DecInstanceCount()  { 
 	    const int c = instanceCount_.fetchAndAddAcquire( -1 );
 	}
+public:    
     static int  GetInstanceCount() { return instanceCount_; }
     static const QString& ObjNamePrefix() { return objNamePrefix_; }
     static const QString& ObjNameSuffix() { return objNameSuffix_; }
@@ -75,16 +81,17 @@ public:
 public slots:
 	ObjectInfo* info() const { return info_; }
     void destroy() {
+        //global objects set from Context must never be destroyed
+        if( !destroyable_ ) {
+            error( "Tried to destroy Loco global object");
+            return;
+        }
         //only destroy non-root (i.e. created with QPluginLoader::instance) objects
-        if( !pluginLoader_ ) deleteLater();
+        if( !pluginLoader_ ) { setParent( 0 ); deleteLater(); }
+        else { pluginLoader_->unload(); }
     }
 public slots:
-    void OnDestroy( QObject* obj ) {
-        //set the pointer to this object in context to NULL
-        if( contextPtrToThis_ && *contextPtrToThis_ ) {
-             *contextPtrToThis_ = 0;
-        }
-    }
+    void OnDestroy( QObject* obj );
 private:
     QString FormatEWLMsg( const QString& msg ) const {
         return type_ + " " + jsInstanceName_ + ": " + msg; 
@@ -97,8 +104,8 @@ private:
     int instanceId_;
 	QString module_;
 	ObjectInfo* info_;
-    Object** contextPtrToThis_;
     QPluginLoader* pluginLoader_;
+    bool destroyable_; 
 private:
     static QAtomicInt instanceCount_;
     static QString objNamePrefix_;

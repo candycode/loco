@@ -14,6 +14,7 @@
 #include <QProcessEnvironment>
 #include <QDir>
 
+#include <algorithm>
 #include <cstdlib>
 
 #include "EWL.h"
@@ -42,7 +43,8 @@ class Context : public Object {
 public:    
     Context( QWebFrame* wf, QApplication* app, const CMDLine& cmdLine,
              Context* parent = 0 ) : Object( 0, "LocoContext", "Loco/Context" ),
-        webFrame_( wf ), app_( app ), parent_( parent ), cmdLine_( cmdLine ) {
+        webFrame_( wf ), app_( app ), parent_( parent ), cmdLine_( cmdLine ),
+        globalContextJSName_( "Loco" ) {
         connect( webFrame_, SIGNAL( javaScriptWindowObjectCleared() ),
                  this, SLOT( RemoveInstanceObjects() ) );
         connect( webFrame_, SIGNAL( javaScriptWindowObjectCleared() ),
@@ -56,6 +58,8 @@ public:
         connect( this, SIGNAL( destroyed() ), this, SLOT( RemoveStdObjects() ) );
         connect( this, SIGNAL( destroyed() ), this, SLOT( RemoveFilters() ) );
         
+        ///@todo remove: all objects must be added from the outside
+        ///do it after having creating a loco::App object 
         AddJSStdObject( this );
         fileMgr_.SetContext( this );
         AddJSStdObject( &fileMgr_ );
@@ -64,15 +68,45 @@ public:
         AddJSStdObject( &console_ );     
         ///@todo should we call AddJavaScriptObjects() here ?
         //AddJavaScriptObjects();
+
+        QStringList initCode;
+        static const QString GL = globalContextJSName_;
+        initCode << "var " << GL << " = {}\n"
+                 << GL << ".ctx = " + this->jsInstanceName() + ";\n"
+                 << GL << ".console = " + console_.jsInstanceName() + ";\n"
+                 << GL << ".fs = " + fileMgr_.jsInstanceName() + ";\n"
+                 << GL << ".sys = " + system_.jsInstanceName() + ";\n"
+                 << GL << ".errcback = function() {\n"
+                 <<       "  throw 'LocoException: ' + this.ctx.lastError();\n}"; 
+        jsErrCBack_ = GL + ".errcback();";
     }
 // called from C++
 public:
 
     // object ownership is transferred to context 
 
-    void AddJSStdObject( Object* obj ) { jscriptStdObjects_.push_back( obj ); }
+    void AddJSStdObject( Object* obj, bool immediateAdd = false ) { 
+        jscriptStdObjects_.push_back( obj );
+        if( immediateAdd ) {
+            if( obj->GetContext() == 0 ) obj->SetContext( this );
+            webFrame_->addToJavaScriptWindowObject( obj->jsInstanceName(), obj );
+            if( obj->GetPluginLoader() == 0 && obj->parent() == 0 ) obj->setParent( this );
+        }
+    }
     
-    void AddJSCtxObject( Object* obj ) { jscriptCtxInstances_.push_back( obj ); }
+    void AddJSCtxObject( Object* obj, bool immediateAdd = false ) {
+        jscriptCtxInstances_.push_back( obj );
+        if( immediateAdd ) {
+            if( obj->GetContext() == 0 ) obj->SetContext( this );
+            webFrame_->addToJavaScriptWindowObject( obj->jsInstanceName(), obj );
+        }
+        if( obj->GetPluginLoader() == 0 && obj->parent() == 0 ) obj->setParent( this );
+    }
+
+    void RemoveJSCtxObject( Object* obj ) {
+        JScriptObjCtxInstances::iterator i = std::find( jscriptCtxInstances_.begin(),  jscriptCtxInstances_.end(), obj );
+        if( i != jscriptCtxInstances_.end() ) jscriptCtxInstances_.erase( i );
+    }
 
     // call this method from factory objects willing to add new objects into
     // the current context and have the object's lifetime managed by javascript
@@ -82,12 +116,16 @@ public:
         webFrame_->addToJavaScriptWindowObject( obj->jsInstanceName(),
                                                 obj,
                                                 QScriptEngine::ScriptOwnership );
+        obj->SetContext( this );
         ConnectErrCBack( obj );
         instanceObjs_.push_back( obj );
         return webFrame_->evaluateJavaScript( obj->jsInstanceName() );
     }
 
-    void AddFilter( const QString& id, Filter* f ) { filters_[ id ] = f; }
+    void AddFilter( const QString& id, Filter* f ) { 
+        if( f->GetPluginLoader() && f->parent() == 0 ) f->setParent( this );
+        filters_[ id ] = f;
+    }
 
     Object* Find( const QString& jsInstanceName ) {
         for( JScriptObjCtxInstances::iterator i = instanceObjs_.begin();
@@ -105,23 +143,36 @@ public:
         return 0;
     }  
 
+    void SetJSGlobalNameForContext( const QString& n ) {
+        globalContextJSName_ = n;
+    }
+
+    const QString GetJSGlobalNameForContext() const {
+        return globalContextJSName_;
+    }
+
+    void SetJSInitCode( QString code,
+                        const QString& placeHolderForCtx = "$ctx",
+                        const QStringList& filterIds = QStringList() ) {
+        QString rc = code.replace( placeHolderForCtx, globalContextJSName_ );
+        jsInitCode_ = filter( rc, filterIds );
+    }
+    
+    const QString& GetJSInitCode() const { return jsInitCode_; }
+    
+    void SetJSErrCBack( const QString& code,
+                        const QStringList& filterIds = QStringList() ) {
+        jsErrCBack_ = filter( code, filterIds );
+    }
+
+    const QString& GetJSErrCBack() const { return jsErrCBack_; }
 
 // attched to internal signals            
 private slots:
 
     /// 
     void InitJScript() {
-        QStringList initCode;
-        static const QString GL = "Loco";
-        initCode << "var " << GL << " = {}\n"
-                 << GL << ".ctx = " + this->jsInstanceName() + ";\n"
-                 << GL << ".console = " + console_.jsInstanceName() + ";\n"
-                 << GL << ".fs = " + fileMgr_.jsInstanceName() + ";\n"
-                 << GL << ".sys = " + system_.jsInstanceName() + ";\n"
-				 << GL << ".errcback = function() {\n"
-				 <<       "  throw 'LocoException: ' + this.ctx.lastError();\n}"; 
-		jsErrCBack_ = GL + ".errcback();";
-        webFrame_->evaluateJavaScript( initCode.join( "" ) );
+       webFrame_->evaluateJavaScript( jsInitCode_ );
     }
 
     /// this slot can be called from child contexts to make objects
@@ -129,7 +180,9 @@ private slots:
     void AddJSStdObjects( QWebFrame* wf ) {
         for( JScriptObjCtxInstances::const_iterator i = jscriptStdObjects_.begin();
              i != jscriptStdObjects_.end(); ++i ) {
+            if( (*i)->GetContext() == 0 ) (*i)->SetContext( this );      
             ConnectErrCBack( *i );
+            if( (*i)->GetPluginLoader() == 0 && (*i)->parent() == 0 ) (*i)->setParent( this );
             wf->addToJavaScriptWindowObject( (*i)->jsInstanceName(), *i );  
         } 
     }
@@ -137,7 +190,9 @@ private slots:
     void AddJSCtxObjects( QWebFrame* wf ) {
         for( JScriptObjCtxInstances::const_iterator i = jscriptCtxInstances_.begin();
              i != jscriptCtxInstances_.end(); ++i ) {
-             ConnectErrCBack( *i );
+            if( (*i)->GetContext() == 0 ) (*i)->SetContext( this );
+            ConnectErrCBack( *i );
+             if( (*i)->GetPluginLoader() == 0 && (*i)->parent() == 0 ) (*i)->setParent( this );
             wf->addToJavaScriptWindowObject( (*i)->jsInstanceName(), *i );  
         }
     }
@@ -278,11 +333,9 @@ public slots: // js interface
         connect( obj, SIGNAL( error( const QString& ) ), this, SLOT( OnError( const QString& ) ) );
 		if( persistent ) {
 			jscriptStdObjects_.push_back( obj );
-            obj->SetContextPointerToThis( &( jscriptStdObjects_.back() ) );
 			stdPluginLoaders_.push_back( pl );
 		} else {
 			jscriptCtxInstances_.push_back( obj );
-            obj->SetContextPointerToThis( &( jscriptCtxInstances_.back() ) );  
 			ctxPluginLoaders_.push_back( pl );
 		}
         uriObjectMap_[ persistent ][ uri ] = obj;
@@ -442,6 +495,8 @@ private:
     QString jsErrCBack_;
     URIObjectMap uriObjectMap_;
     URIFilterMap uriFilterMap_;
+    QString globalContextJSName_;
+    QString jsInitCode_;
     
 };
 
