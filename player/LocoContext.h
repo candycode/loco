@@ -48,7 +48,10 @@ struct IJavaScriptInit {
 class Context : public Object {
     Q_OBJECT  
 
-public:    
+public:
+    Context() : Object( 0, "LocoContext", "Loco/Context" ),
+     globalContextJSName_( "Loco" ), jsInitGenerator_( 0 ) {}   
+    
     Context( QWebFrame* wf, QApplication* app, const CMDLine& cmdLine,
              Context* parent = 0 );
 
@@ -57,6 +60,8 @@ public:
 		// the 'destroyed' signal
 		delete jsInitGenerator_;
 	}   
+
+    void Init( QWebFrame* wf, QApplication* app = 0, const CMDLine& cmdLine = CMDLine(), Context* parent = 0 );
 // called from C++
 public:
 

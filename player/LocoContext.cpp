@@ -25,16 +25,31 @@ Context::Context( QWebFrame* wf, QApplication* app, const CMDLine& cmdLine,
     connect( this, SIGNAL( destroyed() ), this, SLOT( RemoveStdObjects() ) );
     connect( this, SIGNAL( destroyed() ), this, SLOT( RemoveFilters() ) );
     
-    ///@todo remove: all objects must be added from the outside
-    ///do it after having created a loco::App object 
-    AddJSStdObject( this );
-    fileMgr_.SetContext( this );
-    AddJSStdObject( &fileMgr_ );
-    system_.SetContext( this );
-    AddJSStdObject( &system_ );
-    AddJSStdObject( &console_ ); 
+  	jsInitGenerator_ = new DefaultJSInit( this );
+}
 
-	jsInitGenerator_ = new DefaultJSInit( this );
+void Context::Init( QWebFrame* wf, QApplication* app, const CMDLine& cmdLine,
+                    Context* parent ) {
+
+    webFrame_ = wf,
+    app_ = app;
+    parent_ = parent,
+    cmdLine_ = cmdLine;
+    
+    connect( webFrame_, SIGNAL( javaScriptWindowObjectCleared() ),
+         this, SLOT( RemoveInstanceObjects() ) );
+    connect( webFrame_, SIGNAL( javaScriptWindowObjectCleared() ),
+         this, SLOT( RemoveFilters() ) );
+    connect( webFrame_, SIGNAL( javaScriptWindowObjectCleared() ),
+         this, SLOT( AddJavaScriptObjects() ) );
+    connect( webFrame_, SIGNAL( javaScriptWindowObjectCleared() ),
+         this, SLOT( InitJScript() ) );
+
+    connect( this, SIGNAL( destroyed() ), this, SLOT( RemoveInstanceObjects() ) );
+    connect( this, SIGNAL( destroyed() ), this, SLOT( RemoveStdObjects() ) );
+    connect( this, SIGNAL( destroyed() ), this, SLOT( RemoveFilters() ) );
+    
+    jsInitGenerator_ = new DefaultJSInit( this );
 }
 
 Object* Context::Find( const QString& jsInstanceName ) const {
