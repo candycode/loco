@@ -13,6 +13,7 @@
 #include <QProcess>
 #include <QProcessEnvironment>
 #include <QDir>
+#include <QPointer>
 
 #include <algorithm>
 #include <cstdlib>
@@ -37,8 +38,17 @@ typedef QList< Object* > JScriptObjCtxInstances;
 typedef QMap< bool, QMap< QString, Object* > > URIObjectMap;
 typedef QMap< QString, Filter* > URIFilterMap;
 
+struct IJavaScriptInit {
+    virtual void SetContext( Context*  ) = 0;
+    virtual QString GenerateCode() const = 0;
+    virtual ~IJavaScriptInit() = 0 {}    
+};
+
+
+
+
 class Context : public Object {
-    Q_OBJECT
+    Q_OBJECT  
 
 public:    
     Context( QWebFrame* wf, QApplication* app, const CMDLine& cmdLine,
@@ -80,6 +90,13 @@ public:
                  <<       "  throw 'LocoException: ' + this.ctx.lastError();\n}"; 
         jsErrCBack_ = GL + ".errcback();";
     }
+
+    ~Context() {
+		// remove non-QObject-derived objects; the others are deleted from slots attached to
+		// the 'destroyed' signal
+		RemoveStdObjects();
+		delete jsInitGenerator_;
+	}   
 // called from C++
 public:
 
@@ -147,19 +164,14 @@ public:
         globalContextJSName_ = n;
     }
 
-    const QString GetJSGlobalNameForContext() const {
+    const QString& GetJSGlobalNameForContext() const {
         return globalContextJSName_;
     }
 
-    void SetJSInitCode( QString code,
-                        const QString& placeHolderForCtx = "$ctx",
-                        const QStringList& filterIds = QStringList() ) {
-        QString rc = code.replace( placeHolderForCtx, globalContextJSName_ );
-        jsInitCode_ = filter( rc, filterIds );
-    }
-    
-    const QString& GetJSInitCode() const { return jsInitCode_; }
-    
+	void SetJSInitializer( IJavaScriptInit* jsi ) { jsInitGenerator_ = jsi; } 
+
+	IJavaScriptInit* GetJSInitializer() const { return jsInitGenerator_; }
+      
     void SetJSErrCBack( const QString& code,
                         const QStringList& filterIds = QStringList() ) {
         jsErrCBack_ = filter( code, filterIds );
@@ -167,12 +179,21 @@ public:
 
     const QString& GetJSErrCBack() const { return jsErrCBack_; }
 
+    void SetJSInitGenerator( IJavaScriptInit* jsi ) { 
+        jsInitGenerator_ = jsi;
+    }
+
+    IJavaScriptInit* GetJSInitGenerator() const { return jsInitGenerator_; }
+
+	const JScriptObjCtxInstances& GetStdJSObjects() const { return jscriptStdObjects_; }
+
 // attched to internal signals            
 private slots:
 
     /// 
     void InitJScript() {
-       webFrame_->evaluateJavaScript( jsInitCode_ );
+        if( jsInitCode_.isEmpty() ) jsInitCode_ = jsInitGenerator_->GenerateCode();   
+        webFrame_->evaluateJavaScript( jsInitCode_ );
     }
 
     /// this slot can be called from child contexts to make objects
@@ -251,7 +272,7 @@ private slots:
         filters_.clear();
         filterPluginLoaders_.clear(); 
     }
-      
+	
 
 public slots:
     // loco::Objects should be connected to this slot to have errors handled by the context
@@ -469,11 +490,11 @@ public slots: // js interface
     }
 
 private:
+    
     void ConnectErrCBack( Object* obj ) {
        if( obj == this ) return;  
        connect( obj, SIGNAL( onError( const QString& ) ), this, SLOT( OnObjectError( const QString& ) ) );
     }
-
 
 private:
     Console console_;
@@ -497,7 +518,50 @@ private:
     URIFilterMap uriFilterMap_;
     QString globalContextJSName_;
     QString jsInitCode_;
+ private: 
+   IJavaScriptInit* jsInitGenerator_;      
     
 };
 
+class DefaultJSInit : IJavaScriptInit {
+public:
+    DefaultJSInit( Context* ctx ) : ctx_( ctx ) {
+        dictionary_[ "Context"    ] = "ctx";
+        dictionary_[ "FileSystem "] = "fs";
+        dictionary_[ "System"     ] = "sys";  
+    }
+    void SetContext( Context* ctx ) { ctx_ = ctx; }    
+    QString GenerateCode() const {
+        const QString& GL = ctx_->GetJSGlobalNameForContext();
+        QStringList sl;
+        sl << "var " + GL + " = {";
+        const JScriptObjCtxInstances& stdObjs = ctx_->GetStdJSObjects();
+        for( JScriptObjCtxInstances::const_iterator i = stdObjs.begin();
+             i != stdObjs.end(); ++i ) {
+           // sl << "." << ConvertNameToJS( (i*)->name() ) << ": " << (*i)->jsInstanceName() << ",";         
+        }
+        sl << "};";
+        return sl.join( "\n" );
+    }
+    void ResetMap() { dictionary_.clear(); }
+    void Map( const QString& key, const QString& value ) {
+        dictionary_[ key ] = value;
+    }
+private:
+    typedef QMap< QString, QString > Dictionary;
+    QString ConvertNameToJS( const QString& n ) {
+        QRegExp r( "Loco(.+)" );
+        if( r.indexIn( n ) == QString( "Loco" ).length() ) {
+            QString cap = r.cap( 1 ).toLower();
+            Dictionary::const_iterator i = dictionary_.find( cap );
+            if( i != dictionary_.end() ) return i.value();
+            else return cap; 
+        }
+        else return n; 
+    }
+private:
+    Context*   ctx_;
+    Dictionary dictionary_;        
+
+};
 }
