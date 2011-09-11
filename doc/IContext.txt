@@ -11,3 +11,19 @@ Interface IContext:
                              const QStringList& filterIds = QStringList() ) = 0;
  virtual const QString& GetJSErrCBack() const = 0;                             
 
+Methods to move into separate objects:
+
+
+AddToLocalAllow()
+AddToLocalDeny()
+AddToRemoteAllow()
+AddToRemoteDeny()
+for entry in deny
+  if entry.match( url ) return false
+
+for entry in allow
+  if entry.match( url ) return true
+
+return false  
+ 
+
