@@ -45,56 +45,16 @@ struct IJavaScriptInit {
 };
 
 
-
-
 class Context : public Object {
     Q_OBJECT  
 
 public:    
     Context( QWebFrame* wf, QApplication* app, const CMDLine& cmdLine,
-             Context* parent = 0 ) : Object( 0, "LocoContext", "Loco/Context" ),
-        webFrame_( wf ), app_( app ), parent_( parent ), cmdLine_( cmdLine ),
-        globalContextJSName_( "Loco" ) {
-        connect( webFrame_, SIGNAL( javaScriptWindowObjectCleared() ),
-                 this, SLOT( RemoveInstanceObjects() ) );
-        connect( webFrame_, SIGNAL( javaScriptWindowObjectCleared() ),
-                 this, SLOT( RemoveFilters() ) );
-        connect( webFrame_, SIGNAL( javaScriptWindowObjectCleared() ),
-                 this, SLOT( AddJavaScriptObjects() ) );
-        connect( webFrame_, SIGNAL( javaScriptWindowObjectCleared() ),
-                 this, SLOT( InitJScript() ) );
-
-        connect( this, SIGNAL( destroyed() ), this, SLOT( RemoveInstanceObjects() ) );
-        connect( this, SIGNAL( destroyed() ), this, SLOT( RemoveStdObjects() ) );
-        connect( this, SIGNAL( destroyed() ), this, SLOT( RemoveFilters() ) );
-        
-        ///@todo remove: all objects must be added from the outside
-        ///do it after having creating a loco::App object 
-        AddJSStdObject( this );
-        fileMgr_.SetContext( this );
-        AddJSStdObject( &fileMgr_ );
-        system_.SetContext( this );
-        AddJSStdObject( &system_ );
-        AddJSStdObject( &console_ );     
-        ///@todo should we call AddJavaScriptObjects() here ?
-        //AddJavaScriptObjects();
-
-        QStringList initCode;
-        static const QString GL = globalContextJSName_;
-        initCode << "var " << GL << " = {}\n"
-                 << GL << ".ctx = " + this->jsInstanceName() + ";\n"
-                 << GL << ".console = " + console_.jsInstanceName() + ";\n"
-                 << GL << ".fs = " + fileMgr_.jsInstanceName() + ";\n"
-                 << GL << ".sys = " + system_.jsInstanceName() + ";\n"
-                 << GL << ".errcback = function() {\n"
-                 <<       "  throw 'LocoException: ' + this.ctx.lastError();\n}"; 
-        jsErrCBack_ = GL + ".errcback();";
-    }
+             Context* parent = 0 );
 
     ~Context() {
 		// remove non-QObject-derived objects; the others are deleted from slots attached to
 		// the 'destroyed' signal
-		RemoveStdObjects();
 		delete jsInitGenerator_;
 	}   
 // called from C++
@@ -104,10 +64,10 @@ public:
 
     void AddJSStdObject( Object* obj, bool immediateAdd = false ) { 
         jscriptStdObjects_.push_back( obj );
+        if( obj->GetContext() == 0 ) obj->SetContext( this );
+        if( obj->GetPluginLoader() == 0 && obj->parent() == 0 && obj != this ) obj->setParent( this );
         if( immediateAdd ) {
-            if( obj->GetContext() == 0 ) obj->SetContext( this );
             webFrame_->addToJavaScriptWindowObject( obj->jsInstanceName(), obj );
-            if( obj->GetPluginLoader() == 0 && obj->parent() == 0 ) obj->setParent( this );
         }
     }
     
@@ -121,7 +81,8 @@ public:
     }
 
     void RemoveJSCtxObject( Object* obj ) {
-        JScriptObjCtxInstances::iterator i = std::find( jscriptCtxInstances_.begin(),  jscriptCtxInstances_.end(), obj );
+        JScriptObjCtxInstances::iterator i = 
+            std::find( jscriptCtxInstances_.begin(),  jscriptCtxInstances_.end(), obj );
         if( i != jscriptCtxInstances_.end() ) jscriptCtxInstances_.erase( i );
     }
 
@@ -144,21 +105,7 @@ public:
         filters_[ id ] = f;
     }
 
-    Object* Find( const QString& jsInstanceName ) {
-        for( JScriptObjCtxInstances::iterator i = instanceObjs_.begin();
-             i != instanceObjs_.end(); ++i ) {
-            if( *i && (*i)->jsInstanceName() == jsInstanceName ) return *i;
-        }
-        for( JScriptObjCtxInstances::iterator i = jscriptStdObjects_.begin();
-             i != jscriptStdObjects_.end(); ++i ) {
-            if( *i && (*i)->jsInstanceName() == jsInstanceName ) return *i;
-        }
-        for( JScriptObjCtxInstances::iterator i = jscriptCtxInstances_.begin();
-             i != jscriptCtxInstances_.end(); ++i ) {
-            if( *i && (*i)->jsInstanceName() == jsInstanceName ) return *i;
-        }
-        return 0;
-    }  
+    Object* Find( const QString& jsInstanceName ) const;
 
     void SetJSGlobalNameForContext( const QString& n ) {
         globalContextJSName_ = n;
@@ -179,7 +126,9 @@ public:
 
     const QString& GetJSErrCBack() const { return jsErrCBack_; }
 
-    void SetJSInitGenerator( IJavaScriptInit* jsi ) { 
+    void SetJSInitGenerator( IJavaScriptInit* jsi ) {
+        if( jsi == jsInitGenerator_ ) return;
+        delete jsInitGenerator_;
         jsInitGenerator_ = jsi;
     }
 
@@ -328,41 +277,8 @@ public slots: // js interface
         } 
     }
 
-    ///\todo properly handle memory
     QVariant loadObject( const QString& uri,  //used as a regular file path for now
-                         bool persistent = false ) { 
-        if( uriObjectMap_[ persistent ].find( uri ) != uriObjectMap_[ persistent ].end() ) {
-            Object* obj = uriObjectMap_[ persistent ][ uri ];
-            return webFrame_->evaluateJavaScript( obj->jsInstanceName() );
-        }
-        QPluginLoader* pl = new QPluginLoader( uri );
-		if( !pl->load() ) {
-			delete pl;
-			error( "Cannot load " + uri );
-			webFrame_->evaluateJavaScript( jsErrCBack_ );
-			return QVariant();
-		} 			
-        Object* obj = qobject_cast< ::loco::Object* >( pl->instance() );
-        if( !obj ) {
-			delete pl;
-			error( "Wrong object type " + uri );
-			webFrame_->evaluateJavaScript( jsErrCBack_ );
-			return QVariant();
-		}
-		obj->SetContext( this );
-        obj->SetPluginLoader( pl );
-        connect( obj, SIGNAL( error( const QString& ) ), this, SLOT( OnError( const QString& ) ) );
-		if( persistent ) {
-			jscriptStdObjects_.push_back( obj );
-			stdPluginLoaders_.push_back( pl );
-		} else {
-			jscriptCtxInstances_.push_back( obj );
-			ctxPluginLoaders_.push_back( pl );
-		}
-        uriObjectMap_[ persistent ][ uri ] = obj;
-        webFrame_->addToJavaScriptWindowObject( obj->jsInstanceName(), obj );
-        return webFrame_->evaluateJavaScript( obj->jsInstanceName() );
-    }      
+                         bool persistent = false );
     
     QString filter( QString code, const QStringList& filterIds = QStringList() ) {
         for( QStringList::const_iterator f = filterIds.begin();
@@ -430,40 +346,7 @@ public slots: // js interface
     
     void registerErrCBack( const QString& code ) { jsErrCBack_ = code; }
 
-    QString system( const QString& program,
-                    const QStringList& args = QStringList(),
-                    const QVariantMap& env  = QVariantMap(),
-                    int timeout = 10000 ) const {
-        QProcessEnvironment pe;
-        for( QVariantMap::const_iterator i = env.begin();
-             i != env.end(); ++i ) {
-            const QString& envVar = i.key();
-            if( envVar.size() == 0 ) continue;
-            const QVariant& v = i.value();
-            if( v.isNull() || !v.isValid() /*|| v.toString().isEmtpy()*/ ) continue;
-            pe.insert( i.key(), v.toString() );
-        }
-        QProcess p;
-        p.setProcessEnvironment( pe );
-        p.start( program, args );
-        const bool wff = p.waitForFinished( timeout );
-        if( !wff ) {
-            if( p.error() == QProcess::FailedToStart     ) error( "QProcess: FailedToStart" );
-            else if( p.error() == QProcess::Crashed      ) error( "QProcess: Crashed" );
-            else if( p.error() == QProcess::Timedout     ) error( "QProcess: Timedout" );
-            else if( p.error() == QProcess::WriteError   ) error( "QProcess: WriteError" );
-            else if( p.error() == QProcess::ReadError    ) error( "QProcess: ReadError" );
-            else if( p.error() == QProcess::UnknownError ) error( "QProcess: UnknownError" );
-            else error( "Unknown QProcess::start error" );
-            webFrame_->evaluateJavaScript( jsErrCBack_ );
-            return "";
-        } else {
-            QString output = p.readAllStandardOutput();
-            if( output.size() == 0 ) output = p.readAllStandardError();
-            return output;
-        }                          
-    }
-
+    
     QString qtVersion() const { return qVersion(); }
 
     QString os() const {
@@ -521,47 +404,5 @@ private:
  private: 
    IJavaScriptInit* jsInitGenerator_;      
     
-};
-
-class DefaultJSInit : IJavaScriptInit {
-public:
-    DefaultJSInit( Context* ctx ) : ctx_( ctx ) {
-        dictionary_[ "Context"    ] = "ctx";
-        dictionary_[ "FileSystem "] = "fs";
-        dictionary_[ "System"     ] = "sys";  
-    }
-    void SetContext( Context* ctx ) { ctx_ = ctx; }    
-    QString GenerateCode() const {
-        const QString& GL = ctx_->GetJSGlobalNameForContext();
-        QStringList sl;
-        sl << "var " + GL + " = {";
-        const JScriptObjCtxInstances& stdObjs = ctx_->GetStdJSObjects();
-        for( JScriptObjCtxInstances::const_iterator i = stdObjs.begin();
-             i != stdObjs.end(); ++i ) {
-           // sl << "." << ConvertNameToJS( (i*)->name() ) << ": " << (*i)->jsInstanceName() << ",";         
-        }
-        sl << "};";
-        return sl.join( "\n" );
-    }
-    void ResetMap() { dictionary_.clear(); }
-    void Map( const QString& key, const QString& value ) {
-        dictionary_[ key ] = value;
-    }
-private:
-    typedef QMap< QString, QString > Dictionary;
-    QString ConvertNameToJS( const QString& n ) {
-        QRegExp r( "Loco(.+)" );
-        if( r.indexIn( n ) == QString( "Loco" ).length() ) {
-            QString cap = r.cap( 1 ).toLower();
-            Dictionary::const_iterator i = dictionary_.find( cap );
-            if( i != dictionary_.end() ) return i.value();
-            else return cap; 
-        }
-        else return n; 
-    }
-private:
-    Context*   ctx_;
-    Dictionary dictionary_;        
-
 };
 }

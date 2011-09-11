@@ -18,8 +18,9 @@ set( MOC_HEADERS
 QT4_WRAP_CPP( MOC_SRCS ${MOC_HEADERS} ) 
 
 # App
-set( SRCS loco.cpp LocoObject.cpp LocoFileSystem.cpp LocoSystem.cpp LocoProcess.cpp ) 
-set( SRCS_INCLUDE ${MOC_HEADERS} CmdLine.h )
+set( SRCS loco.cpp LocoObject.cpp LocoFileSystem.cpp LocoSystem.cpp
+     LocoProcess.cpp LocoContext.cpp ) 
+set( SRCS_INCLUDE ${MOC_HEADERS} CmdLine.h LocoDefaultJSInit.h )
 
 ####SETUP PLUGIN
 set( MOC_HEADERS_PLUGIN EWL.h LocoObject.h plugins/LocoTestPlugin.h ) 

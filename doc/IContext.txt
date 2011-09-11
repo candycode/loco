@@ -1,0 +1,13 @@
+Interface IContext:
+
+ virtual void AddJSStdObject( Object* obj, bool immediateAdd = false ) = 0;
+ virtual void AddJSCtxObject( Object* obj, bool immediateAdd = false ) = 0;
+ virtual void RemoveJSCtxObject( Object* obj ) = 0;
+ virtual QVariant AddObjToJSContext( Object* obj ) = 0;
+ virtual Object* Find( const QString& jsInstanceName ) = 0;
+ virtual void SetJSGlobalNameForContext() = 0;
+ virtual const QString& GetJSGlobalNameForContext() const = 0;
+ virtual void SetJSErrCBack( const QString& code,
+                             const QStringList& filterIds = QStringList() ) = 0;
+ virtual const QString& GetJSErrCBack() const = 0;                             
+
