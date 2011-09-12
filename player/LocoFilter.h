@@ -4,6 +4,7 @@
 #include "EWL.h"
 
 #include <QString>
+#include <QByteArray>
 
 class QPluginLoader;
 
@@ -13,6 +14,7 @@ class Filter : public EWL {
     Q_OBJECT
 public:
     virtual QString Apply( const QString& ) const = 0;
+    virtual QByteArray Apply( const QByteArray& ) const = 0;
     void SetPluginLoader( QPluginLoader* pl ) { pl_ = pl; }
     QPluginLoader* GetPluginLoader() const { return pl_; }
 private:

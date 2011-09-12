@@ -62,7 +62,16 @@ public slots:
 
     QChar separator() const { return QDir::separator(); }
 
-    QVariantMap drives() const; //windows 
+    QVariantMap drives() const; //windows
+
+    QString toNativeSeparators( const QString& inpath ) const {
+        return QDir::toNativeSeparators( inpath );
+    }
+
+    QString fromNativeSeparators( const QString& inpath ) const {
+        return QDir::fromNativeSeparators( inpath );
+    }
+        
 
 private:
     QVariantMap MapPermissions( QFile::Permissions fp ) const;

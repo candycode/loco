@@ -24,6 +24,7 @@ public:
     void SetJErrCode( const QString& f ) { jerrfun_ = f; }
     const QString& GetJErrCode() const { return jerrfun_; }
 public:
+    QByteArray Apply( const QByteArray& ) const { return QByteArray(); } 
     QString Apply( const QString& s ) const {
         QVariant r;
         // no placeholder, assume it's a function call

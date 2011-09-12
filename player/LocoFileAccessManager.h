@@ -48,21 +48,12 @@ public:
         }
         return false;
     }
-    QByteArray read( const QString& filepath ) {
-        if( !CheckAccess( filepath ) ) {
-            emit UnauthorizedFileAccess( filepath );
-            return QByteArray();
-        }
-        
-    }      
-
 private:
     QRegExp::PatternSyntax rxPattern_;
     bool filterRequests_; 
     bool allowFileAccess_;
     RegExps allow_;
     RegExps deny_;     
-
 };
 
 }

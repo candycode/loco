@@ -15,6 +15,8 @@
 #include <QDir>
 #include <QPointer>
 #include <QtNetwork/QNetworkAccessManager>
+#include <QSet>
+#include <QUrl>
 
 #include <algorithm>
 #include <cstdlib>
@@ -165,6 +167,14 @@ public:
 
     const FileAccessManager* GetFileAccessManager() const { return fileAccessMgr_; }
 
+    void SetMaxRedirections( int r ) { maxNetRedirections_ = r; }
+
+    int GetMaxRedirection() const { return maxNetRedirections_; }
+
+    void SetNetReadTimeout( int ms ) { readNetworkTimeout_ = ms; }
+
+    int GetNetReadTimeout() const { return readNetworkTimeout_; }
+
 // attched to internal signals            
 private slots:
 
@@ -289,6 +299,24 @@ public:
     }
 private:
 
+    QByteArray Filter( QByteArray data, const QStringList& filterIds = QStringList() ) {
+        for( QStringList::const_iterator f = filterIds.begin();
+             f != filterIds.end(); ++f ) { 
+            Filters::iterator i = filters_.find( *f );
+            if( i != filters_.end() ) {
+                ::loco::Filter* fp =  i.value();
+                data = fp->Apply( data );
+                if( fp->error() ) error( fp->lastError() );
+                break;                 
+            }
+            else {
+    	        error( "filter id " + *f + " not found" );
+    	        break;
+            }
+        }
+        return error() ? QByteArray() : data; 
+    }
+
     QString Filter( QString code, const QStringList& filterIds = QStringList() ) {
         for( QStringList::const_iterator f = filterIds.begin();
              f != filterIds.end(); ++f ) { 
@@ -345,6 +373,38 @@ private:
         jsErrCBack_ = Filter( code, filters );
     }
 
+    QByteArray Read( const QString& uri, const QStringList& filters = QStringList() ) {
+        // resources: ':/' -> file; 'qrc://' -> url
+        QByteArray ret = uri.contains( "://" ) ? ReadUrl( uri ) : ReadFile( uri );
+        if( !ret.isEmpty() ) return Filter( ret, filters );
+        return ret;
+    }
+
+    QVariant Insert( const QString& uri, const QStringList& filters = QStringList() ) {
+        QString code = Read( uri, filters );
+        if( code.isEmpty() ) return false;
+        return Eval( code );
+    }
+
+    QVariant Require( QString uri, const QStringList& filters = QStringList() ) {
+        if( !uri.startsWith( ":" ) && !uri.contains( "://" ) ) {
+            QDir d;
+            uri = d.absoluteFilePath( uri );    
+        } 
+        if( requireSet_.find( uri ) != requireSet_.end() ) return QVariant(); 
+        QString code = Read( uri, filters );
+        if( code.isEmpty() ) return false;
+        requireSet_.insert( uri );
+        return Eval( code );
+    } 
+
+private:
+    QByteArray ReadUrl( const QString& url, QSet< QUrl > redirects = QSet< QUrl >() );
+
+    QByteArray ReadFile( const QString& f );
+
+    void jsErr() { webFrame_->evaluateJavaScript( jsErrCBack_ ); }
+
 private:
     JSContext* jsContext_;
     Console console_;
@@ -368,11 +428,15 @@ private:
     URIFilterMap uriFilterMap_;
     QString globalContextJSName_;
     QString jsInitCode_;
- private: 
+private: 
     IJavaScriptInit* jsInitGenerator_; 
     NetworkAccessManager* netAccessMgr_;
-    FileAccessManager* fileAccessMgr_;     
-    
+    FileAccessManager* fileAccessMgr_;
+private:
+    QSet< QString > requireSet_;
+private:
+    int readNetworkTimeout_;
+    int maxNetRedirections_;        
 };
 
 //==============================================================================
@@ -494,6 +558,7 @@ public slots: // js interface
         }
         return vm;          
     }
+
 private slots:
     //forward errors received from Context,
     friend class Context; 
