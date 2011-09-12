@@ -24,7 +24,7 @@ public:
         const JScriptObjCtxInstances& stdObjs = ctx_->GetStdJSObjects();
         for( JScriptObjCtxInstances::const_iterator i = stdObjs.begin();
              i != stdObjs.end(); ++i ) {
-           // sl << "." << ConvertNameToJS( (i*)->name() ) << ": " << (*i)->jsInstanceName() << ",";         
+            sl << "." << ConvertNameToJS( (*i)->name() ) << ": " << (*i)->jsInstanceName() << ",";         
         }
         sl << "};";
         return sl.join( "\n" );
@@ -35,7 +35,7 @@ public:
     }
 private:
     typedef QMap< QString, QString > Dictionary;
-    QString ConvertNameToJS( const QString& n ) {
+    QString ConvertNameToJS( const QString& n ) const {
         QRegExp r( "Loco(.+)" );
         if( r.indexIn( n ) == QString( "Loco" ).length() ) {
             QString cap = r.cap( 1 ).toLower();

@@ -7,26 +7,36 @@
 
 namespace loco {
 
+
+Context::Context() : jsContext_( new JSContext( *this ) ), webFrame_( 0 ),
+                     app_( 0 ), parent_( 0 ), globalContextJSName_( "Loco" ),
+                     jsInitGenerator_( 0 ) {} 
+
+
 Context::Context( QWebFrame* wf, QApplication* app, const CMDLine& cmdLine,
                   Context* parent)
-: Object( 0, "LocoContext", "Loco/Context" ),
+:   jsContext_( new JSContext( *this ) ),
     webFrame_( wf ), app_( app ), parent_( parent ), cmdLine_( cmdLine ),
     globalContextJSName_( "Loco" ), jsInitGenerator_( 0 ) {
-    connect( webFrame_, SIGNAL( javaScriptWindowObjectCleared() ),
-         this, SLOT( RemoveInstanceObjects() ) );
-    connect( webFrame_, SIGNAL( javaScriptWindowObjectCleared() ),
-         this, SLOT( RemoveFilters() ) );
-    connect( webFrame_, SIGNAL( javaScriptWindowObjectCleared() ),
-         this, SLOT( AddJavaScriptObjects() ) );
-    connect( webFrame_, SIGNAL( javaScriptWindowObjectCleared() ),
-         this, SLOT( InitJScript() ) );
 
-    connect( this, SIGNAL( destroyed() ), this, SLOT( RemoveInstanceObjects() ) );
-    connect( this, SIGNAL( destroyed() ), this, SLOT( RemoveStdObjects() ) );
-    connect( this, SIGNAL( destroyed() ), this, SLOT( RemoveFilters() ) );
-    
-  	jsInitGenerator_ = new DefaultJSInit( this );
+    Init( wf, app, cmdLine, parent );
 }
+
+Context::~Context() {
+    // remove non-QObject-derived objects; the others are deleted from slots attached to
+    // the 'destroyed' signal
+    delete jsInitGenerator_;
+    delete jsContext_;
+}   
+
+void Context::AddContextToJS() { AddJSStdObject( jsContext_ ); }
+
+void Context::ConnectErrCBack( Object* obj ) {
+    if( obj == jsContext_ ) return;  
+    connect( obj, SIGNAL( onError( const QString& ) ), this, SLOT( OnObjectError( const QString& ) ) );
+}
+
+
 
 void Context::Init( QWebFrame* wf, QApplication* app, const CMDLine& cmdLine,
                     Context* parent ) {
@@ -49,6 +59,9 @@ void Context::Init( QWebFrame* wf, QApplication* app, const CMDLine& cmdLine,
     connect( this, SIGNAL( destroyed() ), this, SLOT( RemoveStdObjects() ) );
     connect( this, SIGNAL( destroyed() ), this, SLOT( RemoveFilters() ) );
     
+    //allow js context to receive errors from context and emit signals
+    connect( this, SIGNAL( onError( const QString&) ), jsContext_, SLOT( ForwardError( const QString& ) ) );
+
     jsInitGenerator_ = new DefaultJSInit( this );
 }
 
@@ -68,7 +81,7 @@ Object* Context::Find( const QString& jsInstanceName ) const {
     return 0;
 }
     
- QVariant Context::loadObject( const QString& uri,  //used as a regular file path for now
+ QVariant Context::LoadObject( const QString& uri,  //used as a regular file path for now
              bool persistent ) { 
     if( uriObjectMap_[ persistent ].find( uri ) != uriObjectMap_[ persistent ].end() ) {
         Object* obj = uriObjectMap_[ persistent ][ uri ];
@@ -102,7 +115,5 @@ Object* Context::Find( const QString& jsInstanceName ) const {
     webFrame_->addToJavaScriptWindowObject( obj->jsInstanceName(), obj );
     return webFrame_->evaluateJavaScript( obj->jsInstanceName() );
 }      
-
-
 
 }

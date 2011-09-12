@@ -45,32 +45,30 @@ struct IJavaScriptInit {
 };
 
 
-class Context : public Object {
+class Context : public EWL {
     Q_OBJECT  
 
 public:
-    Context() : Object( 0, "LocoContext", "Loco/Context" ),
-     globalContextJSName_( "Loco" ), jsInitGenerator_( 0 ) {}   
     
+    Context();
+   
     Context( QWebFrame* wf, QApplication* app, const CMDLine& cmdLine,
              Context* parent = 0 );
 
-    ~Context() {
-		// remove non-QObject-derived objects; the others are deleted from slots attached to
-		// the 'destroyed' signal
-		delete jsInitGenerator_;
-	}   
+    ~Context(); 
 
     void Init( QWebFrame* wf, QApplication* app = 0, const CMDLine& cmdLine = CMDLine(), Context* parent = 0 );
 // called from C++
 public:
 
     // object ownership is transferred to context 
+    
+    void AddContextToJS(); 
 
     void AddJSStdObject( Object* obj, bool immediateAdd = false ) { 
         jscriptStdObjects_.push_back( obj );
         if( obj->GetContext() == 0 ) obj->SetContext( this );
-        if( obj->GetPluginLoader() == 0 && obj->parent() == 0 && obj != this ) obj->setParent( this );
+        if( obj->GetPluginLoader() == 0 && obj->parent() == 0 ) obj->setParent( this );
         if( immediateAdd ) {
             webFrame_->addToJavaScriptWindowObject( obj->jsInstanceName(), obj );
         }
@@ -126,7 +124,7 @@ public:
       
     void SetJSErrCBack( const QString& code,
                         const QStringList& filterIds = QStringList() ) {
-        jsErrCBack_ = filter( code, filterIds );
+        jsErrCBack_ = Filter( code, filterIds );
     }
 
     const QString& GetJSErrCBack() const { return jsErrCBack_; }
@@ -237,6 +235,121 @@ public slots:
         webFrame_->evaluateJavaScript( jsErrCBack_ ); 
     } 
 
+private:
+    
+    void ConnectErrCBack( Object* obj );
+
+private: //js interface invoked from JSContext
+
+friend class JSContext;
+
+public: 
+    // Eval needs to be accessible for starting script execution
+    QVariant Eval( QString code, const QStringList& filters = QStringList() ) { 
+       code = Filter( code, filters );
+       if( !error() ) return webFrame_->evaluateJavaScript( code );
+       else {
+           webFrame_->evaluateJavaScript( jsErrCBack_ );
+           return QVariant();
+       } 
+    }
+private:
+
+    QString Filter( QString code, const QStringList& filterIds = QStringList() ) {
+        for( QStringList::const_iterator f = filterIds.begin();
+             f != filterIds.end(); ++f ) { 
+            Filters::iterator i = filters_.find( *f );
+            if( i != filters_.end() ) {
+                ::loco::Filter* fp =  i.value();
+                code = fp->Apply( code );
+                if( fp->error() ) error( fp->lastError() );
+                break;                 
+            }
+            else {
+    	        error( "filter id " + *f + " not found" );
+    	        break;
+            }
+        }
+        return error() ? "" : code; 
+    }
+
+    QVariant LoadObject( const QString& uri,  //used as a regular file path for now
+                         bool persistent = false );
+
+    int Exec() { return app_->exec(); }
+
+    void AddFilter( const QString& id, const QString& uri ) {
+        if( uriFilterMap_.find( uri ) != uriFilterMap_.end() ) return;
+        QPluginLoader* pl = new QPluginLoader( uri );
+        if( !pl->load() ) {
+            error( pl->errorString() );
+            webFrame_->evaluateJavaScript( jsErrCBack_ );
+        } else {
+            loco::Filter* lf = qobject_cast< loco::Filter* >( pl->instance() );
+            if( lf == 0 ) {
+                error( "Wrong filter type" );
+                webFrame_->evaluateJavaScript( jsErrCBack_ );    
+            }
+            filters_[ id ] = lf;
+            filterPluginLoaders_.push_back( pl );
+            uriFilterMap_[ uri ] = lf;
+        }      
+    }
+    
+    bool HasFilter( const QString& id ) { return filters_.find( id ) != filters_.end(); }
+
+    void AddScriptFilter( const QString& id,
+                          const QString& jfun,
+                          const QString& jerrfun = "",
+                          const QString& codePlaceHolder = "" ) {
+        filters_[ id ] = new ScriptFilter( webFrame_, jfun, jerrfun, codePlaceHolder );
+    }
+
+    QVariantMap Cmdline() const { return cmdLine_; }
+
+    void RegisterJSErrCBack( const QString& code, const QStringList& filters = QStringList() ) { 
+        jsErrCBack_ = Filter( code, filters );
+    }
+
+private:
+    JSContext* jsContext_;
+    Console console_;
+    QWebFrame* webFrame_;
+    QApplication* app_;
+    Context* parent_;
+    CMDLine cmdLine_;
+    FileSystem fileMgr_;
+    System system_;
+
+private:
+    Filters filters_;
+    PluginLoaders stdPluginLoaders_;
+    PluginLoaders ctxPluginLoaders_;
+    PluginLoaders filterPluginLoaders_;    
+    JScriptObjCtxInstances jscriptStdObjects_;
+    JScriptObjCtxInstances jscriptCtxInstances_;
+    JScriptObjCtxInstances instanceObjs_; 
+    QString jsErrCBack_;
+    URIObjectMap uriObjectMap_;
+    URIFilterMap uriFilterMap_;
+    QString globalContextJSName_;
+    QString jsInitCode_;
+ private: 
+    IJavaScriptInit* jsInitGenerator_;      
+    
+};
+
+//==============================================================================
+
+class JSContext : public Object {
+    Q_OBJECT
+public:
+    JSContext( Context& ctx ) : Object( 0, "LocoContext", "Loco/Context" ),
+    ctx_( ctx )  {
+        SetDestroyable( false );
+              
+    }
+
 // invocable from javascript
 public slots: // js interface
     
@@ -273,67 +386,34 @@ public slots: // js interface
      
     QStringList searchPaths( const QString& prefix ) { return QDir::searchPaths( prefix ); }
 
-    QVariant eval( QString code, const QStringList& filters = QStringList() ) {
-    	code = filter( code, filters );
-    	if( !error() ) return webFrame_->evaluateJavaScript( code );
-    	else {
-            webFrame_->evaluateJavaScript( jsErrCBack_ );
-            return QVariant();
-        } 
+    QVariant eval( QString code, const QStringList& filters = QStringList() ) { 
+        return ctx_.Eval( code, filters );
     }
 
     QVariant loadObject( const QString& uri,  //used as a regular file path for now
-                         bool persistent = false );
+                         bool persistent = false ) { return ctx_.LoadObject( uri, persistent ); }
     
     QString filter( QString code, const QStringList& filterIds = QStringList() ) {
-        for( QStringList::const_iterator f = filterIds.begin();
-             f != filterIds.end(); ++f ) { 
-            Filters::iterator i = filters_.find( *f );
-            if( i != filters_.end() ) {
-                Filter* fp =  i.value();
-                code = fp->Apply( code );
-                if( fp->error() ) error( fp->lastError() );
-                break;                 
-            }
-            else {
-            	error( "filter id " + *f + " not found" );
-            	break;
-            }
-        }
-        return error() ? "" : code; 
+        return ctx_.Filter( code, filterIds );
     }
 
-    int exec() { return app_->exec(); }
+    int exec() { return ctx_.Exec(); }
     
 
     void addFilter( const QString& id, const QString& uri ) {
-        if( uriFilterMap_.find( uri ) != uriFilterMap_.end() ) return;
-        QPluginLoader* pl = new QPluginLoader( uri );
-        if( !pl->load() ) {
-            error( pl->errorString() );
-            webFrame_->evaluateJavaScript( jsErrCBack_ );
-        } else {
-            loco::Filter* lf = qobject_cast< loco::Filter* >( pl->instance() );
-            if( lf == 0 ) {
-                error( "Wrong filter type" );
-                webFrame_->evaluateJavaScript( jsErrCBack_ );    
-            }
-            filters_[ id ] = lf;
-            filterPluginLoaders_.push_back( pl );
-            uriFilterMap_[ uri ] = lf;
-        }      
+        ctx_.AddFilter( id, uri );
     }
 
-    bool hasFilter( const QString& id ) { return filters_.find( id ) != filters_.end(); }
+    bool hasFilter( const QString& id ) { return ctx_.HasFilter( id ); }
 
     void addScriptFilter( const QString& id,
                           const QString& jfun,
                           const QString& jerrfun = "",
                           const QString& codePlaceHolder = "" ) {
-        filters_[ id ] = new ScriptFilter( webFrame_, jfun, jerrfun, codePlaceHolder );
+        ctx_.AddScriptFilter( id, jfun, jerrfun, codePlaceHolder );
     }
 
-    QVariantMap cmdLine() const { return cmdLine_; }
+    QVariantMap cmdLine() const { return ctx_.Cmdline(); }
     
     QString env( const QString& envVarName ) const {
 #if !defined( Q_WS_WIN )
@@ -349,7 +429,9 @@ public slots: // js interface
 #endif
     }
     
-    void registerErrCBack( const QString& code ) { jsErrCBack_ = code; }
+    void registerErrCBack( const QString& code, const QStringList& filterIds = QStringList() ) { 
+        ctx_.RegisterJSErrCBack( code, filterIds );
+    }
 
     
     QString qtVersion() const { return qVersion(); }
@@ -376,38 +458,17 @@ public slots: // js interface
         }
         return vm;          
     }
+private slots:
+    //forward errors received from Context,
+    friend class Context; 
+    void ForwardError( const QString& err ) { error( err ); }
 
 private:
-    
-    void ConnectErrCBack( Object* obj ) {
-       if( obj == this ) return;  
-       connect( obj, SIGNAL( onError( const QString& ) ), this, SLOT( OnObjectError( const QString& ) ) );
-    }
+    Context& ctx_;
 
-private:
-    Console console_;
-    QWebFrame* webFrame_;
-    QApplication* app_;
-    Context* parent_;
-    CMDLine cmdLine_;
-    FileSystem fileMgr_;
-    System system_;
-
-private:
-    Filters filters_;
-    PluginLoaders stdPluginLoaders_;
-    PluginLoaders ctxPluginLoaders_;
-    PluginLoaders filterPluginLoaders_;    
-    JScriptObjCtxInstances jscriptStdObjects_;
-    JScriptObjCtxInstances jscriptCtxInstances_;
-    JScriptObjCtxInstances instanceObjs_; 
-    QString jsErrCBack_;
-    URIObjectMap uriObjectMap_;
-    URIFilterMap uriFilterMap_;
-    QString globalContextJSName_;
-    QString jsInitCode_;
- private: 
-   IJavaScriptInit* jsInitGenerator_;      
-    
 };
+
+
+
+
 }

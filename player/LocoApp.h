@@ -19,8 +19,8 @@ typedef QVariantMap CMDLine; //using QVariantMap allows to pass the command line
 class App {
 public:
 	App( int argc, char** argv ) : app_( argc, argv ),
-		defaultScript_( "main.loco" )
-	{
+		defaultScript_( "main.loco" ) {
+
 	    // 1 - Read code to execute
         static const bool DO_NOT_REPORT_UNKNOWN_PARAMS = false;
         static const bool OPTIONAL = true;
@@ -38,7 +38,7 @@ public:
 	}
 
 	void AddContextToJS() { //adds context to the list of objects accessible from javascript
-	    ctx_.AddJSStdObject( &ctx_ );
+	    ctx_.AddContextToJS();
 	}
 
     const QVariant& GetResult() const { return execResult_; }
@@ -71,7 +71,7 @@ public:
 	    ctx_.Init( wf_, &app_, cmdLine_ );
 
 	    // 3 - execute
-	    execResult_ = ctx_.eval( jscriptCode );
+	    execResult_ = ctx_.Eval( jscriptCode );
 		if( execResult_.isValid() && execResult_.type() == QVariant::Int ) return execResult_.toInt();
 		return 0;
 	}
