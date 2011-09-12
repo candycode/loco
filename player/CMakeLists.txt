@@ -19,7 +19,7 @@ QT4_WRAP_CPP( MOC_SRCS ${MOC_HEADERS} )
 
 # App
 set( SRCS loco.cpp LocoObject.cpp LocoFileSystem.cpp LocoSystem.cpp
-     LocoProcess.cpp LocoContext.cpp ) 
+     LocoProcess.cpp LocoContext.cpp LocoFile.cpp ) 
 set( SRCS_INCLUDE ${MOC_HEADERS} CmdLine.h LocoFileAccessManager.h LocoDefaultJSInit.h LocoApp.h )
 
 ####SETUP PLUGIN

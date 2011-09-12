@@ -407,14 +407,11 @@ private:
 
 private:
     JSContext* jsContext_;
-    Console console_;
     QWebFrame* webFrame_;
     QApplication* app_;
     Context* parent_;
     CMDLine cmdLine_;
-    FileSystem fileMgr_;
-    System system_;
-
+   
 private:
     Filters filters_;
     PluginLoaders stdPluginLoaders_;

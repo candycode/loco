@@ -30,7 +30,7 @@ public:
     const RegExps& GetAllowRules() const { return allow_; }
     bool GetAllowFileAccess() const { return allowFileAccess_; }
     void SetAllowFileAccess( bool na ) { allowFileAccess_ = na; }
-    bool CheckAccess( QString filePath ) {
+	bool CheckAccess( QString filePath, QIODevice::OpenMode openMode = QIODevice::ReadWrite ) const {
         if( !allowFileAccess_ ) return false;
         if( !filterRequests_ ) return true;  
         const QString path = filePath

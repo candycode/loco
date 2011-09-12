@@ -7,6 +7,8 @@
 #include <iostream>
 
 #include "LocoObject.h"
+#include "LocoFileAccessManager.h"
+
 
 namespace loco {
 
@@ -30,16 +32,7 @@ public slots:
         file_.setFileName( n );
     }
    
-    bool open( const QStringList& openMode ) {
-        if( file_.fileName().isEmpty() ) {
-            error( "Empty file name" );
-            return false; 
-        } else if( !file_.open( MapOpenMode( openMode ) ) ) {
-            error( "File " + file_.fileName() + " open failed" );
-            return false;
-        }
-        else return true;             
-    }
+    bool open( const QStringList& openMode );
 
     void close() {
         if( !file_.isOpen() ) {
@@ -83,22 +76,7 @@ public slots:
 
 private:
     
-    static QIODevice::OpenMode MapOpenMode( const QStringList& mode ) {
-        QIODevice::OpenMode om = 0;
-        for( QStringList::const_iterator i = mode.begin(); i != mode.end(); ++i ) {
-            const QString& m = *i;
-            if( m == "r" ) om |= QIODevice::ReadOnly;
-            else if( m == "w" ) om |= QIODevice::WriteOnly;
-            else if( m == "a" ) om |= QIODevice::Append;
-            else if( m == "truncate" ) om |= QIODevice::Truncate;
-            else if( m == "text" ) om |= QIODevice::Text;
-            else if( m == "unbuffered" ) om |= QIODevice::Unbuffered;
-        }
-        return om;   
-    }
-    
-
-     
+    static QIODevice::OpenMode MapOpenMode( const QStringList& mode );
        
 private:
     QFile file_;
