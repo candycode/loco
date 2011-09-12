@@ -14,6 +14,7 @@
 #include <QProcessEnvironment>
 #include <QDir>
 #include <QPointer>
+#include <QtNetwork/QNetworkAccessManager>
 
 #include <algorithm>
 #include <cstdlib>
@@ -25,6 +26,8 @@
 #include "LocoScriptFilter.h"
 #include "LocoFileSystem.h"
 #include "LocoSystem.h"
+#include "LocoNetworkAccessManager.h"
+#include "LocoFileAccessManager.h"
 
 
 namespace loco {
@@ -139,9 +142,40 @@ public:
 
 	const JScriptObjCtxInstances& GetStdJSObjects() const { return jscriptStdObjects_; }
 
+    void SetNetworkAccessManager( NetworkAccessManager* nam ) { 
+        if( nam == netAccessMgr_ && nam != 0 ) return;
+        if( netAccessMgr_ != 0 ) {
+            disconnect( netAccessMgr_, SIGNAL( NetworkRequestDenied( QString ) ),
+                        this, SLOT( OnNetworkRequestDenied( QString ) ) );
+            disconnect( netAccessMgr_, SIGNAL( UnauthorizedNetworkAccessAttempt() ),
+                        this, SLOT( OnUnauthorizedNetworkAccess() ) );
+        }
+        netAccessMgr_ = nam;
+        if( netAccessMgr_ ) {
+            connect( netAccessMgr_, SIGNAL( NetworkRequestDenied( QString ) ),
+                     this, SLOT( OnNetworkRequestDenied( QString ) ) );
+            connect( netAccessMgr_, SIGNAL( UnauthorizedNetworkAccessAttempt() ),
+                     this, SLOT( OnUnauthorizedNetworkAccess() ) ); 
+        }
+    }
+
+    const QNetworkAccessManager* GetNetworkAccessManager( QNetworkAccessManager* nam ) const { return netAccessMgr_; }
+
+    void SetFileAccessManager( FileAccessManager* fm ) { fileAccessMgr_ = fm; }
+
+    const FileAccessManager* GetFileAccessManager() const { return fileAccessMgr_; }
+
 // attched to internal signals            
 private slots:
 
+    void OnUnauthorizedNetworkAccess() {
+        error( "Unauthorized network access attempted" );
+    }
+    
+    void OnNetworkRequestDenied( QString url ) {
+        error( "Unauthorized access to " + url + " attempted" ); 
+    }
+    
     /// 
     void InitJScript() {
         if( jsInitCode_.isEmpty() ) jsInitCode_ = jsInitGenerator_->GenerateCode();   
@@ -335,7 +369,9 @@ private:
     QString globalContextJSName_;
     QString jsInitCode_;
  private: 
-    IJavaScriptInit* jsInitGenerator_;      
+    IJavaScriptInit* jsInitGenerator_; 
+    NetworkAccessManager* netAccessMgr_;
+    FileAccessManager* fileAccessMgr_;     
     
 };
 

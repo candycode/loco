@@ -10,14 +10,14 @@ namespace loco {
 
 Context::Context() : jsContext_( new JSContext( *this ) ), webFrame_( 0 ),
                      app_( 0 ), parent_( 0 ), globalContextJSName_( "Loco" ),
-                     jsInitGenerator_( 0 ) {} 
+                     jsInitGenerator_( 0 ), netAccessMgr_( 0 ) {} 
 
 
 Context::Context( QWebFrame* wf, QApplication* app, const CMDLine& cmdLine,
                   Context* parent)
 :   jsContext_( new JSContext( *this ) ),
     webFrame_( wf ), app_( app ), parent_( parent ), cmdLine_( cmdLine ),
-    globalContextJSName_( "Loco" ), jsInitGenerator_( 0 ) {
+    globalContextJSName_( "Loco" ), jsInitGenerator_( 0 ), netAccessMgr_( 0 ) {
 
     Init( wf, app, cmdLine, parent );
 }

@@ -8,7 +8,9 @@
 #include <QtWebKit/QWebFrame>
 #include "CmdLine.h"
 #include "LocoObject.h"
-#include "LocoContext.h"                             
+#include "LocoContext.h"
+#include "LocoNetworkAccessManager.h"
+#include "LocoFileAccessManager.h"                                  
                                     
 
 namespace loco {
@@ -31,6 +33,9 @@ public:
 		helpText_ = "Usage: loco --script <javascript file>\n"
                     "       If no script file is specified the default "
                     "'main.loco' is used";
+        wp_.setNetworkAccessManager( &netAccess_ );
+        ctx_.SetNetworkAccessManager( &netAccess_ );
+        ctx_.SetFileAccessManager( &fileAccess_ );
 	}
     
 	void AddModuleToJS( Object* obj ) {
@@ -40,14 +45,30 @@ public:
 	void AddContextToJS() { //adds context to the list of objects accessible from javascript
 	    ctx_.AddContextToJS();
 	}
-
+    
     const QVariant& GetResult() const { return execResult_; }
+	
+    void SetAllowNetAccess( bool na ) { netAccess_.SetAllowNetAccess( na ); }
 
-	// set the custom network access manager to be used for ALL network connections in javascript
-	// contexts; substitute in QWebFrame instances!
-    void SetCustomNetworkAccesManager( QNetworkAccessManager* nam );
+    void SetFilterNetRequests( bool fr ) { netAccess_.SetFilterRequests( fr ); }
 
-	int Execute() {
+    void SetNetRuleFormat( QRegExp::PatternSyntax ps ) { netAccess_.SetRxPatternSyntax( ps ); }
+
+    void AddAllowNetRule( const QRegExp& rx ) { netAccess_.AddAllowRule( rx ); }
+
+    void AddDenyNetRule( const QRegExp& rx ) { netAccess_.AddDenyRule( rx ); }
+
+    void SetAllowFileAccess( bool fa ) { fileAccess_.SetAllowFileAccess( fa ); }
+
+    void SetFilterFileAccess( bool fr ) { fileAccess_.SetFilterAccess( fr ); }
+
+    void SetFileRuleFormat( QRegExp::PatternSyntax ps ) { fileAccess_.SetRxPatternSyntax( ps ); }
+
+    void AddAllowFileRule( const QRegExp& rx ) { fileAccess_.AddAllowRule( rx ); }
+
+    void AddDenyFileRule( const QRegExp& rx ) { fileAccess_.AddDenyRule( rx ); }
+
+    int Execute() {
 		
         const QString scriptFileName = cmdLine_.find( "script" ) == cmdLine_.end() ? defaultScript_ 
 			: cmdLine_[ "script" ].toStringList().front();
@@ -98,5 +119,7 @@ private:
 	QString defaultScript_;
 	QString helpText_;
 	QVariant execResult_;
+    NetworkAccessManager netAccess_;
+    FileAccessManager fileAccess_;
 };
 }
