@@ -453,10 +453,17 @@ public:
 // invocable from javascript
 public slots: // js interface
     
-	//void require( const QString& path, const QStringList& filters = QStringList() );
+	QVariant require( const QString& path, const QStringList& filters = QStringList() ) {
+        return ctx_.Require( path, filters );
+    }
+
+    QVariant insert( const QString& path, const QStringList& filters = QStringList() ) {
+        return ctx_.Insert( path, filters );
+    }
     
-	//QString read( const QString& path, const QStringList& filters = QStringList() ) {
-	//}
+	QString read( const QString& path, const QStringList& filters = QStringList() ) {
+	    return ctx_.Read( path, filters );
+    }
     
 	QStringList pluginPath() const { return QApplication::libraryPaths(); }
 
