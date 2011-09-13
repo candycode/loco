@@ -238,7 +238,6 @@ private slots:
     void RemoveInstanceObjects() {
         for( JScriptObjCtxInstances::iterator i = jscriptCtxInstances_.begin();
             i != jscriptCtxInstances_.end(); ++i ) {
-            if( (*i) == 0 ) continue;
             if( (*i)->GetContext() == this ) (*i)->destroy();
         }
         for( PluginLoaders::iterator i = ctxPluginLoaders_.begin();
@@ -258,8 +257,8 @@ private slots:
     void RemoveStdObjects() {
         for( JScriptObjCtxInstances::iterator i = jscriptStdObjects_.begin();
             i != jscriptStdObjects_.end(); ++i ) {
-            if( (*i) == 0 ) continue;
-            if( (*i)->GetContext() == this ) (*i)->destroy();
+            if( (*i)->GetContext() == this && (*i)->GetPluginLoader() == 0 && 
+                ( (*i)->parent() == this || (*)->parent() == 0 ) ) (*i)->destroy();
         }      
         for( PluginLoaders::iterator i = stdPluginLoaders_.begin();
             i != stdPluginLoaders_.end(); ++i ) {
