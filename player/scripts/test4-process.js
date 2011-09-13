@@ -12,7 +12,7 @@ try {
   if( !p.waitForBytesWritten( 2000 ) ) throw "Cannot write to process";   
   p.close();
 } catch( e ) {
-  c.println( e );	
+  c.printerrln( e );	
 }
 
   	

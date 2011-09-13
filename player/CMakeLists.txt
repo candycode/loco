@@ -17,6 +17,11 @@ set( MOC_HEADERS
   LocoSystem.h LocoProcess.h LocoFSWatcher.h LocoNetworkAccessManager.h ) 
 QT4_WRAP_CPP( MOC_SRCS ${MOC_HEADERS} ) 
 
+###RESOURCES
+set( RES res/loco.qrc )
+QT4_ADD_RESOURCES( RCC_SRCS ${RES} )
+SOURCE_GROUP( Resources REGULAR_EXPRESSION "res/.+" ) 
+
 # App
 set( SRCS loco.cpp LocoObject.cpp LocoFileSystem.cpp LocoSystem.cpp
      LocoProcess.cpp LocoContext.cpp LocoFile.cpp ) 
@@ -28,7 +33,7 @@ QT4_WRAP_CPP( MOC_SRCS_PLUGIN ${MOC_HEADERS_PLUGIN} )
 set( SRCS_PLUGIN LocoObject.cpp LocoObject.h plugins/LocoTestPlugin.h )
 
 ####CONFIGURE EXECUTABLES
-add_executable( loco ${SRCS} ${SRCS_INCLUDE} ${MOC_SRCS} )
+add_executable( loco ${SRCS} ${SRCS_INCLUDE} ${MOC_SRCS} ${RCC_SRCS} )
 
 target_link_libraries( loco ${QT_QTWEBKIT_LIBRARY}  ${QT_QTNETWORK_LIBRARY} ${QT_LIBRARIES} ) 
 if(WIN32)

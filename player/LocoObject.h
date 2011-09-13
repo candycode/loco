@@ -57,9 +57,7 @@ public:
     virtual void warning( const QString& em ) const { EWL::warn( FormatEWLMsg( em ) ); }
     virtual void log( const QString& em ) const { EWL::log( FormatEWLMsg( em ) ); }
     virtual bool error() const { return EWL::error(); }
-    virtual ~Object() {
-///@todo remove following line     
-std::cout << "~Object()" << std::endl;        
+    virtual ~Object() {        
         DecInstanceCount(); 
         if( info_ ) info_->deleteLater();
     }

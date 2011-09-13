@@ -21,13 +21,12 @@ typedef QVariantMap CMDLine; //using QVariantMap allows to pass the command line
 class App {
 public:
 	App( int argc, char** argv ) : app_( argc, argv ),
-		defaultScript_( "main.loco" ) {
+		defaultScript_( ":/loco/main" ) { //read from embedded resource; 'main' is an alias for 'main.loco' file
 
 	    // 1 - Read code to execute
         static const bool DO_NOT_REPORT_UNKNOWN_PARAMS = false;
         static const bool OPTIONAL = true;
         CmdLine cl( DO_NOT_REPORT_UNKNOWN_PARAMS );
-        cl.Add( "Script to execute", "script", "s", std::make_pair( 1, 1 ), OPTIONAL );
         cmdLine_ = ParsedCommandsToCMDLine( cl.ParseCommandLine( argc, argv ) );
 		//ctx_.setParent( this );
 		helpText_ = "Usage: loco --script <javascript file>\n"
@@ -64,17 +63,19 @@ public:
 
     void SetFileRuleFormat( QRegExp::PatternSyntax ps ) { fileAccess_.SetRxPatternSyntax( ps ); }
 
-    void AddAllowFileRule( const QRegExp& rx ) { fileAccess_.AddAllowRule( rx ); }
+    void AddAllowFileRule( const QRegExp& rx, QIODevice::OpenMode mode ) { fileAccess_.AddAllowRule( rx, mode ); }
 
-    void AddDenyFileRule( const QRegExp& rx ) { fileAccess_.AddDenyRule( rx ); }
+    void AddDenyFileRule( const QRegExp& rx, QIODevice::OpenMode mode ) { fileAccess_.AddDenyRule( rx, mode ); }
 
     int Execute() {
 		
-        const QString scriptFileName = cmdLine_.find( "script" ) == cmdLine_.end() ? defaultScript_ 
-			: cmdLine_[ "script" ].toStringList().front();
+        QString scriptFileName = defaultScript_; 
+		if( cmdLine_[ " " ].toStringList().size() > 1 ) {
+            scriptFileName = *( ++( cmdLine_[ " " ].toStringList().begin() ) );
+        }
         QFile scriptFile( scriptFileName );
         if( !scriptFile.exists() ) {
-			std::cout << helpText_.toStdString() << std::endl;
+			std::cout << scriptFileName.toStdString() << " does not exist\n" << helpText_.toStdString() << std::endl;
         	return 1;
         }
         if( !scriptFile.open( QIODevice::ReadOnly ) ) {

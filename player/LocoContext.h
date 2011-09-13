@@ -188,7 +188,7 @@ private slots:
     
     /// 
     void InitJScript() {
-        if( jsInitCode_.isEmpty() ) jsInitCode_ = jsInitGenerator_->GenerateCode();   
+        if( jsInitCode_.isEmpty() ) jsInitCode_ = jsInitGenerator_->GenerateCode();
         webFrame_->evaluateJavaScript( jsInitCode_ );
     }
 

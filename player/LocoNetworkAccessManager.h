@@ -47,13 +47,13 @@ protected:
         const QString url = req.url().toString( QUrl::RemoveAuthority | QUrl::StripTrailingSlash );        
     
         for( RegExps::const_iterator i = deny_.begin(); i != deny_.end(); ++i ) {
-            if( i->indexIn( url ) > -1 ) {
+            if( i->exactMatch( url ) ) {
                 emit NetworkRequestDenied( url );
                 return 0;
             }
         }
         for( RegExps::const_iterator i = allow_.begin(); i != allow_.end(); ++i ) {
-            if( i->indexIn( url ) > -1 ) {
+            if( i->exactMatch( url ) ) {
                 return QNetworkAccessManager::createRequest( op, req, outgoingData );
             }
         }

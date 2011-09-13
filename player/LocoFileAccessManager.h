@@ -10,39 +10,56 @@
 
 namespace loco {
 
-typedef QList< QRegExp > RegExps; 
+struct FileAccessEntry {
+    QRegExp rx;
+    QIODevice::OpenMode mode;
+    FileAccessEntry() : mode( QIODevice::NotOpen ) {}
+    FileAccessEntry( const QRegExp& r, QIODevice::OpenMode m ) : rx( r ), mode( m ) {}
+};
+
+
+typedef QList< FileAccessEntry > FileAccessEntries; 
 
 class FileAccessManager : public QObject {
 public:
     FileAccessManager( QObject* p = 0 ) 
       : QObject( p ), 
         rxPattern_( QRegExp::RegExp2 ),
-        filterRequests_( true ),
+        filterAccess_( true ),
         allowFileAccess_( false ) {}
     QRegExp::PatternSyntax GetRxPatternSyntax() const { return rxPattern_; }
     void SetRxPatternSyntax( QRegExp::PatternSyntax ps ) { rxPattern_ = ps; }
-    bool GetFilterAccess() const { return filterRequests_; }
-    void SetFilterAccess( bool fr ) { filterRequests_ = fr; } 
-    void AddAllowRule( const QRegExp& rx ) { allow_.push_back( rx ); }
-    void AddDenyRule( const QRegExp& rx ) { deny_.push_back( rx ); }
+    bool GetFilterAccess() const { return filterAccess_; }
+    void SetFilterAccess( bool fr ) { filterAccess_ = fr; } 
+    bool AddAllowRule( const QRegExp& rx, QIODevice::OpenMode mode ) { 
+        if( !rx.isValid() ) return false;
+        allow_.push_back( FileAccessEntry( rx, mode ) );
+        return true; 
+    }
+    bool AddDenyRule( const QRegExp& rx, QIODevice::OpenMode mode ) { 
+        if( !rx.isValid() ) return false;
+        deny_.push_back( FileAccessEntry( rx, mode ) );
+        return true; 
+    }
     void ResetRules() { deny_.clear(); allow_.clear(); }
-    const RegExps& GetDenyRules() const { return deny_; }
-    const RegExps& GetAllowRules() const { return allow_; }
+    const FileAccessEntries& GetDenyRules() const { return deny_; }
+    const FileAccessEntries& GetAllowRules() const { return allow_; }
     bool GetAllowFileAccess() const { return allowFileAccess_; }
     void SetAllowFileAccess( bool na ) { allowFileAccess_ = na; }
 	bool CheckAccess( QString filePath, QIODevice::OpenMode openMode = QIODevice::ReadWrite ) const {
         if( !allowFileAccess_ ) return false;
-        if( !filterRequests_ ) return true;  
+        if( !filterAccess_ ) return true;  
         const QString path = filePath
                              .replace( "$HOME", QDir::home().absolutePath() )
-                             .replace( "$APPDIR",  QCoreApplication::applicationDirPath() );
-        for( RegExps::const_iterator i = deny_.begin(); i != deny_.end(); ++i ) {
-            if( i->indexIn( path ) > -1 ) {
+                             .replace( "$APPDIR", QCoreApplication::applicationDirPath() );
+         
+        for( FileAccessEntries::const_iterator i = deny_.begin(); i != deny_.end(); ++i ) {
+            if( i->rx.exactMatch( path ) && ( openMode & i->mode ) ) {
                 return false;
             }
         }
-        for( RegExps::const_iterator i = allow_.begin(); i != allow_.end(); ++i ) {
-            if( i->indexIn( path ) > -1 ) {
+        for( FileAccessEntries::const_iterator i = allow_.begin(); i != allow_.end(); ++i ) {
+            if( i->rx.exactMatch( path ) && ( openMode & i->mode ) ) {
                 return true;
             }
         }
@@ -50,10 +67,10 @@ public:
     }
 private:
     QRegExp::PatternSyntax rxPattern_;
-    bool filterRequests_; 
+    bool filterAccess_; 
     bool allowFileAccess_;
-    RegExps allow_;
-    RegExps deny_;     
+    FileAccessEntries allow_;
+    FileAccessEntries deny_;     
 };
 
 }
