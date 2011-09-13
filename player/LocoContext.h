@@ -81,16 +81,17 @@ public:
     
     void AddJSCtxObject( Object* obj, bool immediateAdd = false ) {
         jscriptCtxInstances_.push_back( obj );
+        if( obj->GetContext() == 0 ) obj->SetContext( this );
+        if( obj->GetPluginLoader() == 0 && obj->parent() == 0 ) obj->setParent( this );
         if( immediateAdd ) {
-            if( obj->GetContext() == 0 ) obj->SetContext( this );
             webFrame_->addToJavaScriptWindowObject( obj->jsInstanceName(), obj );
         }
-        if( obj->GetPluginLoader() == 0 && obj->parent() == 0 ) obj->setParent( this );
+       
     }
 
     void RemoveJSCtxObject( Object* obj ) {
         JScriptObjCtxInstances::iterator i = 
-            std::find( jscriptCtxInstances_.begin(),  jscriptCtxInstances_.end(), obj );
+            std::find( jscriptCtxInstances_.begin(), jscriptCtxInstances_.end(), obj );
         if( i != jscriptCtxInstances_.end() ) jscriptCtxInstances_.erase( i );
     }
 
@@ -104,12 +105,14 @@ public:
                                                 QScriptEngine::ScriptOwnership );
         obj->SetContext( this );
         ConnectErrCBack( obj );
+        connect( obj, SIGNAL( destroyed( QObject* ) ), this, SLOT( RemoveScopeObject( QObject* ) ) );
         instanceObjs_.push_back( obj );
         return webFrame_->evaluateJavaScript( obj->jsInstanceName() );
     }
 
+  
     void AddFilter( const QString& id, Filter* f ) { 
-        if( f->GetPluginLoader() && f->parent() == 0 ) f->setParent( this );
+        if( f->GetPluginLoader() == 0 && f->parent() == 0 ) f->setParent( this );
         filters_[ id ] = f;
     }
 
@@ -123,7 +126,10 @@ public:
         return globalContextJSName_;
     }
 
-	void SetJSInitializer( IJavaScriptInit* jsi ) { jsInitGenerator_ = jsi; } 
+	void SetJSInitializer( IJavaScriptInit* jsi ) { 
+        if( jsi == jsInitGenerator_ ) return;
+        jsInitGenerator_ = jsi;
+    } 
 
 	IJavaScriptInit* GetJSInitializer() const { return jsInitGenerator_; }
       
@@ -178,6 +184,13 @@ public:
 // attched to internal signals            
 private slots:
 
+    void RemoveScopeObject( QObject* o ) {
+        Object* obj = qobject_cast< Object* >( o );
+        JScriptObjCtxInstances::iterator i = 
+            std::find( instanceObjs_.begin(), instanceObjs_.end(), obj );
+        if( i != instanceObjs_.end() ) instanceObjs_.erase( i ); 
+    }
+
     void OnUnauthorizedNetworkAccess() {
         error( "Unauthorized network access attempted" );
     }
@@ -209,7 +222,7 @@ private slots:
              i != jscriptCtxInstances_.end(); ++i ) {
             if( (*i)->GetContext() == 0 ) (*i)->SetContext( this );
             ConnectErrCBack( *i );
-             if( (*i)->GetPluginLoader() == 0 && (*i)->parent() == 0 ) (*i)->setParent( this );
+            if( (*i)->GetPluginLoader() == 0 && (*i)->parent() == 0 ) (*i)->setParent( this );
             wf->addToJavaScriptWindowObject( (*i)->jsInstanceName(), *i );  
         }
     }
@@ -443,8 +456,7 @@ class JSContext : public Object {
 public:
     JSContext( Context& ctx ) : Object( 0, "LocoContext", "Loco/Context" ),
     ctx_( ctx )  {
-        SetDestroyable( false );
-              
+        SetDestroyable( false );              
     }
 
 // invocable from javascript

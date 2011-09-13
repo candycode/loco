@@ -1,6 +1,8 @@
 #pragma once
 //SRCHEADER
 
+#include <stdexcept>
+
 #include <QString>
 #include <QStringList>
 #include <QMap>
@@ -75,7 +77,7 @@ public:
         }
         QFile scriptFile( scriptFileName );
         if( !scriptFile.exists() ) {
-			std::cout << scriptFileName.toStdString() << " does not exist\n" << helpText_.toStdString() << std::endl;
+			throw std::runtime_error( "file " + scriptFileName.toStdString() + " does not exist" );
         	return 1;
         }
         if( !scriptFile.open( QIODevice::ReadOnly ) ) {
