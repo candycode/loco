@@ -401,21 +401,23 @@ private:
 
     void AddScriptFilter( const QString& id,
                           const QString& jfun,
+						  const QString& jcode = "",
                           const QString& jerrfun = "",
                           const QString& codePlaceHolder = "" ) {
-        ::loco::Filter* lf = new ScriptFilter( webFrame_, jfun, jerrfun, codePlaceHolder );
+        ::loco::Filter* lf = new ScriptFilter( webFrame_, jfun, jcode, jerrfun, codePlaceHolder );
         connect( lf, SIGNAL( onError( const QString& ) ), 
                                       this, SLOT( OnFilterError( const QString& ) ) );
         filters_[ id ] = lf;
     }
 
-    void LoadScriptFilter( const QString& uri,
-                           const QString& id,
+    void LoadScriptFilter( const QString& id,
+		                   const QString& uri,
+						   const QString& jfun,
                            const QString& jerrfun = "",
                            const QString& codePlaceHolder = "" ) {
         QString f = Read( uri );
         if( f.isEmpty() ) return;   
-        ::loco::Filter* lf = new ScriptFilter( webFrame_, f, jerrfun, codePlaceHolder );
+        ::loco::Filter* lf = new ScriptFilter( webFrame_, jfun, f, jerrfun, codePlaceHolder );
         connect( lf, SIGNAL( onError( const QString& ) ), 
                                       this, SLOT( OnFilterError( const QString& ) ) );
         filters_[ id ] = lf;
@@ -572,6 +574,9 @@ public slots: // js interface
 
     int exec() { return ctx_.Exec(); }
     
+	QVariant evalFile( const QString& uri, const QStringList& filterIds = QStringList() ) {
+		return ctx_.Include( uri, filterIds );
+	}
 
     void addFilter( const QString& id, const QString& uri ) {
         ctx_.AddFilter( id, uri );
@@ -581,9 +586,18 @@ public slots: // js interface
 
     void addScriptFilter( const QString& id,
                           const QString& jfun,
+						  const QString& jcode = "", 
                           const QString& jerrfun = "",
                           const QString& codePlaceHolder = "" ) {
-        ctx_.AddScriptFilter( id, jfun, jerrfun, codePlaceHolder );
+        ctx_.AddScriptFilter( id, jfun, jcode, jerrfun, codePlaceHolder );
+    }
+
+	void loadScriptFilter( const QString& id,
+		                   const QString& uri,
+                           const QString& jfun,
+                           const QString& jerrfun = "",
+                           const QString& codePlaceHolder = "" ) {
+        ctx_.LoadScriptFilter( id, uri, jfun, jerrfun, codePlaceHolder );
     }
 
     QVariantMap cmdLine() const { return ctx_.Cmdline(); }

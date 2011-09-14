@@ -26,6 +26,8 @@ int main(int argc, char *argv[])
 		app.AddModuleToJS( new loco::FileSystem );
 		app.AddModuleToJS( new loco::System );
 		app.AddContextToJS();
+		app.SetAllowFileAccess( true );
+		app.SetFilterFileAccess( false );
 		ret = app.Execute();
 	} catch( const std::exception& e ) {
 		std::cerr << e.what() << std::endl;
