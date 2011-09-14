@@ -15,7 +15,11 @@ namespace loco {
 Context::Context() : jsContext_( new JSContext( *this ) ), webFrame_( 0 ),
                      app_( 0 ), parent_( 0 ), globalContextJSName_( "Loco" ),
                      jsInitGenerator_( 0 ), netAccessMgr_( 0 ),
-                     readNetworkTimeout_( 10000 ), maxNetRedirections_( 0 ) {} 
+                     readNetworkTimeout_( 10000 ), maxNetRedirections_( 0 ) {
+    connect( this, SIGNAL( onError( const QString& ) ), 
+             this, SLOT( OnSelfError( const QString& ) ) );
+
+} 
 
 
 Context::Context( QWebFrame* wf, QApplication* app, const CMDLine& cmdLine,
@@ -24,7 +28,8 @@ Context::Context( QWebFrame* wf, QApplication* app, const CMDLine& cmdLine,
     webFrame_( wf ), app_( app ), parent_( parent ), cmdLine_( cmdLine ),
     globalContextJSName_( "Loco" ), jsInitGenerator_( 0 ), netAccessMgr_( 0 ),
     readNetworkTimeout_( 10000 ), maxNetRedirections_( 0 ) {
-
+    connect( this, SIGNAL( onError( const QString& ) ), 
+             this, SLOT( OnSelfError( const QString& ) ) );
     Init( wf, app, cmdLine, parent );
 }
 
@@ -88,7 +93,7 @@ Object* Context::Find( const QString& jsInstanceName ) const {
 }
     
  QVariant Context::LoadObject( const QString& uri,  //used as a regular file path for now
-             bool persistent ) { 
+                               bool persistent ) { 
     if( uriObjectMap_[ persistent ].find( uri ) != uriObjectMap_[ persistent ].end() ) {
         Object* obj = uriObjectMap_[ persistent ][ uri ];
         return webFrame_->evaluateJavaScript( obj->jsInstanceName() );
@@ -106,10 +111,10 @@ Object* Context::Find( const QString& jsInstanceName ) const {
 			error( "Wrong object type " + uri );
 			webFrame_->evaluateJavaScript( jsErrCBack_ );
 			return QVariant();
-		}
-		obj->SetContext( this );
+    }
+	obj->SetContext( this );
     obj->SetPluginLoader( pl );
-    connect( obj, SIGNAL( error( const QString& ) ), this, SLOT( OnError( const QString& ) ) );
+    connect( obj, SIGNAL( onError( const QString& ) ), this, SLOT( OnObjectError( const QString& ) ) );
 		if( persistent ) {
 			jscriptStdObjects_.push_back( obj );
 			stdPluginLoaders_.push_back( pl );

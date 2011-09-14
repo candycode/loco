@@ -258,7 +258,7 @@ private slots:
         for( JScriptObjCtxInstances::iterator i = jscriptStdObjects_.begin();
             i != jscriptStdObjects_.end(); ++i ) {
             if( (*i)->GetContext() == this && (*i)->GetPluginLoader() == 0 && 
-                ( (*i)->parent() == this || (*)->parent() == 0 ) ) (*i)->destroy();
+                ( (*i)->parent() == this || (*i)->parent() == 0 ) ) (*i)->destroy();
         }      
         for( PluginLoaders::iterator i = stdPluginLoaders_.begin();
             i != stdPluginLoaders_.end(); ++i ) {
@@ -288,8 +288,18 @@ public slots:
     // an object RaiseError signal must be connected to one and only one context instance
     void OnObjectError( const QString& err ) {
         error( err );
-        webFrame_->evaluateJavaScript( jsErrCBack_ ); 
-    } 
+    }
+    void OnFilterError( const QString& err ) {
+        error( err );
+    }
+    // connect to this from e.g. loco::App
+    void OnExternalError( const QString& err ) {
+        error( err );
+    }
+private slots:
+    void OnSelfError( const QString& err ) {
+        webFrame_->evaluateJavaScript( jsErrCBack_ );
+    }
 
 private:
     
@@ -311,43 +321,26 @@ public:
     }
 private:
 
-    QByteArray Filter( QByteArray data, const QStringList& filterIds = QStringList() ) {
+    // DataT = QByteArray OR QString
+    template < typename DataT >
+    DataT Filter( DataT data, const QStringList& filterIds = QStringList() ) {
         for( QStringList::const_iterator f = filterIds.begin();
              f != filterIds.end(); ++f ) { 
             Filters::iterator i = filters_.find( *f );
             if( i != filters_.end() ) {
                 ::loco::Filter* fp =  i.value();
                 data = fp->Apply( data );
-                if( fp->error() ) error( fp->lastError() );
-                break;                 
+                if( fp->error() ) break;                 
             }
             else {
     	        error( "filter id " + *f + " not found" );
     	        break;
             }
         }
-        return error() ? QByteArray() : data; 
+        return error() ? DataT() : data; 
     }
 
-    QString Filter( QString code, const QStringList& filterIds = QStringList() ) {
-        for( QStringList::const_iterator f = filterIds.begin();
-             f != filterIds.end(); ++f ) { 
-            Filters::iterator i = filters_.find( *f );
-            if( i != filters_.end() ) {
-                ::loco::Filter* fp =  i.value();
-                code = fp->Apply( code );
-                if( fp->error() ) error( fp->lastError() );
-                break;                 
-            }
-            else {
-    	        error( "filter id " + *f + " not found" );
-    	        break;
-            }
-        }
-        return error() ? "" : code; 
-    }
-
-    QVariant LoadObject( const QString& uri,  //used as a regular file path for now
+    QVariant LoadObject( const QString& uri,  //used as a regular file/resource path for now
                          bool persistent = false );
 
     int Exec() { return app_->exec(); }
@@ -358,13 +351,17 @@ private:
         if( !pl->load() ) {
             error( pl->errorString() );
             webFrame_->evaluateJavaScript( jsErrCBack_ );
+            delete pl;
         } else {
             loco::Filter* lf = qobject_cast< loco::Filter* >( pl->instance() );
             if( lf == 0 ) {
                 error( "Wrong filter type" );
-                webFrame_->evaluateJavaScript( jsErrCBack_ );    
+                webFrame_->evaluateJavaScript( jsErrCBack_ );
+                delete pl;    
             }
             filters_[ id ] = lf;
+            connect( lf, SIGNAL( onError( const QString& ) ), 
+                     this, SLOT( OnFilterError( const QString& ) ) );
             filterPluginLoaders_.push_back( pl );
             uriFilterMap_[ uri ] = lf;
         }      
@@ -376,7 +373,10 @@ private:
                           const QString& jfun,
                           const QString& jerrfun = "",
                           const QString& codePlaceHolder = "" ) {
-        filters_[ id ] = new ScriptFilter( webFrame_, jfun, jerrfun, codePlaceHolder );
+        ::loco::Filter* lf = new ScriptFilter( webFrame_, jfun, jerrfun, codePlaceHolder );
+        connect( lf, SIGNAL( onError( const QString& ) ), 
+                                      this, SLOT( OnFilterError( const QString& ) ) );
+        filters_[ id ] = lf;
     }
 
     QVariantMap Cmdline() const { return cmdLine_; }
@@ -398,15 +398,15 @@ private:
         return Eval( code );
     }
 
-    QVariant Require( QString uri, const QStringList& filters = QStringList() ) {
+    QVariant Include( QString uri, const QStringList& filters = QStringList() ) {
         if( !uri.startsWith( ":" ) && !uri.contains( "://" ) ) {
             QDir d;
             uri = d.absoluteFilePath( uri );    
         } 
-        if( requireSet_.find( uri ) != requireSet_.end() ) return QVariant(); 
+        if( includeSet_.find( uri ) != includeSet_.end() ) return QVariant(); 
         QString code = Read( uri, filters );
         if( code.isEmpty() ) return false;
-        requireSet_.insert( uri );
+        includeSet_.insert( uri );
         return Eval( code );
     } 
 
@@ -442,7 +442,7 @@ private:
     NetworkAccessManager* netAccessMgr_;
     FileAccessManager* fileAccessMgr_;
 private:
-    QSet< QString > requireSet_;
+    QSet< QString > includeSet_;
 private:
     int readNetworkTimeout_;
     int maxNetRedirections_;        
@@ -461,8 +461,8 @@ public:
 // invocable from javascript
 public slots: // js interface
     
-	QVariant require( const QString& path, const QStringList& filters = QStringList() ) {
-        return ctx_.Require( path, filters );
+	QVariant include( const QString& path, const QStringList& filters = QStringList() ) {
+        return ctx_.Include( path, filters );
     }
 
     QVariant insert( const QString& path, const QStringList& filters = QStringList() ) {
@@ -578,6 +578,7 @@ private slots:
     //forward errors received from Context,
     friend class Context; 
     void ForwardError( const QString& err ) { error( err ); }
+     
 
 private:
     Context& ctx_;
