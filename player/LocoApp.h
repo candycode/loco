@@ -8,11 +8,14 @@
 #include <QMap>
 #include <QtWebKit/QWebPage>
 #include <QtWebKit/QWebFrame>
+#include <QPointer>
+
 #include "CmdLine.h"
 #include "LocoObject.h"
 #include "LocoContext.h"
 #include "LocoNetworkAccessManager.h"
-#include "LocoFileAccessManager.h"                                  
+#include "LocoFileAccessManager.h"     
+#include "LocoObjectInfo.h" //reusing this for app info                             
                                     
 
 namespace loco {
@@ -20,10 +23,11 @@ namespace loco {
 typedef QMap< QString, Object* > ModuleMap;
 typedef QVariantMap CMDLine; //using QVariantMap allows to pass the command line as a json object
 
-class App {
+class App : public QObject {
+    Q_OBJECT
 public:
-	App( int argc, char** argv ) : app_( argc, argv ),
-		defaultScript_( ":/loco/main" ) { //read from embedded resource; 'main' is an alias for 'main.loco' file
+	App( int argc, char** argv, QPointer< ObjectInfo > oi ) : app_( argc, argv ),    
+		defaultScript_( ":/loco/main" ), info_( oi ) { //read from embedded resource; 'main' is an alias for 'main.loco' file
 
 	    // 1 - Read code to execute
         static const bool DO_NOT_REPORT_UNKNOWN_PARAMS = false;
@@ -37,6 +41,13 @@ public:
         wp_.setNetworkAccessManager( &netAccess_ );
         ctx_.SetNetworkAccessManager( &netAccess_ );
         ctx_.SetFileAccessManager( &fileAccess_ );
+        connect( this, SIGNAL( OnException( const QString&  ) ),
+                 &ctx_, SLOT( OnExternalError( const QString& ) ) );
+        app_.setOrganizationName( info_->vendor() );
+        app_.setOrganizationDomain( info_->url() );
+        app_.setApplicationVersion( info_->version().join( "," ) );
+        app_.setApplicationName( info_->name() ); 
+        ctx_.SetAppInfo( info_ );          
 	}
     
 	void AddModuleToJS( Object* obj ) {
@@ -70,35 +81,66 @@ public:
     void AddDenyFileRule( const QRegExp& rx, QIODevice::OpenMode mode ) { fileAccess_.AddDenyRule( rx, mode ); }
 
     int Execute() {
-		
-        QString scriptFileName = defaultScript_; 
-		if( cmdLine_[ " " ].toStringList().size() > 1 ) {
-            scriptFileName = *( ++( cmdLine_[ " " ].toStringList().begin() ) );
-        }
-        QFile scriptFile( scriptFileName );
-        if( !scriptFile.exists() ) {
-			throw std::runtime_error( "file " + scriptFileName.toStdString() + " does not exist" );
-        	return 1;
-        }
-        if( !scriptFile.open( QIODevice::ReadOnly ) ) {
-            throw std::runtime_error( "Cannot open file: " + scriptFileName.toStdString() );
-        }
-        QString jscriptCode = scriptFile.readAll();
-        if( scriptFile.error() != QFile::NoError ) {
-        	throw std::runtime_error( scriptFile.errorString().toStdString() );
-        }
-        scriptFile.close();
-        if( jscriptCode.isEmpty() ) throw std::logic_error( "Empty javascript source file" );
-                                           
-        // 2 - Create run-time environment                             
-	    wf_ = wp_.mainFrame();    
-	    ctx_.Init( wf_, &app_, cmdLine_ );
+        try {		
+            QString scriptFileName = defaultScript_; 
+		    if( cmdLine_[ " " ].toStringList().size() > 1 ) {
+                scriptFileName = *( ++( cmdLine_[ " " ].toStringList().begin() ) );
+            }
+            QFile scriptFile( scriptFileName );
+            if( !scriptFile.exists() ) {
+			    throw std::runtime_error( "file " + scriptFileName.toStdString() + " does not exist" );
+        	    return 1;
+            }
+            if( !scriptFile.open( QIODevice::ReadOnly ) ) {
+                throw std::runtime_error( "Cannot open file: " + scriptFileName.toStdString() );
+            }
+            QString jscriptCode = scriptFile.readAll();
+            if( scriptFile.error() != QFile::NoError ) {
+        	    throw std::runtime_error( scriptFile.errorString().toStdString() );
+            }
+            scriptFile.close();
+            if( jscriptCode.isEmpty() ) throw std::logic_error( "Empty javascript source file" );
+                                               
+            // 2 - Create run-time environment                             
+	        wf_ = wp_.mainFrame();    
+	        ctx_.Init( wf_, &app_, cmdLine_ );
 
-	    // 3 - execute
-	    execResult_ = ctx_.Eval( jscriptCode );
-		if( execResult_.isValid() && execResult_.type() == QVariant::Int ) return execResult_.toInt();
-		return 0;
+	        // 3 - execute
+	        execResult_ = ctx_.Eval( jscriptCode );
+		    if( execResult_.isValid() && execResult_.type() == QVariant::Int ) return execResult_.toInt();
+		    return 0;
+        } catch( const std::exception& e ) {
+            emit OnException( e.what() );
+            std::cerr << e.what() << std::endl;
+            return -1;
+        }
 	}
+
+    void AddNameFilterMapping( const QRegExp& rx, const QStringList& filterIds ) {
+        ctx_.AddNameFilterMapping( rx, filterIds );
+    }
+
+    void RemoveNameFilterMapping( const QRegExp& rx ) {
+        ctx_.RemoveNameFilterMapping( rx );
+    }   
+   
+    void PreloadFilter( const QString& id, const QString& uri ) {
+        ctx_.AddFilter( id, uri );
+    }
+
+    void PreloadScriptFilter( const QString& id, const QString& uri ) {
+        ctx_.AddScriptFilter( id, uri );
+    }
+
+    void PreloadObject( const QString& uri ) {
+        const bool PERSISTENT = true;
+        ctx_.LoadObject( uri, PERSISTENT );
+    }
+
+signals:
+    void OnException( const QString& );
+
+
 private:
 	CMDLine ParsedCommandsToCMDLine( const CmdLine::ParsedEntries& cmd ) {
 	    CMDLine cl;
@@ -120,6 +162,7 @@ private:
 	QWebFrame* wf_;
 	Context ctx_;
 	QString defaultScript_;
+    QPointer< ObjectInfo > info_;
 	QString helpText_;
 	QVariant execResult_;
     NetworkAccessManager netAccess_;

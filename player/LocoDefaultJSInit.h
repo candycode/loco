@@ -20,11 +20,13 @@ public:
     QString GenerateCode() const {
         const QString& GL = ctx_->GetJSGlobalNameForContext();
         QStringList sl;
-        sl << "var " + GL + " = {";
+        sl << "var " + GL + " = {";    
         const JScriptObjCtxInstances& stdObjs = ctx_->GetStdJSObjects();
         for( JScriptObjCtxInstances::const_iterator i = stdObjs.begin();
              i != stdObjs.end(); ++i ) {
-            sl << ConvertNameToJS( (*i)->name() ) + ": " + (*i)->jsInstanceName() + ",";         
+            QString entry = ConvertNameToJS( (*i)->name() ) + ": " + (*i)->jsInstanceName();
+            if( i != ( --stdObjs.end() ) ) entry += ",";  
+            sl << entry;        
         }
         sl << "};";
         return sl.join( "\n" );

@@ -1,6 +1,9 @@
 #pragma once
 //#SRCHEADER
 
+#include <QMetaObject>
+#include <QMetaProperty>
+#include <QObject>
 #include <Qstring>
 #include <QStringList>
 #include <QVariantMap>
@@ -30,6 +33,15 @@ class ObjectInfo : public QObject {
 	Q_PROPERTY( QString updateUrl READ updateUrl )
 	Q_PROPERTY( QVariantMap vendorData READ vendorData )
 public:
+    QVariantMap ToVariantMap() const {
+        const QMetaObject* mo = this->metaObject();
+        QVariantMap vm;
+        for( int p = 0; p != mo->propertyCount(); ++p ) {
+            QMetaProperty mp = mo->property( p );
+            vm.insert( mp.name(), mp.read( this ) );
+        } 
+        return vm;
+    }
 	const QString& name() const { return name_; }
 	const QStringList& resourceAccess() const { return resourceAccess_; }
 	const QStringList& version() const { return version_; }

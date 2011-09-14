@@ -14,7 +14,8 @@ link_directories( ${QT_LIBRARY_DIR} )
 set( MOC_HEADERS 
   LocoConsole.h LocoContext.h EWL.h LocoObject.h LocoFilter.h
   LocoScriptFilter.h LocoFileSystem.h LocoFile.h LocoDir.h
-  LocoSystem.h LocoProcess.h LocoFSWatcher.h LocoNetworkAccessManager.h ) 
+  LocoSystem.h LocoProcess.h LocoFSWatcher.h
+  LocoNetworkAccessManager.h LocoApp.h LocoObjectInfo.h ) 
 QT4_WRAP_CPP( MOC_SRCS ${MOC_HEADERS} ) 
 
 ###RESOURCES

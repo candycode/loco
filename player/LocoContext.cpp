@@ -15,7 +15,8 @@ namespace loco {
 Context::Context() : jsContext_( new JSContext( *this ) ), webFrame_( 0 ),
                      app_( 0 ), parent_( 0 ), globalContextJSName_( "Loco" ),
                      jsInitGenerator_( 0 ), netAccessMgr_( 0 ),
-                     readNetworkTimeout_( 10000 ), maxNetRedirections_( 0 ) {
+                     readNetworkTimeout_( 10000 ), maxNetRedirections_( 0 ),
+                     autoMapFilters_( false )  {
     connect( this, SIGNAL( onError( const QString& ) ), 
              this, SLOT( OnSelfError( const QString& ) ) );
 
@@ -27,7 +28,8 @@ Context::Context( QWebFrame* wf, QApplication* app, const CMDLine& cmdLine,
 :   jsContext_( new JSContext( *this ) ),
     webFrame_( wf ), app_( app ), parent_( parent ), cmdLine_( cmdLine ),
     globalContextJSName_( "Loco" ), jsInitGenerator_( 0 ), netAccessMgr_( 0 ),
-    readNetworkTimeout_( 10000 ), maxNetRedirections_( 0 ) {
+    readNetworkTimeout_( 10000 ), maxNetRedirections_( 0 ),
+    autoMapFilters_( false )  {
     connect( this, SIGNAL( onError( const QString& ) ), 
              this, SLOT( OnSelfError( const QString& ) ) );
     Init( wf, app, cmdLine, parent );

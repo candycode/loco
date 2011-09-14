@@ -7,6 +7,7 @@
 #include <QVariantMap>
 #include <QStringList>
 #include <QPluginLoader>
+#include <QPointer>
 
 #include "EWL.h"
 #include "LocoObjectInfo.h"
@@ -101,7 +102,7 @@ private:
     QString jsInstanceName_;
     int instanceId_;
 	QString module_;
-	ObjectInfo* info_;
+	QPointer< ObjectInfo > info_;
     QPluginLoader* pluginLoader_;
     bool destroyable_; 
 private:

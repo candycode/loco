@@ -17,6 +17,7 @@
 #include <QtNetwork/QNetworkAccessManager>
 #include <QSet>
 #include <QUrl>
+#include <QRegExp>
 
 #include <algorithm>
 #include <cstdlib>
@@ -30,6 +31,7 @@
 #include "LocoSystem.h"
 #include "LocoNetworkAccessManager.h"
 #include "LocoFileAccessManager.h"
+#include "LocoObjectInfo.h"
 
 
 namespace loco {
@@ -43,6 +45,9 @@ typedef QList< Object* > JScriptObjCtxInstances;
 typedef QMap< bool, QMap< QString, Object* > > URIObjectMap;
 typedef QMap< QString, Filter* > URIFilterMap;
 
+typedef QList< QPair< QRegExp, QStringList > > NameFilterMap;
+
+
 struct IJavaScriptInit {
     virtual void SetContext( Context*  ) = 0;
     virtual QString GenerateCode() const = 0;
@@ -53,6 +58,8 @@ struct IJavaScriptInit {
 class Context : public EWL {
     Q_OBJECT  
 
+friend class App; //loco contexts are embedded into an application
+
 public:
     
     Context();
@@ -62,9 +69,28 @@ public:
 
     ~Context(); 
 
-    void Init( QWebFrame* wf, QApplication* app = 0, const CMDLine& cmdLine = CMDLine(), Context* parent = 0 );
+    void Init( QWebFrame* wf, QApplication* app = 0, 
+               const CMDLine& cmdLine = CMDLine(), Context* parent = 0 );
 // called from C++
 public:
+
+    void AddNameFilterMapping( const QRegExp& rx, const QStringList& filterIds ) {
+        nameFilterMap_.push_back( qMakePair( rx, filterIds ) );
+    }
+
+    void RemoveNameFilterMapping( const QRegExp& rx ) {
+        for( NameFilterMap::iterator i = nameFilterMap_.begin();
+             i != nameFilterMap_.end(); ++i ) {
+            if( i->first == rx ) {
+                nameFilterMap_.erase( i );
+                break;
+            }
+        } 
+    }
+
+    void ResetNameFilterMap() { nameFilterMap_.clear(); }
+
+    void SetAppInfo( QPointer< ObjectInfo > ai ) { appInfo_ = ai; }
 
     // object ownership is transferred to context 
     
@@ -181,8 +207,9 @@ public:
 
     int GetNetReadTimeout() const { return readNetworkTimeout_; }
 
-// attched to internal signals            
+ // attched to internal signals            
 private slots:
+   
 
     void RemoveScopeObject( QObject* o ) {
         Object* obj = qobject_cast< Object* >( o );
@@ -278,7 +305,8 @@ private slots:
             (*i)->deleteLater();
         } 
         filters_.clear();
-        filterPluginLoaders_.clear(); 
+        filterPluginLoaders_.clear();
+        ResetNameFilterMap(); 
     }
 	
 
@@ -320,6 +348,8 @@ public:
        } 
     }
 private:
+
+    ObjectInfo* GetAppInfo() const { return appInfo_.data(); }
 
     // DataT = QByteArray OR QString
     template < typename DataT >
@@ -379,6 +409,19 @@ private:
         filters_[ id ] = lf;
     }
 
+    void LoadScriptFilter( const QString& uri,
+                           const QString& id,
+                           const QString& jerrfun = "",
+                           const QString& codePlaceHolder = "" ) {
+        QString f = Read( uri );
+        if( f.isEmpty() ) return;   
+        ::loco::Filter* lf = new ScriptFilter( webFrame_, f, jerrfun, codePlaceHolder );
+        connect( lf, SIGNAL( onError( const QString& ) ), 
+                                      this, SLOT( OnFilterError( const QString& ) ) );
+        filters_[ id ] = lf;
+    }
+
+
     QVariantMap Cmdline() const { return cmdLine_; }
 
     void RegisterJSErrCBack( const QString& code, const QStringList& filters = QStringList() ) { 
@@ -393,8 +436,18 @@ private:
     }
 
     QVariant Insert( const QString& uri, const QStringList& filters = QStringList() ) {
-        QString code = Read( uri, filters );
-        if( code.isEmpty() ) return false;
+        QString code;
+        if( filters.isEmpty() && autoMapFilters_ ) {
+            for( NameFilterMap::iterator i = nameFilterMap_.begin();
+                 i != nameFilterMap_.end(); ++i ) {
+                if( i->first.exactMatch( uri ) ) {
+                    Read( uri, i->second );
+                    break;
+                }
+            }    
+        }
+        else code = Read( uri, filters );
+        if( code.isEmpty() ) return QVariant();
         return Eval( code );
     }
 
@@ -404,10 +457,7 @@ private:
             uri = d.absoluteFilePath( uri );    
         } 
         if( includeSet_.find( uri ) != includeSet_.end() ) return QVariant(); 
-        QString code = Read( uri, filters );
-        if( code.isEmpty() ) return false;
-        includeSet_.insert( uri );
-        return Eval( code );
+        return Insert( uri, filters );
     } 
 
 private:
@@ -437,6 +487,8 @@ private:
     URIFilterMap uriFilterMap_;
     QString globalContextJSName_;
     QString jsInitCode_;
+    NameFilterMap nameFilterMap_;
+    bool autoMapFilters_;
 private: 
     IJavaScriptInit* jsInitGenerator_; 
     NetworkAccessManager* netAccessMgr_;
@@ -445,7 +497,8 @@ private:
     QSet< QString > includeSet_;
 private:
     int readNetworkTimeout_;
-    int maxNetRedirections_;        
+    int maxNetRedirections_;
+    QPointer< ObjectInfo > appInfo_;        
 };
 
 //==============================================================================
@@ -455,7 +508,7 @@ class JSContext : public Object {
 public:
     JSContext( Context& ctx ) : Object( 0, "LocoContext", "Loco/Context" ),
     ctx_( ctx )  {
-        SetDestroyable( false );              
+        SetDestroyable( false );       
     }
 
 // invocable from javascript
@@ -490,6 +543,11 @@ public slots: // js interface
 	QString currentDir() const { return QDir::current().absolutePath(); }
 
 	QString homeDir() const { return QDir::home().absolutePath(); }
+
+    QVariantMap appInfo() const { 
+        return ctx_.GetAppInfo() ? ctx_.GetAppInfo()->ToVariantMap()
+                                 : QVariantMap();
+    }
 
     // IMPORTANT: this sets the paths associated with a specific resource tag
     // e.g. "images" "$home/images"
