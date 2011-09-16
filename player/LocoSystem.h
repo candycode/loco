@@ -9,6 +9,8 @@
 #include <QVariantMap>
 #include <QProcess>
 #include <QProcessEnvironment>
+#include <QDesktopWidget>
+#include <QRect>
 
 #include "LocoObject.h"
 
@@ -99,6 +101,21 @@ public slots:
     }
     
     QVariant process() const; 
+
+    QVariantMap desktopGeometry( int screen = -1 ) {
+        const QDesktopWidget dw;
+        const QRect geom = dw.availableGeometry();
+        QVariantMap vm;
+        vm[ "screen" ] = screen;
+        vm[ "x" ] = geom.x();
+        vm[ "y" ] = geom.y();
+        vm[ "w" ] = geom.width();
+        vm[ "h" ] = geom.height();
+        vm[ "screens" ] = dw.screenCount();
+        return vm;
+    }       
+ 
+
 };
 
 }

@@ -7,6 +7,7 @@
 #include "LocoFileSystem.h"
 #include "LocoSystem.h"
 #include "LocoObjectInfo.h"
+#include "LocoGUI.h"
 
 //------------------------------------------------------------------------------
 int main(int argc, char *argv[])
@@ -25,6 +26,7 @@ int main(int argc, char *argv[])
 		app.AddModuleToJS( new loco::Console );
 		app.AddModuleToJS( new loco::FileSystem );
 		app.AddModuleToJS( new loco::System );
+        app.AddModuleToJS( new loco::GUI );
 		app.AddContextToJS();
 		app.SetAllowFileAccess( true );
 		app.SetFilterFileAccess( false );

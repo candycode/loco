@@ -15,7 +15,8 @@ set( MOC_HEADERS
   LocoConsole.h LocoContext.h EWL.h LocoObject.h LocoFilter.h
   LocoScriptFilter.h LocoFileSystem.h LocoFile.h LocoDir.h
   LocoSystem.h LocoProcess.h LocoFSWatcher.h
-  LocoNetworkAccessManager.h LocoApp.h LocoObjectInfo.h ) 
+  LocoNetworkAccessManager.h LocoApp.h LocoObjectInfo.h
+  LocoWebWindow.h LocoGUI.h   ) 
 QT4_WRAP_CPP( MOC_SRCS ${MOC_HEADERS} ) 
 
 ###RESOURCES
@@ -25,7 +26,7 @@ SOURCE_GROUP( Resources REGULAR_EXPRESSION "res/.+" )
 
 # App
 set( SRCS loco.cpp LocoObject.cpp LocoFileSystem.cpp LocoSystem.cpp
-     LocoProcess.cpp LocoContext.cpp LocoFile.cpp ) 
+     LocoProcess.cpp LocoContext.cpp LocoFile.cpp LocoGUI.cpp ) 
 set( SRCS_INCLUDE ${MOC_HEADERS} CmdLine.h LocoFileAccessManager.h LocoDefaultJSInit.h LocoApp.h )
 
 ####SETUP PLUGIN

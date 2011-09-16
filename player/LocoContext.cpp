@@ -12,7 +12,7 @@
 namespace loco {
 
 
-Context::Context() : jsContext_( new JSContext( *this ) ), webFrame_( 0 ),
+Context::Context( Context* parent ) : jsContext_( new JSContext( *this ) ), webFrame_( 0 ),
                      app_( 0 ), parent_( 0 ), globalContextJSName_( "Loco" ),
                      jsInitGenerator_( 0 ), netAccessMgr_( 0 ),
                      readNetworkTimeout_( 10000 ), maxNetRedirections_( 0 ),
@@ -39,7 +39,6 @@ Context::~Context() {
     // remove non-QObject-derived objects; the others are deleted from slots attached to
     // the 'destroyed' signal
     delete jsInitGenerator_;
-    delete jsContext_;
 }   
 
 void Context::AddContextToJS() { AddJSStdObject( jsContext_ ); }

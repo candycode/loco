@@ -35,9 +35,7 @@ public:
         CmdLine cl( DO_NOT_REPORT_UNKNOWN_PARAMS );
         cmdLine_ = ParsedCommandsToCMDLine( cl.ParseCommandLine( argc, argv ) );
 		//ctx_.setParent( this );
-		helpText_ = "Usage: loco --script <javascript file>\n"
-                    "       If no script file is specified the default "
-                    "'main.loco' is used";
+		helpText_ = "Usage: loco <script file>";
         wp_.setNetworkAccessManager( &netAccess_ );
         ctx_.SetNetworkAccessManager( &netAccess_ );
         ctx_.SetFileAccessManager( &fileAccess_ );
@@ -70,6 +68,8 @@ public:
 
     void AddDenyNetRule( const QRegExp& rx ) { netAccess_.AddDenyRule( rx ); }
 
+    void AddNetUrlMapping( const QRegExp& rx, const QString& url ) { netAccess_.AddRedirMapping( rx, url ); }
+
     void SetAllowFileAccess( bool fa ) { fileAccess_.SetAllowFileAccess( fa ); }
 
     void SetFilterFileAccess( bool fr ) { fileAccess_.SetFilterAccess( fr ); }
@@ -100,7 +100,7 @@ public:
             }
             scriptFile.close();
             if( jscriptCode.isEmpty() ) throw std::logic_error( "Empty javascript source file" );
-                                               
+                                                
             // 2 - Create run-time environment                             
 	        wf_ = wp_.mainFrame();    
 	        ctx_.Init( wf_, &app_, cmdLine_ );
@@ -125,7 +125,7 @@ public:
     }   
    
     void PreloadFilter( const QString& id, const QString& uri ) {
-        ctx_.AddFilter( id, uri );
+        ctx_.LoadFilter( id, uri );
     }
 
     void PreloadScriptFilter( const QString& id, const QString& uri ) {

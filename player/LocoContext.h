@@ -62,7 +62,7 @@ friend class App; //loco contexts are embedded into an application
 
 public:
     
-    Context();
+    Context( Context* parent = 0 );
    
     Context( QWebFrame* wf, QApplication* app, const CMDLine& cmdLine,
              Context* parent = 0 );
@@ -73,6 +73,8 @@ public:
                const CMDLine& cmdLine = CMDLine(), Context* parent = 0 );
 // called from C++
 public:
+
+    QString GetJSInitCode() const { return jsInitGenerator_->GenerateCode(); }
 
     void AddNameFilterMapping( const QRegExp& rx, const QStringList& filterIds ) {
         nameFilterMap_.push_back( qMakePair( rx, filterIds ) );
@@ -234,16 +236,7 @@ private slots:
 
     /// this slot can be called from child contexts to make objects
     /// in the parent context available within the child context
-    void AddJSStdObjects( QWebFrame* wf ) {
-        for( JScriptObjCtxInstances::const_iterator i = jscriptStdObjects_.begin();
-             i != jscriptStdObjects_.end(); ++i ) {
-            if( (*i)->GetContext() == 0 ) (*i)->SetContext( this );      
-            ConnectErrCBack( *i );
-            if( (*i)->GetPluginLoader() == 0 && (*i)->parent() == 0 ) (*i)->setParent( this );
-            wf->addToJavaScriptWindowObject( (*i)->jsInstanceName(), *i );  
-        } 
-    }
-
+    
     void AddJSCtxObjects( QWebFrame* wf ) {
         for( JScriptObjCtxInstances::const_iterator i = jscriptCtxInstances_.begin();
              i != jscriptCtxInstances_.end(); ++i ) {
@@ -324,6 +317,16 @@ public slots:
     void OnExternalError( const QString& err ) {
         error( err );
     }
+    // allow to add objects to other frames
+    void AddJSStdObjects( QWebFrame* wf ) {
+        for( JScriptObjCtxInstances::const_iterator i = jscriptStdObjects_.begin();
+             i != jscriptStdObjects_.end(); ++i ) {
+            if( (*i)->GetContext() == 0 ) (*i)->SetContext( this );      
+            ConnectErrCBack( *i );
+            if( (*i)->GetPluginLoader() == 0 && (*i)->parent() == 0 ) (*i)->setParent( this );
+            wf->addToJavaScriptWindowObject( (*i)->jsInstanceName(), *i );  
+        } 
+    }
 private slots:
     void OnSelfError( const QString& err ) {
         webFrame_->evaluateJavaScript( jsErrCBack_ );
@@ -347,7 +350,7 @@ public:
            return QVariant();
        } 
     }
-private:
+
 
     ObjectInfo* GetAppInfo() const { return appInfo_.data(); }
 
@@ -370,12 +373,18 @@ private:
         return error() ? DataT() : data; 
     }
 
+private:
+
     QVariant LoadObject( const QString& uri,  //used as a regular file/resource path for now
                          bool persistent = false );
 
     int Exec() { return app_->exec(); }
 
-    void AddFilter( const QString& id, const QString& uri ) {
+    void LoadFilter( const QString& id, const QString& uri ) {
+        if( !fileAccessMgr_->CheckAccess( uri ) ) {
+            error( "Access to " + uri + " not allowed" );
+            return;
+        }
         if( uriFilterMap_.find( uri ) != uriFilterMap_.end() ) return;
         QPluginLoader* pl = new QPluginLoader( uri );
         if( !pl->load() ) {
@@ -415,6 +424,10 @@ private:
 						   const QString& jfun,
                            const QString& jerrfun = "",
                            const QString& codePlaceHolder = "" ) {
+        if( !fileAccessMgr_->CheckAccess( uri ) ) {
+            error( "Access to " + uri + " not allowed" );
+            return;
+        }
         QString f = Read( uri );
         if( f.isEmpty() ) return;   
         ::loco::Filter* lf = new ScriptFilter( webFrame_, jfun, f, jerrfun, codePlaceHolder );
@@ -470,7 +483,7 @@ private:
     void jsErr() { webFrame_->evaluateJavaScript( jsErrCBack_ ); }
 
 private:
-    JSContext* jsContext_;
+    QPointer< JSContext > jsContext_;
     QWebFrame* webFrame_;
     QApplication* app_;
     Context* parent_;
@@ -578,8 +591,8 @@ public slots: // js interface
 		return ctx_.Include( uri, filterIds );
 	}
 
-    void addFilter( const QString& id, const QString& uri ) {
-        ctx_.AddFilter( id, uri );
+    void loadFilter( const QString& id, const QString& uri ) {
+        ctx_.LoadFilter( id, uri );
     }
 
     bool hasFilter( const QString& id ) { return ctx_.HasFilter( id ); }
@@ -622,6 +635,9 @@ public slots: // js interface
 
     
     QString qtVersion() const { return qVersion(); }
+
+    //QString qtWebkitVersion() { return ::qtWebkitVersion(); }
+
 
     QString os() const {
         #if defined( Q_WS_X11 )
