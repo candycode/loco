@@ -53,9 +53,12 @@ protected:
     virtual QNetworkReply* createRequest( Operation op,
                                           const QNetworkRequest& req,
                                           QIODevice* outgoingData = 0 ) {
+	
         if( !allowNetAccess_ ) {
             emit UnauthorizedNetworkAccessAttempt();
-            return 0;
+			QNetworkRequest nr;
+		    nr.setUrl(QString(""));
+            return QNetworkAccessManager::createRequest( op, nr, outgoingData );
         }        
         
         if( !filterRequests_ )
@@ -79,8 +82,10 @@ protected:
     
         for( RegExps::const_iterator i = deny_.begin(); i != deny_.end(); ++i ) {
             if( i->exactMatch( url ) ) {
-                emit NetworkRequestDenied( url );
-                return 0;
+                emit UrlAccessDenied( url );
+                QNetworkRequest nr;
+		        nr.setUrl(QString(""));
+                return QNetworkAccessManager::createRequest( op, nr, outgoingData );
             }
         }
         for( RegExps::const_iterator i = allow_.begin(); i != allow_.end(); ++i ) {
@@ -89,11 +94,13 @@ protected:
             }
         }
 
-        emit NetworkRequestDenied( url );
-        return 0;   
+        emit UrlAccessDenied( url );
+        QNetworkRequest nr;
+		nr.setUrl(QString(""));
+        return QNetworkAccessManager::createRequest( op, nr, outgoingData );   
     }
 signals:
-    void NetworkRequestDenied( QString );
+    void UrlAccessDenied( QString );
     void UnauthorizedNetworkAccessAttempt();
 
 private:

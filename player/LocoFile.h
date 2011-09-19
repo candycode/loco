@@ -58,9 +58,11 @@ public slots:
 
     bool resize( qint64 ns ) { return file_.resize( ns ); }
 
-    qint64 write( const char* data, qint64 maxSize ) { return file_.write( data, maxSize ); }
+    qint64 write( const char* data, qint64 maxSize = -1 ) { return file_.write( data, maxSize ); }
 
-    qint64 write( QByteArray data ) { return file_.write( data ); }
+	qint64 write( const QString& data, qint64 maxSize = -1 ) { return file_.write( data.toAscii().constData(), maxSize ); }
+
+    qint64 writeBytes( QByteArray data ) { return file_.write( data ); }
 
     bool reset() { return file_.reset(); }
 

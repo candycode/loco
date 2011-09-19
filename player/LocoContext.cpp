@@ -12,7 +12,7 @@
 namespace loco {
 
 
-Context::Context( Context* parent ) : jsContext_( new JSContext( *this ) ), webFrame_( 0 ),
+Context::Context( Context* parent ) : jsContext_( new JSContext( *this ) ), jsInterpreter_( 0 ),
                      app_( 0 ), parent_( 0 ), globalContextJSName_( "Loco" ),
                      jsInitGenerator_( 0 ), netAccessMgr_( 0 ),
                      readNetworkTimeout_( 10000 ), maxNetRedirections_( 0 ),
@@ -23,10 +23,10 @@ Context::Context( Context* parent ) : jsContext_( new JSContext( *this ) ), webF
 } 
 
 
-Context::Context( QWebFrame* wf, QApplication* app, const CMDLine& cmdLine,
+Context::Context( IJSInterpreter* wf, QApplication* app, const CMDLine& cmdLine,
                   Context* parent)
 :   jsContext_( new JSContext( *this ) ),
-    webFrame_( wf ), app_( app ), parent_( parent ), cmdLine_( cmdLine ),
+    jsInterpreter_( wf ), app_( app ), parent_( parent ), cmdLine_( cmdLine ),
     globalContextJSName_( "Loco" ), jsInitGenerator_( 0 ), netAccessMgr_( 0 ),
     readNetworkTimeout_( 10000 ), maxNetRedirections_( 0 ),
     autoMapFilters_( false )  {
@@ -35,13 +35,8 @@ Context::Context( QWebFrame* wf, QApplication* app, const CMDLine& cmdLine,
     Init( wf, app, cmdLine, parent );
 }
 
-Context::~Context() {
-    // remove non-QObject-derived objects; the others are deleted from slots attached to
-    // the 'destroyed' signal
-    delete jsInitGenerator_;
-}   
 
-void Context::AddContextToJS() { AddJSStdObject( jsContext_ ); }
+void Context::AddContextToJS() { AddJSStdObject( jsContext_.data() ); }
 
 void Context::ConnectErrCBack( Object* obj ) {
     if( obj == jsContext_ ) return;  
@@ -50,21 +45,21 @@ void Context::ConnectErrCBack( Object* obj ) {
 
 
 
-void Context::Init( QWebFrame* wf, QApplication* app, const CMDLine& cmdLine,
+void Context::Init( IJSInterpreter* wf, QApplication* app, const CMDLine& cmdLine,
                     Context* parent ) {
 
-    webFrame_ = wf,
+    jsInterpreter_ = wf,
     app_ = app;
     parent_ = parent,
     cmdLine_ = cmdLine;
     
-    connect( webFrame_, SIGNAL( javaScriptWindowObjectCleared() ),
+    connect( jsInterpreter_, SIGNAL( JavaScriptContextCleared() ),
          this, SLOT( RemoveInstanceObjects() ) );
-    connect( webFrame_, SIGNAL( javaScriptWindowObjectCleared() ),
+    connect( jsInterpreter_, SIGNAL( JavaScriptContextCleared() ),
          this, SLOT( RemoveFilters() ) );
-    connect( webFrame_, SIGNAL( javaScriptWindowObjectCleared() ),
+    connect( jsInterpreter_, SIGNAL( JavaScriptContextCleared() ),
          this, SLOT( AddJavaScriptObjects() ) );
-    connect( webFrame_, SIGNAL( javaScriptWindowObjectCleared() ),
+    connect( jsInterpreter_, SIGNAL( JavaScriptContextCleared() ),
          this, SLOT( InitJScript() ) );
 
     connect( this, SIGNAL( destroyed() ), this, SLOT( RemoveInstanceObjects() ) );
@@ -72,9 +67,11 @@ void Context::Init( QWebFrame* wf, QApplication* app, const CMDLine& cmdLine,
     connect( this, SIGNAL( destroyed() ), this, SLOT( RemoveFilters() ) );
     
     //allow js context to receive errors from context and emit signals
-    connect( this, SIGNAL( onError( const QString&) ), jsContext_, SLOT( ForwardError( const QString& ) ) );
+    connect( this, SIGNAL( onError( const QString&) ), jsContext_.data(), SLOT( ForwardError( const QString& ) ) );
 
-    jsInitGenerator_ = new DefaultJSInit( this );
+    jsInitGenerator_ = QSharedPointer< IJavaScriptInit >( new DefaultJSInit( this ) );
+
+	jsInterpreter_->Init();
 }
 
 Object* Context::Find( const QString& jsInstanceName ) const {
@@ -97,20 +94,20 @@ Object* Context::Find( const QString& jsInstanceName ) const {
                                bool persistent ) { 
     if( uriObjectMap_[ persistent ].find( uri ) != uriObjectMap_[ persistent ].end() ) {
         Object* obj = uriObjectMap_[ persistent ][ uri ];
-        return webFrame_->evaluateJavaScript( obj->jsInstanceName() );
+        return jsInterpreter_->EvaluateJavaScript( obj->jsInstanceName() );
     }
     QPluginLoader* pl = new QPluginLoader( uri );
 		if( !pl->load() ) {
 			delete pl;
 			error( "Cannot load " + uri );
-			webFrame_->evaluateJavaScript( jsErrCBack_ );
+			jsInterpreter_->EvaluateJavaScript( jsErrCBack_ );
 			return QVariant();
 		} 			
     Object* obj = qobject_cast< ::loco::Object* >( pl->instance() );
     if( !obj ) {
 			delete pl;
 			error( "Wrong object type " + uri );
-			webFrame_->evaluateJavaScript( jsErrCBack_ );
+			jsInterpreter_->EvaluateJavaScript( jsErrCBack_ );
 			return QVariant();
     }
 	obj->SetContext( this );
@@ -124,8 +121,8 @@ Object* Context::Find( const QString& jsInstanceName ) const {
 			ctxPluginLoaders_.push_back( pl );
 		}
     uriObjectMap_[ persistent ][ uri ] = obj;
-    webFrame_->addToJavaScriptWindowObject( obj->jsInstanceName(), obj );
-    return webFrame_->evaluateJavaScript( obj->jsInstanceName() );
+    jsInterpreter_->AddObjectToJS( obj->jsInstanceName(), obj );
+    return jsInterpreter_->EvaluateJavaScript( obj->jsInstanceName() );
 }
 
 
@@ -155,7 +152,6 @@ QByteArray Context::ReadUrl( const QString& url, QSet< QUrl > redirects ) {
     QVariant possibleRedirectUrl =  reply->attribute( QNetworkRequest::RedirectionTargetAttribute );
     if( !possibleRedirectUrl.toUrl().isEmpty()  ) {
         redirects.insert( QUrl( url ) );
-        //std::cout << urlRedirectedTo.toString().toStdString() << std::endl;
         return ReadUrl( possibleRedirectUrl.toString(), redirects );
     }
     else return reply->readAll(); 

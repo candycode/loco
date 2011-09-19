@@ -12,6 +12,23 @@
 
 namespace loco {
 
+class ::QCloseEvent;
+class ::QContextMenuEvent;
+
+class WV : public QWebView {
+	Q_OBJECT
+protected:
+	void closeEvent( QCloseEvent* e ) {
+		emit closing();
+		QWebView::closeEvent( e );
+	}
+	void contextMenuEvent( QContextMenuEvent* ) {}
+signals:
+	void closing();
+};
+
+
+
 class WebWindow : public Object {
     Q_OBJECT
 
@@ -19,7 +36,9 @@ public:
    WebWindow() : Object( 0, "LocoWebWindow", "Loco/GUI/Window" ) {
         wf_ = webView_.page()->mainFrame(); 
         connect( wf_, SIGNAL( javaScriptWindowObjectCleared () ),
-                 this, SLOT( JSContextCleared() ) ); 
+                 this, SLOT( JSContextCleared() ) );
+		connect( &webView_, SIGNAL( closing() ),
+			     this, SLOT( OnClose() ) );
 
    }
 
@@ -31,6 +50,10 @@ public:
         GetContext()->AddJSStdObjects( wf_ );
    }
 
+   void SetNetworkAccessManager( QNetworkAccessManager* nam ) {
+	   webView_.page()->setNetworkAccessManager( nam );
+   }
+
 private slots:
     void JSContextCleared() {
         if( addParentObjs_ ) {
@@ -38,7 +61,8 @@ private slots:
             wf_->evaluateJavaScript( GetContext()->GetJSInitCode() );
         }
         if( addSelf_ ) AddSelfToJSContext();
-    } 
+    }
+	void OnClose() { emit closing(); }
     
 public slots:
     //connect from parent context Context::onError() -> WebWindow::onParentError()
@@ -93,9 +117,13 @@ signals:
     // other option:
     // 1) connect javaScriptContextReset to parent context
     // 2) have parent context initialize this object as needed
-    //void javaScriptContextReset( this );  
+    //void javaScriptContextReset( this );
+	void closing();
+private slots:
+	// remove context menu
+	void OnCustomContextMenuRequested ( const QPoint& ) {} //eat event
 private:
-    QWebView webView_;
+    WV webView_;
     QWebFrame* wf_; 
     bool addSelf_;
     bool addParentObjs_;

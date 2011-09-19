@@ -1,33 +1,11 @@
-#pragma once
 //SRCHEADER
-
-#include <stdexcept>
-
-#include <QString>
-#include <QStringList>
-#include <QMap>
-#include <QtWebKit/QWebPage>
-#include <QtWebKit/QWebFrame>
-#include <QSharedPointer>
-
-#include "CmdLine.h"
-#include "LocoObject.h"
-#include "LocoContext.h"
-#include "LocoNetworkAccessManager.h"
-#include "LocoFileAccessManager.h"     
-#include "LocoObjectInfo.h" //reusing this for app info
-#include "LocoWebKitJSCore.h"
+#include "LocoApp.h"
                                     
 
 namespace loco {
 
-typedef QMap< QString, Object* > ModuleMap;
-typedef QVariantMap CMDLine; //using QVariantMap allows to pass the command line as a json object
-
-class App : public QObject {
-    Q_OBJECT
-public:
-	App( int argc, char** argv, QSharedPointer< ObjectInfo > oi ) : app_( argc, argv ),
+	App::App( int argc, char** argv, IJSInterpreter* i, QPointer< ObjectInfo > oi ) : app_( argc, argv ),
+		jsInterpreter_( i ),
 	    defaultScript_( ":/loco/main" ), info_( oi ) { //read from embedded resource; 'main' is an alias for 'main.loco' file
 
 	    // 1 - Read code to execute
@@ -45,11 +23,8 @@ public:
         app_.setOrganizationDomain( info_->url() );
         app_.setApplicationVersion( info_->version().join( "," ) );
         app_.setApplicationName( info_->name() ); 
-        ctx_.SetAppInfo( info_ );
-
+        ctx_.SetAppInfo( info_ );          
 	}
-
-	void SetInterpreter( QSharedPointer< IJSInterpreter > i ) { jsInterpreter_ = i; }
     
 	void AddModuleToJS( Object* obj ) {
 		ctx_.AddJSStdObject( obj );
@@ -105,7 +80,7 @@ public:
             if( jscriptCode.isEmpty() ) throw std::logic_error( "Empty javascript source file" );
                                                 
             // 2 - Create run-time environment                             
-	        ctx_.Init( jsInterpreter_.data(), &app_, cmdLine_ );
+	        ctx_.Init( jsInterpreter_, &app_, cmdLine_ );
 
 	        // 3 - execute
 	        execResult_ = ctx_.Eval( jscriptCode );
@@ -142,6 +117,7 @@ public:
 signals:
     void OnException( const QString& );
 
+
 private:
 	CMDLine ParsedCommandsToCMDLine( const CmdLine::ParsedEntries& cmd ) {
 	    CMDLine cl;
@@ -159,10 +135,10 @@ private:
 private:
 	CMDLine cmdLine_;
 	QApplication app_;
-	QSharedPointer< IJSInterpreter > jsInterpreter_;
+	IJSInterpreter* jsInterpreter_;
 	Context ctx_;
 	QString defaultScript_;
-    QSharedPointer< ObjectInfo > info_;
+    QPointer< ObjectInfo > info_;
 	QString helpText_;
 	QVariant execResult_;
     NetworkAccessManager netAccess_;

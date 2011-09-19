@@ -9,8 +9,8 @@
 #include <QVariantMap>
 #include <QProcess>
 #include <QProcessEnvironment>
-#include <QDesktopWidget>
-#include <QRect>
+#include <QMutex>
+#include <QWaitCondition>
 
 #include "LocoObject.h"
 
@@ -100,22 +100,17 @@ public slots:
         return vm;          
     }
     
-    QVariant process() const; 
+    QVariant process() const;
 
-    QVariantMap desktopGeometry( int screen = -1 ) {
-        const QDesktopWidget dw;
-        const QRect geom = dw.availableGeometry();
-        QVariantMap vm;
-        vm[ "screen" ] = screen;
-        vm[ "x" ] = geom.x();
-        vm[ "y" ] = geom.y();
-        vm[ "w" ] = geom.width();
-        vm[ "h" ] = geom.height();
-        vm[ "screens" ] = dw.screenCount();
-        return vm;
-    }       
- 
+	QVariant eventLoop() const;
 
+	void sleep( int ms ) const {
+	  sleepMutex_.lock();
+      sleepWCond_.wait( &sleepMutex_, ms );   // two seconds
+    }
+private:
+	mutable QMutex sleepMutex_;
+	mutable QWaitCondition sleepWCond_;
 };
 
 }

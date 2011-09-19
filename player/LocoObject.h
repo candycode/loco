@@ -7,7 +7,7 @@
 #include <QVariantMap>
 #include <QStringList>
 #include <QPluginLoader>
-#include <QPointer>
+#include <QSharedPointer>
 
 #include "EWL.h"
 #include "LocoObjectInfo.h"
@@ -78,7 +78,7 @@ public:
     static void SetObjNamePrefix( const QString& p ) { objNamePrefix_ = p; }
     static void SetObjNameSuffix( const QString& s ) { objNameSuffix_ = s; }      
 public slots:
-	ObjectInfo* info() const { return info_; }
+	QSharedPointer< ObjectInfo > info() const { return info_; }
     void destroy() {
         //global objects set from Context must never be destroyed
         if( !destroyable_ ) {
@@ -102,7 +102,7 @@ private:
     QString jsInstanceName_;
     int instanceId_;
 	QString module_;
-	QPointer< ObjectInfo > info_;
+	QSharedPointer< ObjectInfo > info_;
     QPluginLoader* pluginLoader_;
     bool destroyable_; 
 private:

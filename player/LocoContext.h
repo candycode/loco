@@ -13,7 +13,7 @@
 #include <QProcess>
 #include <QProcessEnvironment>
 #include <QDir>
-#include <QPointer>
+#include <QSharedPointer>
 #include <QtNetwork/QNetworkAccessManager>
 #include <QSet>
 #include <QUrl>
@@ -32,6 +32,7 @@
 #include "LocoNetworkAccessManager.h"
 #include "LocoFileAccessManager.h"
 #include "LocoObjectInfo.h"
+#include "LocoIJSInterpreter.h"
 
 
 namespace loco {
@@ -64,12 +65,10 @@ public:
     
     Context( Context* parent = 0 );
    
-    Context( QWebFrame* wf, QApplication* app, const CMDLine& cmdLine,
+    Context( IJSInterpreter* wf, QApplication* app, const CMDLine& cmdLine,
              Context* parent = 0 );
 
-    ~Context(); 
-
-    void Init( QWebFrame* wf, QApplication* app = 0, 
+    void Init( IJSInterpreter* wf, QApplication* app = 0, 
                const CMDLine& cmdLine = CMDLine(), Context* parent = 0 );
 // called from C++
 public:
@@ -92,7 +91,7 @@ public:
 
     void ResetNameFilterMap() { nameFilterMap_.clear(); }
 
-    void SetAppInfo( QPointer< ObjectInfo > ai ) { appInfo_ = ai; }
+    void SetAppInfo( QSharedPointer< ObjectInfo > ai ) { appInfo_ = ai; }
 
     // object ownership is transferred to context 
     
@@ -103,7 +102,7 @@ public:
         if( obj->GetContext() == 0 ) obj->SetContext( this );
         if( obj->GetPluginLoader() == 0 && obj->parent() == 0 ) obj->setParent( this );
         if( immediateAdd ) {
-            webFrame_->addToJavaScriptWindowObject( obj->jsInstanceName(), obj );
+            jsInterpreter_->AddObjectToJS( obj->jsInstanceName(), obj );
         }
     }
     
@@ -112,7 +111,7 @@ public:
         if( obj->GetContext() == 0 ) obj->SetContext( this );
         if( obj->GetPluginLoader() == 0 && obj->parent() == 0 ) obj->setParent( this );
         if( immediateAdd ) {
-            webFrame_->addToJavaScriptWindowObject( obj->jsInstanceName(), obj );
+            jsInterpreter_->AddObjectToJS( obj->jsInstanceName(), obj );
         }
        
     }
@@ -128,14 +127,14 @@ public:
     // NEVER add root objects from plugins because such objects must be deleted
     // through the plusgin loader's unload method
     QVariant AddObjToJSContext( Object* obj ) {
-        webFrame_->addToJavaScriptWindowObject( obj->jsInstanceName(),
-                                                obj,
-                                                QScriptEngine::ScriptOwnership );
+        jsInterpreter_->AddObjectToJS( obj->jsInstanceName(),
+                                       obj,
+                                       QScriptEngine::ScriptOwnership );
         obj->SetContext( this );
         ConnectErrCBack( obj );
         connect( obj, SIGNAL( destroyed( QObject* ) ), this, SLOT( RemoveScopeObject( QObject* ) ) );
         instanceObjs_.push_back( obj );
-        return webFrame_->evaluateJavaScript( obj->jsInstanceName() );
+        return jsInterpreter_->EvaluateJavaScript( obj->jsInstanceName() );
     }
 
   
@@ -154,12 +153,12 @@ public:
         return globalContextJSName_;
     }
 
-	void SetJSInitializer( IJavaScriptInit* jsi ) { 
+	void SetJSInitializer( QSharedPointer< IJavaScriptInit > jsi ) { 
         if( jsi == jsInitGenerator_ ) return;
         jsInitGenerator_ = jsi;
     } 
 
-	IJavaScriptInit* GetJSInitializer() const { return jsInitGenerator_; }
+	QSharedPointer< IJavaScriptInit > GetJSInitializer() const { return jsInitGenerator_; }
       
     void SetJSErrCBack( const QString& code,
                         const QStringList& filterIds = QStringList() ) {
@@ -168,34 +167,33 @@ public:
 
     const QString& GetJSErrCBack() const { return jsErrCBack_; }
 
-    void SetJSInitGenerator( IJavaScriptInit* jsi ) {
+    void SetJSInitGenerator( QSharedPointer< IJavaScriptInit > jsi ) {
         if( jsi == jsInitGenerator_ ) return;
-        delete jsInitGenerator_;
         jsInitGenerator_ = jsi;
     }
 
-    IJavaScriptInit* GetJSInitGenerator() const { return jsInitGenerator_; }
+    QSharedPointer< IJavaScriptInit > GetJSInitGenerator() const { return jsInitGenerator_; }
 
 	const JScriptObjCtxInstances& GetStdJSObjects() const { return jscriptStdObjects_; }
 
     void SetNetworkAccessManager( NetworkAccessManager* nam ) { 
         if( nam == netAccessMgr_ && nam != 0 ) return;
         if( netAccessMgr_ != 0 ) {
-            disconnect( netAccessMgr_, SIGNAL( NetworkRequestDenied( QString ) ),
+            disconnect( netAccessMgr_, SIGNAL( UrlAccessDenied( QString ) ),
                         this, SLOT( OnNetworkRequestDenied( QString ) ) );
             disconnect( netAccessMgr_, SIGNAL( UnauthorizedNetworkAccessAttempt() ),
                         this, SLOT( OnUnauthorizedNetworkAccess() ) );
         }
         netAccessMgr_ = nam;
         if( netAccessMgr_ ) {
-            connect( netAccessMgr_, SIGNAL( NetworkRequestDenied( QString ) ),
+            connect( netAccessMgr_, SIGNAL( UrlAccessDenied( QString ) ),
                      this, SLOT( OnNetworkRequestDenied( QString ) ) );
             connect( netAccessMgr_, SIGNAL( UnauthorizedNetworkAccessAttempt() ),
                      this, SLOT( OnUnauthorizedNetworkAccess() ) ); 
         }
     }
 
-    const QNetworkAccessManager* GetNetworkAccessManager( QNetworkAccessManager* nam ) const { return netAccessMgr_; }
+    QNetworkAccessManager* GetNetworkAccessManager() const { return netAccessMgr_; }
 
     void SetFileAccessManager( FileAccessManager* fm ) { fileAccessMgr_ = fm; }
 
@@ -231,25 +229,25 @@ private slots:
     /// 
     void InitJScript() {
         if( jsInitCode_.isEmpty() ) jsInitCode_ = jsInitGenerator_->GenerateCode();
-        webFrame_->evaluateJavaScript( jsInitCode_ );
+        jsInterpreter_->EvaluateJavaScript( jsInitCode_ );
     }
 
     /// this slot can be called from child contexts to make objects
     /// in the parent context available within the child context
     
-    void AddJSCtxObjects( QWebFrame* wf ) {
+    void AddJSCtxObjects( IJSInterpreter* wf ) {
         for( JScriptObjCtxInstances::const_iterator i = jscriptCtxInstances_.begin();
              i != jscriptCtxInstances_.end(); ++i ) {
             if( (*i)->GetContext() == 0 ) (*i)->SetContext( this );
             ConnectErrCBack( *i );
             if( (*i)->GetPluginLoader() == 0 && (*i)->parent() == 0 ) (*i)->setParent( this );
-            wf->addToJavaScriptWindowObject( (*i)->jsInstanceName(), *i );  
+            wf->AddObjectToJS( (*i)->jsInstanceName(), *i );  
         }
     }
 
     /// Add javascript objects that need to be available at initialization time
     void AddJavaScriptObjects() {
-        AddJSStdObjects( webFrame_ );
+        AddJSStdObjects( jsInterpreter_ );
         ///@todo sjould we add parent's context std objects or parent's instance objects ?
         /// Parent()->jscriptsStdObjects()
     }
@@ -317,7 +315,19 @@ public slots:
     void OnExternalError( const QString& err ) {
         error( err );
     }
-    // allow to add objects to other frames
+    // allow to add objects to other contexts
+    void AddJSStdObjects( IJSInterpreter* wf ) {
+        for( JScriptObjCtxInstances::const_iterator i = jscriptStdObjects_.begin();
+             i != jscriptStdObjects_.end(); ++i ) {
+            if( (*i)->GetContext() == 0 ) (*i)->SetContext( this );      
+            ConnectErrCBack( *i );
+            if( (*i)->GetPluginLoader() == 0 && (*i)->parent() == 0 ) (*i)->setParent( this );
+            wf->AddObjectToJS( (*i)->jsInstanceName(), *i );  
+        } 
+    }
+
+#ifdef LOCO_WKIT
+	// allow to add objects to other frames
     void AddJSStdObjects( QWebFrame* wf ) {
         for( JScriptObjCtxInstances::const_iterator i = jscriptStdObjects_.begin();
              i != jscriptStdObjects_.end(); ++i ) {
@@ -327,9 +337,11 @@ public slots:
             wf->addToJavaScriptWindowObject( (*i)->jsInstanceName(), *i );  
         } 
     }
+#endif
+
 private slots:
     void OnSelfError( const QString& err ) {
-        webFrame_->evaluateJavaScript( jsErrCBack_ );
+        jsInterpreter_->EvaluateJavaScript( jsErrCBack_ );
     }
 
 private:
@@ -344,9 +356,9 @@ public:
     // Eval needs to be accessible for starting script execution
     QVariant Eval( QString code, const QStringList& filters = QStringList() ) { 
        code = Filter( code, filters );
-       if( !error() ) return webFrame_->evaluateJavaScript( code );
+       if( !error() ) return jsInterpreter_->EvaluateJavaScript( code );
        else {
-           webFrame_->evaluateJavaScript( jsErrCBack_ );
+           jsInterpreter_->EvaluateJavaScript( jsErrCBack_ );
            return QVariant();
        } 
     }
@@ -389,13 +401,13 @@ private:
         QPluginLoader* pl = new QPluginLoader( uri );
         if( !pl->load() ) {
             error( pl->errorString() );
-            webFrame_->evaluateJavaScript( jsErrCBack_ );
+            jsInterpreter_->EvaluateJavaScript( jsErrCBack_ );
             delete pl;
         } else {
             loco::Filter* lf = qobject_cast< loco::Filter* >( pl->instance() );
             if( lf == 0 ) {
                 error( "Wrong filter type" );
-                webFrame_->evaluateJavaScript( jsErrCBack_ );
+                jsInterpreter_->EvaluateJavaScript( jsErrCBack_ );
                 delete pl;    
             }
             filters_[ id ] = lf;
@@ -413,7 +425,7 @@ private:
 						  const QString& jcode = "",
                           const QString& jerrfun = "",
                           const QString& codePlaceHolder = "" ) {
-        ::loco::Filter* lf = new ScriptFilter( webFrame_, jfun, jcode, jerrfun, codePlaceHolder );
+        ::loco::Filter* lf = new ScriptFilter( jsInterpreter_, jfun, jcode, jerrfun, codePlaceHolder );
         connect( lf, SIGNAL( onError( const QString& ) ), 
                                       this, SLOT( OnFilterError( const QString& ) ) );
         filters_[ id ] = lf;
@@ -430,7 +442,7 @@ private:
         }
         QString f = Read( uri );
         if( f.isEmpty() ) return;   
-        ::loco::Filter* lf = new ScriptFilter( webFrame_, jfun, f, jerrfun, codePlaceHolder );
+        ::loco::Filter* lf = new ScriptFilter( jsInterpreter_, jfun, f, jerrfun, codePlaceHolder );
         connect( lf, SIGNAL( onError( const QString& ) ), 
                                       this, SLOT( OnFilterError( const QString& ) ) );
         filters_[ id ] = lf;
@@ -480,11 +492,11 @@ private:
 
     QByteArray ReadFile( const QString& f );
 
-    void jsErr() { webFrame_->evaluateJavaScript( jsErrCBack_ ); }
+    void jsErr() { jsInterpreter_->EvaluateJavaScript( jsErrCBack_ ); }
 
 private:
-    QPointer< JSContext > jsContext_;
-    QWebFrame* webFrame_;
+    QSharedPointer< JSContext > jsContext_;
+    IJSInterpreter* jsInterpreter_;
     QApplication* app_;
     Context* parent_;
     CMDLine cmdLine_;
@@ -505,7 +517,7 @@ private:
     NameFilterMap nameFilterMap_;
     bool autoMapFilters_;
 private: 
-    IJavaScriptInit* jsInitGenerator_; 
+    QSharedPointer< IJavaScriptInit > jsInitGenerator_; 
     NetworkAccessManager* netAccessMgr_;
     FileAccessManager* fileAccessMgr_;
 private:
@@ -513,7 +525,7 @@ private:
 private:
     int readNetworkTimeout_;
     int maxNetRedirections_;
-    QPointer< ObjectInfo > appInfo_;        
+    QSharedPointer< ObjectInfo > appInfo_;        
 };
 
 //==============================================================================
