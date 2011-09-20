@@ -3,17 +3,17 @@
 
 #include <QString>
 #include <QList>
-#include <QtWebkit/QWebView>
-#include <QtWebkit/QWebFrame>
-#include <QtWebkit/QWebHistoryItem>
+#include <QtWebKit/QWebView>
+#include <QtWebKit/QWebFrame>
+#include <QtWebKit/QWebHistoryItem>
 
 #include "LocoObject.h"
 #include "LocoContext.h"
 
 namespace loco {
 
-class ::QCloseEvent;
-class ::QContextMenuEvent;
+//class ::QCloseEvent;
+//class ::QContextMenuEvent;
 
 class WV : public QWebView {
 	Q_OBJECT

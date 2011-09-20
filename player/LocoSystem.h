@@ -26,7 +26,7 @@ public:
 public slots:
 
     bool putEnv( const QString& var, const QString& val ) {
-        return ::_putenv( ( var + "=" + val ).toAscii().constData() ) == 0;
+        return ::putenv( const_cast<char*>(( var + "=" + val ).toAscii().constData()) ) == 0;
     }
     
     QString getEnv( const QString& envVarName ) const {
@@ -45,17 +45,34 @@ public slots:
     
     
     QString os() const {
-        #if defined( Q_WS_X11 )
+        #if defined( Q_OS_AIX ) || defined( Q_OS_BSD4 ) || defined( Q_OS_FREEBSD ) || \
+            defined( Q_OS_SOLARIS ) || defined( Q_OS_LINUX ) || defined( Q_OS_UNIX )  
             return "UNIX";
-        #elif defined( Q_WS_WIN )
+        #elif defined( Q_OS_WIN )
             return "WINDOWS";
-        #elif defined( Q_WS_MAC )
+        #elif defined( Q_OS_MAC )
             return "MAC"
+        #elif defined( Q_OS_SYMBIAN ) 
+            return "SYMBIAN"
         #else
             return "";
-        #endif                 
+        #endif
     }
-    
+
+    bool hasGUI() const {
+        #if defined( Q_WS_WIN )
+            return true;
+        #elif defined( Q_WS_MAC )
+            return true;
+        #elif defined( Q_WS_X11 )
+            return true;
+        #elif defined( Q_WS_S60 )
+            return true;
+        #else
+            return false;
+        #endif
+    }     
+
     QString run( const QString& program,
                  const QStringList& args = QStringList(),
                  const QVariantMap& env  = QVariantMap(),

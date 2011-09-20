@@ -14,7 +14,7 @@ public:
 	virtual void AddObjectToJS( const QString& name, QObject* obj, QScriptEngine::ValueOwnership vo ) = 0;
 	virtual void AddObjectToJS( const QString& name, QObject* obj ) = 0;
 	virtual void Init() = 0;
-	virtual ~IJSInterpreter() = 0 {}
+	virtual ~IJSInterpreter() {}
 };
 
 }

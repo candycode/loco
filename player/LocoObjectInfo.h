@@ -4,7 +4,7 @@
 #include <QMetaObject>
 #include <QMetaProperty>
 #include <QObject>
-#include <Qstring>
+#include <QString>
 #include <QStringList>
 #include <QVariantMap>
 

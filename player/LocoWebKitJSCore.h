@@ -3,8 +3,8 @@
 #include <QString>
 #include <QVariant>
 #include <QScopedPointer>
-#include <QtWebkit/QWebPage>
-#include <QtWebkit/QWebFrame>
+#include <QtWebKit/QWebPage>
+#include <QtWebKit/QWebFrame>
 
 #include "LocoIJSInterpreter.h"
 

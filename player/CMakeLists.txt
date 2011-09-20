@@ -22,7 +22,7 @@ set( STD_MOC_HEADERS
   LocoEventLoop.h  ) 
 
 if( "${LOCO_WKIT}" STREQUAL "ON" )  
-  set( LOCO_JS_MOC LocoWebWindow.h LocoGUI.h LocoWebKitJScore.h)
+  set( LOCO_JS_MOC LocoWebWindow.h LocoGUI.h LocoWebKitJSCore.h)
   set( LOCO_JS_SRCS LocoGUI.cpp )
   add_definitions( -DLOCO_GUI -DLOCO_WKIT ) 
 else()

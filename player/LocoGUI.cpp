@@ -1,4 +1,6 @@
 //#SRCHEADER
+#include <stdexcept>
+
 #include "LocoContext.h"
 #include "LocoGUI.h"
 #include "LocoWebWindow.h"

@@ -52,9 +52,12 @@ typedef QList< QPair< QRegExp, QStringList > > NameFilterMap;
 struct IJavaScriptInit {
     virtual void SetContext( Context*  ) = 0;
     virtual QString GenerateCode() const = 0;
-    virtual ~IJavaScriptInit() = 0 {}    
+    virtual ~IJavaScriptInit() {}
 };
 
+
+
+class JSContext;
 
 class Context : public EWL {
     Q_OBJECT  

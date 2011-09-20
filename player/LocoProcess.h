@@ -42,7 +42,7 @@ private slots:
     }
     void OnProcessStdErrReady() {
     }
-    void OnProcessStdOutReady() {
+    void OnProcessStdOutReady() {    
     }
     void OnProcessStarted() {
     }
@@ -77,7 +77,14 @@ public slots:
         else if( p_.exitStatus() == QProcess::CrashExit ) return "crash";
         else return QString("%1").arg( p_.exitStatus() );
     }
-    QString	nativeArguments() const { return p_.nativeArguments(); }
+    QString	nativeArguments() const { 
+#if defined(Q_OS_WIN) || defined(Q_OS_SYMBIAN)         
+        return p_.nativeArguments(); 
+#else
+        error( "nativeArguments not supprted on this system" );
+        return "";
+#endif
+    }
     Q_PID pid () const { return p_.pid(); }
     QString	processChannelMode () const { 
         if( p_.processChannelMode() == QProcess::SeparateChannels )
@@ -104,7 +111,13 @@ public slots:
         else if( p_.readChannel() == QProcess::StandardError ) return "stderr";
         else return QString("%1").arg( p_.readChannel() );
     }
-    void setNativeArguments ( const QString& arguments ) { p_.setNativeArguments( arguments ); }
+    void setNativeArguments ( const QString& arguments ) { 
+#if defined( Q_OS_WIN) || defined( Q_OS_SYMBIAN)
+        p_.setNativeArguments( arguments );
+#else
+        error( "setNativeArguments not supported on this system" );
+#endif
+     }
     void setProcessChannelMode( const QString& chm ) {
         p_.setProcessChannelMode( MapChannelMode( chm ) );
     }
