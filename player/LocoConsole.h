@@ -23,6 +23,9 @@ public slots:
 	void printerrln( const QString& s ) const { printerr( s ); std::cerr << std::endl; }
     void printerrln() const { std::cerr << std::endl; }
 	QString read() const { std::string s; std::cin >> s; return QString( s.c_str() ); }
+	QString readLine() const { std::string s; std::getline( std::cin, s ); return QString( s.c_str() ); }
+	int getc() const { return std::cin.get(); }
+	void ungetc() const { std::cin.unget(); }
 	bool end() const { return std::cin.eof(); }
 	void flush()  const { std::cout.flush(); std::cerr.flush(); }
 };
