@@ -59,14 +59,6 @@ public slots:
         p_.start( program, args, MapOpenMode( openmode ) );
         if( waitForStart ) p_.waitForStarted();
     }
-    qint64 startDetached( const QString& program,
-                    const QStringList& args,
-                    const QString& workingDir ) {
-    	    qint64 pid = -1;
-            p_.startDetached( program, args, workingDir, &pid );
-            return pid;
-
-    }
     void kill() { p_.kill(); }
     void terminate() { p_.terminate(); }
     void close() { p_.close(); }
