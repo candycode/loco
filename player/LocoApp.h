@@ -6,8 +6,7 @@
 #include <QString>
 #include <QStringList>
 #include <QMap>
-#include <QtWebKit/QWebPage>
-#include <QtWebKit/QWebFrame>
+
 #include <QSharedPointer>
 
 #include "CmdLine.h"
@@ -16,7 +15,6 @@
 #include "LocoNetworkAccessManager.h"
 #include "LocoFileAccessManager.h"     
 #include "LocoObjectInfo.h" //reusing this for app info
-#include "LocoWebKitJSCore.h"
                                     
 
 namespace loco {
@@ -158,7 +156,7 @@ private:
     }
 private:
 	CMDLine cmdLine_;
-	QApplication app_;
+	LocoQtApp app_;
 	QSharedPointer< IJSInterpreter > jsInterpreter_;
 	Context ctx_;
 	QString defaultScript_;

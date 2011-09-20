@@ -2,6 +2,22 @@ cmake_minimum_required(VERSION 2.8)
 
 project("loco")
 
+set( LOCO_WKIT "ON" CACHE BOOL "Build with QtWebKit instead of QtScript, requires QtGUI and X(or xvfb) on Linux" )
+
+set( QT_USE_QTNETWORK ON )
+set( QT_USE_QTMAIN ON )
+
+
+if( "${LOCO_WKIT}" STREQUAL "ON" )
+  set( QT_DONT_USE_QTGUI OFF )
+  set( QT_USE_QTWEBKIT ON )
+  set( QT_USE_QTSCRIPT OFF )
+else()
+  set( QT_DONT_USE_QTGUI ON )
+  set( QT_USE_QTSCRIPT ON )
+endif()
+
+
 #Qt
 find_package(Qt4)
 include(${QT_USE_FILE})
@@ -9,8 +25,6 @@ include(${QT_USE_FILE})
 include_directories( ${QT_LIBRARY_DIR} 
                      ${CMAKE_BINARY_DIR} ) 
 link_directories( ${QT_LIBRARY_DIR} )
-
-set( LOCO_WKIT "ON" CACHE BOOL "Build with QtWebKit instead of QtScript, requires QtGUI and X(or xvfb) on Linux" )
 
 ####SETUP APPLICATION
 set( STD_MOC_HEADERS 
@@ -58,7 +72,12 @@ else()
   set( LOCO_LIBS ${QT_QTSCRIPT_LIBRARY} )
 endif()
 
-target_link_libraries( loco ${QT_QTNETWORK_LIBRARY} ${QT_LIBRARIES} ${LOCO_LIBS} ) 
+target_link_libraries( loco 
+#${QT_QTNETWORK_LIBRARY} 
+${QT_LIBRARIES} 
+#${LOCO_LIBS}
+)
+ 
   
 
  

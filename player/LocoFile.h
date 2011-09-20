@@ -48,7 +48,7 @@ public slots:
 
     QString readLine( qint64 maxSize = 0 ) { return file_.readLine( maxSize ); }
 
-    char getChar() { char c; file_.getChar( &c ); return c; }
+    char getChar() {  file_.getChar( &charBuf_ ); return charBuf_; }
 
     void ungetChar( char c ) { file_.ungetChar( c ); }
 
@@ -82,6 +82,7 @@ private:
        
 private:
     QFile file_;
+    char charBuf_;
 };
 
 }

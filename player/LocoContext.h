@@ -3,8 +3,15 @@
 
 #include <cstdlib> //for dupenv (win), putenv, getenv
 
+#ifdef LOCO_WKIT
 #include <QtWebKit/QWebFrame>
+#endif
+
+#include <QCoreApplication>
+#ifdef LOCO_GUI
 #include <QApplication>
+#endif
+
 #include <QString>
 #include <QList>
 #include <QVariant>
@@ -33,6 +40,12 @@
 #include "LocoFileAccessManager.h"
 #include "LocoObjectInfo.h"
 #include "LocoIJSInterpreter.h"
+
+#ifdef LOCO_GUI
+typedef QApplication LocoQtApp;
+#else
+typedef QCoreApplication LocoQtApp;
+#endif
 
 
 namespace loco {
@@ -68,10 +81,10 @@ public:
     
     Context( Context* parent = 0 );
    
-    Context( IJSInterpreter* wf, QApplication* app, const CMDLine& cmdLine,
+    Context( IJSInterpreter* wf, LocoQtApp* app, const CMDLine& cmdLine,
              Context* parent = 0 );
 
-    void Init( IJSInterpreter* wf, QApplication* app = 0, 
+    void Init( IJSInterpreter* wf, LocoQtApp* app = 0, 
                const CMDLine& cmdLine = CMDLine(), Context* parent = 0 );
 // called from C++
 public:
@@ -392,9 +405,9 @@ private:
 
     QVariant LoadObject( const QString& uri,  //used as a regular file/resource path for now
                          bool persistent = false );
-
+#ifdef LOCO_GUI
     int Exec() { return app_->exec(); }
-
+#endif
     void LoadFilter( const QString& id, const QString& uri ) {
         if( !fileAccessMgr_->CheckAccess( uri ) ) {
             error( "Access to " + uri + " not allowed" );
@@ -500,7 +513,7 @@ private:
 private:
     QSharedPointer< JSContext > jsContext_;
     IJSInterpreter* jsInterpreter_;
-    QApplication* app_;
+    LocoQtApp* app_;
     Context* parent_;
     CMDLine cmdLine_;
    
@@ -556,19 +569,19 @@ public slots: // js interface
 	    return ctx_.Read( path, filters );
     }
     
-	QStringList pluginPath() const { return QApplication::libraryPaths(); }
+	QStringList pluginPath() const { return QCoreApplication::libraryPaths(); }
 
-	void setPluginPath( const QStringList& paths ) { QApplication::setLibraryPaths( paths ); }
+	void setPluginPath( const QStringList& paths ) { QCoreApplication::setLibraryPaths( paths ); }
 
-	QString appFilePath() const { return QApplication::applicationFilePath(); }
+	QString appFilePath() const { return QCoreApplication::applicationFilePath(); }
 
-	QString appDirPath() const { return QApplication::applicationDirPath(); }
+	QString appDirPath() const { return QCoreApplication::applicationDirPath(); }
 
-	QString appName() const { return QApplication::applicationName(); }
+	QString appName() const { return QCoreApplication::applicationName(); }
 
-	QString appVersion() const { return QApplication::applicationVersion(); }
+	QString appVersion() const { return QCoreApplication::applicationVersion(); }
 
-	QString appVendor() const { return QApplication::organizationName(); }
+	QString appVendor() const { return QCoreApplication::organizationName(); }
 
 	QString currentDir() const { return QDir::current().absolutePath(); }
 
@@ -599,10 +612,11 @@ public slots: // js interface
     QString filter( QString code, const QStringList& filterIds = QStringList() ) {
         return ctx_.Filter( code, filterIds );
     }
-
+#ifdef LOCO_GUI
     int exec() { return ctx_.Exec(); }
+#endif
     
-	QVariant evalFile( const QString& uri, const QStringList& filterIds = QStringList() ) {
+    QVariant evalFile( const QString& uri, const QStringList& filterIds = QStringList() ) {
 		return ctx_.Include( uri, filterIds );
 	}
 

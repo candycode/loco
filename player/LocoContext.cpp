@@ -23,7 +23,7 @@ Context::Context( Context* parent ) : jsContext_( new JSContext( *this ) ), jsIn
 } 
 
 
-Context::Context( IJSInterpreter* wf, QApplication* app, const CMDLine& cmdLine,
+Context::Context( IJSInterpreter* wf, LocoQtApp* app, const CMDLine& cmdLine,
                   Context* parent)
 :   jsContext_( new JSContext( *this ) ),
     jsInterpreter_( wf ), app_( app ), parent_( parent ), cmdLine_( cmdLine ),
@@ -45,7 +45,7 @@ void Context::ConnectErrCBack( Object* obj ) {
 
 
 
-void Context::Init( IJSInterpreter* wf, QApplication* app, const CMDLine& cmdLine,
+void Context::Init( IJSInterpreter* wf, LocoQtApp* app, const CMDLine& cmdLine,
                     Context* parent ) {
 
     jsInterpreter_ = wf,
@@ -64,6 +64,7 @@ void Context::Init( IJSInterpreter* wf, QApplication* app, const CMDLine& cmdLin
 
     connect( this, SIGNAL( destroyed() ), this, SLOT( RemoveInstanceObjects() ) );
     connect( this, SIGNAL( destroyed() ), this, SLOT( RemoveStdObjects() ) );
+
     connect( this, SIGNAL( destroyed() ), this, SLOT( RemoveFilters() ) );
     
     //allow js context to receive errors from context and emit signals
