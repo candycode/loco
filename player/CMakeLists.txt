@@ -6,9 +6,9 @@ project("loco")
 set( LOCO_APP_NAME "LoCO" CACHE STRING "Application name" )
 set( LOCO_APP_VERSION "1.0.0.1" CACHE STRING "Application version" )
 set( LOCO_APP_LICENSE "BSD 3-clause(aka New BSD, Modified BSD)" CACHE STRING "License" )
-set( LOCO_APP_AUTHOR "Ugo V." CACHE STRING "Author" )
-set( LOCO_APP_COPYRIGHT "Copyright (c) 2011 Ugo Varetto" CACHE STRING "Copyright" )
-set( LOCO_APP_VENDOR "LoCO" CACHE STRING "Vendor" )
+set( LOCO_APP_AUTHOR "Author" CACHE STRING "Author" )
+set( LOCO_APP_COPYRIGHT "Copyright (c) ..." CACHE STRING "Copyright" )
+set( LOCO_APP_VENDOR "Vendor" CACHE STRING "Vendor" )
 set( LOCO_APP_URL "http://locojs.net" CACHE STRING "URL" )
 
 configure_file( LocoAppConfig.in ${CMAKE_BINARY_DIR}/LocoAppConfig.h )
@@ -107,18 +107,18 @@ set( SRCS loco.cpp LocoObject.cpp  ${LOCO_FSYSTEM_SRCS}
     
 set( SRCS_INCLUDE ${MOC_HEADERS} CmdLine.h ${LOCO_FSYSTEM_INCLUDE} LocoDefaultJSInit.h LocoApp.h )
 
-####SETUP PLUGIN
-set( MOC_HEADERS_PLUGIN EWL.h LocoObject.h plugins/LocoTestPlugin.h ) 
-QT4_WRAP_CPP( MOC_SRCS_PLUGIN ${MOC_HEADERS_PLUGIN} )
-set( SRCS_PLUGIN LocoObject.cpp LocoObject.h plugins/LocoTestPlugin.h )
-
-####CONFIGURE EXECUTABLES
+####CONFIGURE EXECUTABLE
 add_executable( loco ${SRCS} ${SRCS_INCLUDE} ${MOC_SRCS} ${RCC_SRCS} )
-
 target_link_libraries( loco ${QT_LIBRARIES} ) 
 if(WIN32)
   target_link_libraries( loco debug qtmaind optimized qtmain )
 endif(WIN32)
+
+################
+####SETUP PLUGIN
+set( MOC_HEADERS_PLUGIN EWL.h LocoObject.h plugins/LocoTestPlugin.h ) 
+QT4_WRAP_CPP( MOC_SRCS_PLUGIN ${MOC_HEADERS_PLUGIN} )
+set( SRCS_PLUGIN LocoObject.cpp LocoObject.h plugins/LocoTestPlugin.h )
 
 ####CONFIGURE PLUGINS
 add_library( loco_TestPlugin SHARED ${SRCS_PLUGIN} ${MOC_SRCS_PLUGIN} )
