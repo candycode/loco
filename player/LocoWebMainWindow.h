@@ -30,8 +30,7 @@ class WebMainWindow : public Object {
 public:
 	WebMainWindow() : Object( 0, "LocoWebMainWindow", "Loco/GUI/Window" ), webView_( new WebView() )  {
 		wf_ = webView_->page()->mainFrame();
-	    mw_.setCentralWidget( webView_ );
-		webView_->setParent( &mw_ );
+	    mw_.setCentralWidget( webView_ ); // webView_ lifetime managed by mw_;
 		mapper_ = new QSignalMapper( this );
 		connect( mapper_, SIGNAL( mapped( QObject* ) ), this, SLOT( ActionTriggered( QObject* ) ) );
 		connect( wf_, SIGNAL( javaScriptWindowObjectCleared () ), this, SLOT( JSContextCleared() ) );
