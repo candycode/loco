@@ -24,6 +24,7 @@ class ObjectInfo : public QObject {
 	Q_PROPERTY( QString vendorUrl READ vendorUrl )
 	Q_PROPERTY( QString author READ author )
 	Q_PROPERTY( QString license READ license )
+	Q_PROPERTY( QString copyright READ copyright )
     Q_PROPERTY( QString buildInfo READ buildInfo )
 	Q_PROPERTY( QStringList locale READ locale )
 	Q_PROPERTY( QStringList dependencies READ dependencies )
@@ -53,6 +54,7 @@ public:
 	const QString& vendorUrl() const { return vendorUrl_; }
 	const QString& author() const { return author_; }
 	const QString& license() const { return license_; }
+	const QString& copyright() const { return copyright_; }
 	const QString& buildInfo() const { return buildInfo_; }
 	const QStringList& locale() const { return locale_; }
 	const QStringList& dependencies() const { return dependencies_; }
@@ -72,6 +74,7 @@ public:
 	ObjectInfo& SetVendorUrl( const QString& vu ) { vendorUrl_ = vu; return *this; }
 	ObjectInfo& SetAuthor( const QString& v ) { author_ = v; return *this; }
 	ObjectInfo& SetLicense( const QString& l ) { license_ = l; return *this; }
+	ObjectInfo& SetCopyright( const QString& c ) { copyright_ = c; }
 	ObjectInfo& SetBuildInfo( const QString& bi ) { buildInfo_ = bi; return *this; }
 	ObjectInfo& SetLocale( const QStringList& l ) { locale_ = l; return *this; }
 	ObjectInfo& SetDependencies( const QStringList& d ) { dependencies_ = d; return *this; }
@@ -99,6 +102,7 @@ private:
 	QString vendorUrl_;
 	QString author_;
 	QString license_;
+	QString copyright_;
 	QString buildInfo_;
 	QStringList locale_;
 	QStringList dependencies_;

@@ -2,47 +2,97 @@ cmake_minimum_required(VERSION 2.8)
 
 project("loco")
 
+#### APP INFO
+set( LOCO_APP_NAME "LoCO" CACHE STRING "Application name" )
+set( LOCO_APP_VERSION "1.0.0.1" CACHE STRING "Application version" )
+set( LOCO_APP_LICENSE "BSD 3-clause(aka New BSD, Modified BSD)" CACHE STRING "License" )
+set( LOCO_APP_AUTHOR "Ugo V." CACHE STRING "Author" )
+set( LOCO_APP_COPYRIGHT "Copyright (c) 2011 Ugo Varetto" CACHE STRING "Copyright" )
+set( LOCO_APP_VENDOR "LoCO" CACHE STRING "Vendor" )
+set( LOCO_APP_URL "http://locojs.net" CACHE STRING "URL" )
+
+configure_file( LocoAppConfig.in ${CMAKE_BINARY_DIR}/LocoAppConfig.h )
+
+#### APP CONFIGURATION
+
 set( LOCO_WKIT "ON" CACHE BOOL "Build with QtWebKit instead of QtScript, requires QtGUI and X(or xvfb) on Linux" )
+set( LOCO_GUI  "ON" CACHE BOOL "GUI support, required by WKIT" )
+set( LOCO_CONSOLE "ON" CACHE BOOL "stdin/out/err" )
+set( LOCO_FSYSTEM "ON" CACHE BOOL "Access to filesystem" )
+set( LOCO_SYSTEM "ON" CACHE BOOL "System access to execute programs, required to handle system events." )
 
 set( QT_USE_QTNETWORK ON )
 set( QT_USE_QTMAIN ON )
 
-
+if( "${LOCO_GUI}" STREQUAL "OFF" )
+  set( QT_DONT_USE_QTGUI "ON" )
+else()
+  set( QT_DONT_USE_QTGUI "OFF" )
+  add_definitions( -DLOCO_GUI ) 
+endif()  
 if( "${LOCO_WKIT}" STREQUAL "ON" )
   set( QT_DONT_USE_QTGUI OFF )
   set( QT_USE_QTWEBKIT ON )
   set( QT_USE_QTSCRIPT OFF )
+  set( LOCO_GUI "ON" )
+  add_definitions( -DLOCO_GUI -DLOCO_WKIT ) 
 else()
   set( QT_DONT_USE_QTGUI ON )
   set( QT_USE_QTSCRIPT ON )
+  set( LOCO_SCRIPT "ON" )
 endif()
+if( "${LOCO_CONSOLE}" STREQUAL "ON" )
+  add_definitions( -DLOCO_CONSOLE ) 
+endif()
+if( "${LOCO_FSYSTEM}" STREQUAL "ON" )
+  add_definitions( -DLOCO_FSYSTEM ) 
+endif()
+if( "${LOCO_SYSTEM}" STREQUAL "ON" )
+  add_definitions( -DLOCO_SYSTEM ) 
+endif()
+if( "${LOCO_NETWORK}" STREQUAL "ON" )
+  add_definitions( -DLOCO_NETWORK ) 
+endif()      
 
-
-#Qt
+####Qt
 find_package(Qt4)
 include(${QT_USE_FILE})
-                
+               
 include_directories( ${QT_LIBRARY_DIR} 
                      ${CMAKE_BINARY_DIR} ) 
 link_directories( ${QT_LIBRARY_DIR} )
 
 ####SETUP APPLICATION
-set( STD_MOC_HEADERS 
-  LocoConsole.h LocoContext.h EWL.h LocoObject.h LocoFilter.h
-  LocoScriptFilter.h LocoFileSystem.h LocoFile.h LocoDir.h
-  LocoSystem.h LocoProcess.h LocoFSWatcher.h
-  LocoNetworkAccessManager.h LocoApp.h LocoObjectInfo.h
-  LocoIJSInterpreter.h
-  LocoEventLoop.h  ) 
+if( "${LOCO_CONSOLE}" STREQUAL "ON" )
+  set( LOCO_CONSOLE_MOC_HEADERS LocoConsole.h )
+endif()
+if( "${LOCO_FSYSTEM}" STREQUAL "ON" )
+  set( LOCO_FSYSTEM_MOC_HEADERS LocoFileSystem.h LocoFile.h LocoDir.h LocoFSWatcher.h )
+  set( LOCO_FSYSTEM_SRCS LocoFileSystem.cpp LocoFile.cpp )
+  set( LOCO_FSYSTEM_INCLUDE LocoFileAccessManager.h )
+endif()
+if( "${LOCO_SYSTEM}" STREQUAL "ON" )
+  set( LOCO_SYSTEM_MOC_HEADERS LocoSystem.h LocoProcess.h LocoEventLoop.h )
+  set( LOCO_SYSTEM_SRCS LocoSystem.cpp LocoProcess.cpp )
+endif()
+if( "${LOCO_WKIT}" STREQUAL "ON" )
+  set( LOCO_WKIT_MOC_HEADERS LocoWebWindow.h LocoWebKitJSCore.h )
+endif()
+if( "${LOCO_GUI}" STREQUAL "ON" )
+  set( LOCO_GUI_MOC_HEADERS LocoGUI.h )
+  set( LOCO_GUI_SRCS LocoGUI.cpp )
+endif()
+if( "${LOCO_SCRIPT}" STREQUAL "ON" )
+  set( LOCO_SCRIPT_MOC_HEADERS LocoDefaultJS.h )
+endif()
 
-if( "${LOCO_WKIT}" STREQUAL "ON" )  
-  set( LOCO_JS_MOC LocoWebWindow.h LocoGUI.h LocoWebKitJSCore.h)
-  set( LOCO_JS_SRCS LocoGUI.cpp )
-  add_definitions( -DLOCO_GUI -DLOCO_WKIT ) 
-else()
-  set( LOCO_JS_MOC LocoDefaultJS.h )
-endif()  
-set( MOC_HEADERS ${STD_MOC_HEADERS} ${LOCO_JS_MOC} )
+set( MOC_HEADERS 
+  ${LOCO_CONSOLE_MOC_HEADERS}
+  LocoContext.h EWL.h LocoObject.h LocoFilter.h LocoScriptFilter.h
+  ${LOCO_FSYSTEM_MOC_HEADERS} ${LOCO_SYSTEM_MOC_HEADERS} 
+  LocoNetworkAccessManager.h LocoApp.h LocoObjectInfo.h LocoIJSInterpreter.h
+  ${LOCO_WKIT_MOC_HEADERS} ${LOCO_GUI_MOC_HEADERS}
+  ${LOCO_SCRIPT_MOC_HEADERS} ) 
 
 QT4_WRAP_CPP( MOC_SRCS ${MOC_HEADERS} ) 
 
@@ -52,11 +102,10 @@ QT4_ADD_RESOURCES( RCC_SRCS ${RES} )
 SOURCE_GROUP( Resources REGULAR_EXPRESSION "res/.+" ) 
 
 # App
-set( STD_SRCS loco.cpp LocoObject.cpp LocoFileSystem.cpp LocoSystem.cpp
-     LocoProcess.cpp LocoContext.cpp LocoFile.cpp ) 
-     
-set( SRCS ${STD_SRCS} ${LOCO_JS_SRCS} )     
-set( SRCS_INCLUDE ${MOC_HEADERS} CmdLine.h LocoFileAccessManager.h LocoDefaultJSInit.h LocoApp.h )
+set( SRCS loco.cpp LocoObject.cpp  ${LOCO_FSYSTEM_SRCS}
+     ${LOCO_SYSTEM_SRCS} ${LOCO_GUI_SRCS} LocoContext.cpp )    
+    
+set( SRCS_INCLUDE ${MOC_HEADERS} CmdLine.h ${LOCO_FSYSTEM_INCLUDE} LocoDefaultJSInit.h LocoApp.h )
 
 ####SETUP PLUGIN
 set( MOC_HEADERS_PLUGIN EWL.h LocoObject.h plugins/LocoTestPlugin.h ) 
@@ -66,21 +115,7 @@ set( SRCS_PLUGIN LocoObject.cpp LocoObject.h plugins/LocoTestPlugin.h )
 ####CONFIGURE EXECUTABLES
 add_executable( loco ${SRCS} ${SRCS_INCLUDE} ${MOC_SRCS} ${RCC_SRCS} )
 
-if( "${LOCO_WKIT}" STREQUAL "ON" )    
-  set( LOCO_LIBS ${QT_QTWEBKIT_LIBRARY} )
-else()
-  set( LOCO_LIBS ${QT_QTSCRIPT_LIBRARY} )
-endif()
-
-target_link_libraries( loco 
-#${QT_QTNETWORK_LIBRARY} 
-${QT_LIBRARIES} 
-#${LOCO_LIBS}
-)
- 
-  
-
- 
+target_link_libraries( loco ${QT_LIBRARIES} ) 
 if(WIN32)
   target_link_libraries( loco debug qtmaind optimized qtmain )
 endif(WIN32)
