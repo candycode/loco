@@ -4,6 +4,7 @@
 #include "LocoContext.h"
 #include "LocoGUI.h"
 #include "LocoWebWindow.h"
+#include "LocoWebMainWindow.h"
 
 namespace loco {
 
@@ -21,7 +22,12 @@ QVariant GUI::create( const QString& name, const QVariantMap& params ) const {
 		if( !GetContext()->GetNetworkAccessManager() ) throw std::runtime_error( "NULL context" );
 		wv->SetNetworkAccessManager( GetContext()->GetNetworkAccessManager() );
         QVariant obj = GetContext()->AddObjToJSContext( wv );
-		
+        return obj;
+    } else  if( name == "WebMainWindow" ) {
+        WebMainWindow* wv = new WebMainWindow();
+		if( !GetContext()->GetNetworkAccessManager() ) throw std::runtime_error( "NULL context" );
+		wv->SetNetworkAccessManager( GetContext()->GetNetworkAccessManager() );
+        QVariant obj = GetContext()->AddObjToJSContext( wv );
         return obj;
     } else {
         error( "GUI object \"" + name + "\" not recognized" );

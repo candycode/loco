@@ -613,7 +613,7 @@ public slots: // js interface
         return ctx_.Filter( code, filterIds );
     }
 #ifdef LOCO_GUI
-    int exec() { return ctx_.Exec(); }
+    int eventLoop() { return ctx_.Exec(); }
 #endif
     
     QVariant evalFile( const QString& uri, const QStringList& filterIds = QStringList() ) {

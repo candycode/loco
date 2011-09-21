@@ -12,8 +12,6 @@
 
 namespace loco {
 
-//class ::QCloseEvent;
-//class ::QContextMenuEvent;
 
 class WV : public QWebView {
 	Q_OBJECT
@@ -77,12 +75,12 @@ public slots:
     qreal zoomFactor() const { return webView_.zoomFactor(); }
     void setTextSizeMultiplier( qreal tm ) { webView_.setTextSizeMultiplier( tm ); }
     qreal textSizeMultiplier() const { return webView_.textSizeMultiplier(); }
-    void setWindowTitle( const QString& t ) { webView_.setWindowTitle( t ); }
-    QString title() const { return webView_.title(); } 
+    virtual void setWindowTitle( const QString& t ) { webView_.setWindowTitle( t ); }
+    virtual QString title() const { return webView_.title(); }
     void reload() { webView_.reload(); }
-    void showFullScreen() { webView_.showFullScreen(); }
-    void showNormal() { webView_.showNormal(); }
-    void show() { webView_.show(); }
+    virtual void showFullScreen() { webView_.showFullScreen(); }
+    virtual void showNormal() { webView_.showNormal(); }
+    virtual void show() { webView_.show(); }
     //QVariant geometry() const;
     //void setGeometry( const QVariant& g );
     void setContentEditable( bool yes ) { webView_.page()->setContentEditable( yes ); }
@@ -119,6 +117,10 @@ signals:
     // 2) have parent context initialize this object as needed
     //void javaScriptContextReset( this );
 	void closing();
+
+protected:
+	WV* GetWebView() { return &webView_; }
+	void Eval( const QString& code ) { wf_->evaluateJavaScript( code ); }
 private slots:
 	// remove context menu
 	void OnCustomContextMenuRequested ( const QPoint& ) {} //eat event
