@@ -5,17 +5,38 @@ try {
     return {
       "File": {
         "Open": {
-          "cback": "alert('Open')"
+          "cback"  : "alert('Open')",
+          "tooltip": "Open file",
+          "status" : "Opens a file"
+        },
+        "Open recent": {
+          "cback"  : "alert('Open recent')",
+          "tooltip": "Open recent",
+          "status" : "Opens a recently opened file"
+        }
+      },
+      "Test": {
+        "Parent context": {
+          "cback"  : "Loco.console.println('hello')",
+          "tooltip": "Call parent context",
+          "status" : "Call a parent context's function"
         }
       }   
     };
   };
   var el = Loco.sys.eventLoop();
   var ww = Loco.gui.create( "WebMainWindow" );
+  ww.setAddParentObjectsToJS( true );
+  ww.setContentEditable( true );
   ww.setMenu( menu() );
+  ww.loadProgress.connect( function( i ) { ww.setStatusBarText( i + "%" ); } );
+  ww.loadFinished.connect( function() { 
+    ww.setStatusBarText( "DONE" );
+    ww.eval( "document.write('cuckoo')" ); 
+  } );
   ww.load("http://www.wsj.com");
   ww.show();
-  ww.setStatusBarText( "CIAO" );
+  ww.setStatusBarText( "Loading..." );
   Loco.ctx.eventLoop();
   /*ww.closing.connect( el.quit );
   ww.load("http://www.wsj.com");

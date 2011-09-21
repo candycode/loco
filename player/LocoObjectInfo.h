@@ -74,7 +74,7 @@ public:
 	ObjectInfo& SetVendorUrl( const QString& vu ) { vendorUrl_ = vu; return *this; }
 	ObjectInfo& SetAuthor( const QString& v ) { author_ = v; return *this; }
 	ObjectInfo& SetLicense( const QString& l ) { license_ = l; return *this; }
-	ObjectInfo& SetCopyright( const QString& c ) { copyright_ = c; }
+	ObjectInfo& SetCopyright( const QString& c ) { copyright_ = c; return *this; }
 	ObjectInfo& SetBuildInfo( const QString& bi ) { buildInfo_ = bi; return *this; }
 	ObjectInfo& SetLocale( const QStringList& l ) { locale_ = l; return *this; }
 	ObjectInfo& SetDependencies( const QStringList& d ) { dependencies_ = d; return *this; }
