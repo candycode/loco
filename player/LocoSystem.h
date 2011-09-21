@@ -26,7 +26,11 @@ public:
 public slots:
 
     bool putEnv( const QString& var, const QString& val ) {
+#ifndef Q_OS_WIN
         return ::putenv( const_cast<char*>(( var + "=" + val ).toAscii().constData()) ) == 0;
+#else
+        return ::_putenv( ( var + "=" + val ).toAscii().constData() ) == 0;
+#endif
     }
     
     QString getEnv( const QString& envVarName ) const {
@@ -105,6 +109,15 @@ public slots:
             return output;
         }                          
     } 
+
+	qint64 runDetached( const QString& program,
+                        const QStringList& args,
+                        const QString& workingDir ) {
+    	    qint64 pid = -1;
+			QProcess::startDetached( program, args, workingDir, &pid );
+            return pid;
+
+    }
 
     QVariantMap env() const {
         QProcessEnvironment pe = QProcessEnvironment::systemEnvironment();
