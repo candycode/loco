@@ -24,15 +24,21 @@ try {
       }   
     };
   };
-  var el = Loco.sys.eventLoop();
   var ww = Loco.gui.create( "WebMainWindow" );
+
+  ww.setAttribute( "AutoLoadImages", false );
   ww.setAddParentObjectsToJS( true );
   ww.setContentEditable( true );
   ww.setMenu( menu() );
   ww.loadProgress.connect( function( i ) { ww.setStatusBarText( i + "%" ); } );
-  ww.loadFinished.connect( function() { 
-    ww.setStatusBarText( "DONE" );
-    ww.eval( "document.write('cuckoo')" ); 
+  ww.loadFinished.connect( function( ok ) { 
+    if( ok ) {
+      ww.setStatusBarText( "DONE" );
+      //ww.eval( "alert('done')");
+    } 
+  } );
+  ww.selectionChanged.connect( function() {
+    Loco.console.println( ww.selectedText() );  
   } );
   ww.load("http://www.wsj.com");
   ww.show();

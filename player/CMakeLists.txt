@@ -82,6 +82,8 @@ if( "${LOCO_SYSTEM}" STREQUAL "ON" )
 endif()
 if( "${LOCO_WKIT}" STREQUAL "ON" )
   set( LOCO_WKIT_MOC_HEADERS LocoWebMainWindow.h LocoWebWindow.h LocoWebKitJSCore.h LocoWebView.h )
+  set( LOCO_WKIT_HEADERS LocoWebKitAttributeMap.h )
+  set( LOCO_WKIT_SRCS LocoWebKitAttributeMap.cpp )
 endif()
 if( "${LOCO_GUI}" STREQUAL "ON" )
   set( LOCO_GUI_MOC_HEADERS LocoGUI.h )
@@ -107,10 +109,10 @@ QT4_ADD_RESOURCES( RCC_SRCS ${RES} )
 SOURCE_GROUP( Resources REGULAR_EXPRESSION "res/.+" ) 
 
 # App
-set( SRCS loco.cpp LocoObject.cpp  ${LOCO_FSYSTEM_SRCS}
+set( SRCS loco.cpp LocoObject.cpp  ${LOCO_FSYSTEM_SRCS} ${LOCO_WKIT_SRCS}
      ${LOCO_SYSTEM_SRCS} ${LOCO_GUI_SRCS} LocoContext.cpp )    
     
-set( SRCS_INCLUDE ${MOC_HEADERS} CmdLine.h ${LOCO_FSYSTEM_INCLUDE} LocoDefaultJSInit.h LocoApp.h )
+set( SRCS_INCLUDE ${MOC_HEADERS} ${LOCO_WKIT_HEADERS} CmdLine.h ${LOCO_FSYSTEM_INCLUDE} LocoDefaultJSInit.h LocoApp.h )
 
 ####CONFIGURE EXECUTABLE
 add_executable( loco ${SRCS} ${SRCS_INCLUDE} ${MOC_SRCS} ${RCC_SRCS} )
