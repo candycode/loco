@@ -49,7 +49,7 @@ try {
   } );
   ww.setStatusBarText( "Loading..." );
   ww.load("http://www.geek.com");
-  ww.show();
+  ww.show();*/
 } catch(e) {
   Loco.console.printerrln(e);
 }

@@ -115,6 +115,7 @@ public:
         jscriptStdObjects_.push_back( obj );
         if( obj->GetContext() == 0 ) obj->SetContext( this );
         if( obj->GetPluginLoader() == 0 && obj->parent() == 0 ) obj->setParent( this );
+        ConnectErrCBack( obj );
         if( immediateAdd ) {
             jsInterpreter_->AddObjectToJS( obj->jsInstanceName(), obj );
         }
@@ -124,6 +125,7 @@ public:
         jscriptCtxInstances_.push_back( obj );
         if( obj->GetContext() == 0 ) obj->SetContext( this );
         if( obj->GetPluginLoader() == 0 && obj->parent() == 0 ) obj->setParent( this );
+        ConnectErrCBack( obj );
         if( immediateAdd ) {
             jsInterpreter_->AddObjectToJS( obj->jsInstanceName(), obj );
         }

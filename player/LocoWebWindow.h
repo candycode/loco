@@ -126,6 +126,35 @@ public slots:
 	}
 	QString selectedText() const { return webView_.page()->selectedText(); }
 
+	void configScrolling( const QVariantMap& sc ) {
+		const QString& h = sc[ "h" ].toString();
+		const QString& v = sc[ "v" ].toString();
+		Qt::ScrollBarPolicy sbp;
+		if( h == "on" ) sbp = Qt::ScrollBarAlwaysOn;
+		else if( h == "off" ) sbp = Qt::ScrollBarAlwaysOff;
+		else sbp = Qt::ScrollBarAsNeeded;
+		wf_->setScrollBarPolicy( Qt::Horizontal, sbp );
+		if( v == "on" ) sbp = Qt::ScrollBarAlwaysOn;
+		else if( v == "off" ) sbp = Qt::ScrollBarAlwaysOff;
+		else sbp = Qt::ScrollBarAsNeeded;
+		wf_->setScrollBarPolicy( Qt::Vertical, sbp );
+	}
+
+	QVariantMap scrollingConfig() {
+		QVariantMap sc;
+		Qt::ScrollBarPolicy sbp = wf_->scrollBarPolicy( Qt::Vertical );
+		if( sbp == Qt::ScrollBarAlwaysOn ) sc[ "v" ] = "on";
+		else if( sbp == Qt::ScrollBarAlwaysOff ) sc[ "v" ] = "off";
+		else sc[ "v" ] = "as needed";
+		sbp = wf_->scrollBarPolicy( Qt::Horizontal );
+		if( sbp == Qt::ScrollBarAlwaysOn ) sc[ "h" ] = "on";
+		else if( sbp == Qt::ScrollBarAlwaysOff ) sc[ "h" ] = "off";
+		else sc[ "h" ] = "as needed";
+		return sc;
+	}
+
+	void scrollToAnchor( const QString& a ) { wf_->scrollToAnchor( a ); }
+
 signals:
     void linkClicked( const QUrl& );
 	void loadFinished( bool ok );
