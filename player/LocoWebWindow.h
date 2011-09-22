@@ -58,7 +58,8 @@ private slots:
 	void OnClose() { emit closing(); }
     
 public slots:
-	
+	void setEnableContextMenu( bool yes ) { webView_.EatContextMenuEvent( !yes ); }
+	bool getEnableContextMenu() const { return webView_.EatingContextMenuEvent(); }
     //connect from parent context Context::onError() -> WebWindow::onParentError()
     void onParentError( const QString& err ) {
         wf_->evaluateJavaScript( "throw " + err + ";\n" );
@@ -66,7 +67,7 @@ public slots:
     void load( const QString& url ) { webView_.load( url ); }
     bool isModified() { return webView_.isModified(); }
     //QList< QWebHistoryItem > history();
-    void setHtml( const QString& html ) { webView_.setHtml( html ); }
+    void setHtml( const QString& html, const QString& baseUrl = "" ) { webView_.setHtml( html, QUrl( baseUrl ) ); }
     void setZoomFactor( qreal zf ) { webView_.setZoomFactor( zf ); }
     qreal zoomFactor() const { return webView_.zoomFactor(); }
     void setTextSizeMultiplier( qreal tm ) { webView_.setTextSizeMultiplier( tm ); }

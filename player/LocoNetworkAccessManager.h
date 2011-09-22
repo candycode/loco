@@ -8,7 +8,6 @@
 #include <QStringList>
 #include <QRegExp>
 
-
 namespace loco {
 
 typedef QList< QRegExp > RegExps; 
@@ -25,10 +24,6 @@ typedef QList< RedirEntry > RedirMap;
 
 class NetworkAccessManager : public QNetworkAccessManager {
     Q_OBJECT
-
-private:
-    
-
 public:
     NetworkAccessManager( QObject* p = 0 ) 
       : QNetworkAccessManager( p ), 
@@ -64,8 +59,7 @@ protected:
         if( !filterRequests_ )
             return QNetworkAccessManager::createRequest( op, req, outgoingData );
 
-        QString url = req.url().toString( QUrl::RemoveAuthority | QUrl::StripTrailingSlash );        
-
+		QString url = req.url().toString( QUrl::RemoveUserInfo | QUrl::StripTrailingSlash );  
         if( enableUrlMapping_ ) {
             for( RedirMap::const_iterator i = redirMap_.begin(); i != redirMap_.end(); ++i ) {
                 if( i->rx.indexIn( url ) > -1 ) {
@@ -77,8 +71,7 @@ protected:
                     break;    
                 }
             } 
-        }
-            
+        }            
     
         for( RegExps::const_iterator i = deny_.begin(); i != deny_.end(); ++i ) {
             if( i->exactMatch( url ) ) {

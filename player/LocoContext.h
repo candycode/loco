@@ -223,6 +223,8 @@ public:
 
     int GetNetReadTimeout() const { return readNetworkTimeout_; }
 
+	void Exit( int r ) { app_->exit( r ); ::exit( r ); }
+
  // attched to internal signals            
 private slots:
    
@@ -557,6 +559,8 @@ public:
 // invocable from javascript
 public slots: // js interface
     
+	void exit( int code ) { ctx_.Exit( code ); }
+
 	QVariant include( const QString& path, const QStringList& filters = QStringList() ) {
         return ctx_.Include( path, filters );
     }

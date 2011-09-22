@@ -6,6 +6,7 @@
 #include <QFileDialog>
 #include <QColorDialog>
 #include <QColor>
+#include <QMessageBox>
 
 #include "LocoObject.h"
 
@@ -76,6 +77,20 @@ public slots:
         m[ "b" ] = c.blue();
         return m;
     }
+
+	void criticalDialog( const QString& caption, const QString& msg ) {
+		QMessageBox::critical( 0, caption, msg );
+	}
+	void infoDialog( const QString& caption, const QString& msg ) {
+		QMessageBox::information( 0, caption, msg );
+	}
+	void questionDialog( const QString& caption, const QString& msg ) {
+		QMessageBox::question( 0, caption, msg );
+	}
+	void warningDialog( const QString& caption, const QString& msg ) {
+		QMessageBox::warning( 0, caption, msg );
+	}
+
 
 };
 

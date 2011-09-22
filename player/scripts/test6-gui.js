@@ -1,5 +1,7 @@
 try {
 
+  var print = Loco.console.println;
+
   function printWkitConfig( attr ) {
     for( k in attr ) {
       Loco.console.println( k + ": " + attr[ k ] );
@@ -28,10 +30,13 @@ try {
       }   
     };
  
+  
   var ww = Loco.gui.create( "WebMainWindow" );
   printWkitConfig( ww.getAttributes() );
   ww.setAddParentObjectsToJS( true );
   ww.setMenu( menu );
+  ww.setAttributes( {DeveloperExtrasEnabled: true } );
+  ww.setEnableContextMenu( true );
   ww.loadProgress.connect( function( i ) { ww.setStatusBarText( i + "%" ); } );
   ww.loadFinished.connect( function( ok ) { 
     if( ok ) {
@@ -48,8 +53,9 @@ try {
     Loco.console.println( ww.selectedText() );  
   } );
   ww.setStatusBarText( "Loading..." );
-  ww.load("http://www.geek.com");
-  ww.show();*/
+  Loco.ctx.onError.connect( function( err ) { Loco.gui.criticalDialog( "Error", err ); Loco.ctx.exit(-1); } );
+  ww.load("http://www.amazon.co.uk");
+  ww.show();
 } catch(e) {
   Loco.console.printerrln(e);
 }
