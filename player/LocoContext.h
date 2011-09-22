@@ -50,8 +50,6 @@ typedef QCoreApplication LocoQtApp;
 
 namespace loco {
 
-typedef QVariantMap CMDLine;
-
 typedef QMap< QString, Filter*  > Filters;
 typedef QList< QPluginLoader* > PluginLoaders;
 typedef QList< Object* > JScriptObjCtxInstances; 
@@ -81,11 +79,11 @@ public:
     
     Context( Context* parent = 0 );
    
-    Context( IJSInterpreter* wf, LocoQtApp* app, const CMDLine& cmdLine,
+    Context( IJSInterpreter* wf, LocoQtApp* app, const QStringList& cmdLine,
              Context* parent = 0 );
 
     void Init( IJSInterpreter* wf, LocoQtApp* app = 0, 
-               const CMDLine& cmdLine = CMDLine(), Context* parent = 0 );
+               const QStringList& cmdLine = QStringList(), Context* parent = 0 );
 // called from C++
 public:
 
@@ -465,7 +463,7 @@ private:
     }
 
 
-    QVariantMap Cmdline() const { return cmdLine_; }
+    QStringList Cmdline() const { return cmdLine_; }
 
     void RegisterJSErrCBack( const QString& code, const QStringList& filters = QStringList() ) { 
         jsErrCBack_ = Filter( code, filters );
@@ -515,7 +513,7 @@ private:
     IJSInterpreter* jsInterpreter_;
     LocoQtApp* app_;
     Context* parent_;
-    CMDLine cmdLine_;
+    QStringList cmdLine_;
    
 private:
     Filters filters_;
@@ -642,7 +640,7 @@ public slots: // js interface
         ctx_.LoadScriptFilter( id, uri, jfun, jerrfun, codePlaceHolder );
     }
 
-    QVariantMap cmdLine() const { return ctx_.Cmdline(); }
+    QStringList cmdLine() const { return ctx_.Cmdline(); }
     
     QString env( const QString& envVarName ) const {
 #if !defined( Q_WS_WIN )

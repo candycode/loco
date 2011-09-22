@@ -112,7 +112,7 @@ SOURCE_GROUP( Resources REGULAR_EXPRESSION "res/.+" )
 set( SRCS loco.cpp LocoObject.cpp  ${LOCO_FSYSTEM_SRCS} ${LOCO_WKIT_SRCS}
      ${LOCO_SYSTEM_SRCS} ${LOCO_GUI_SRCS} LocoContext.cpp )    
     
-set( SRCS_INCLUDE ${MOC_HEADERS} ${LOCO_WKIT_HEADERS} CmdLine.h ${LOCO_FSYSTEM_INCLUDE} LocoDefaultJSInit.h LocoApp.h )
+set( SRCS_INCLUDE ${MOC_HEADERS} ${LOCO_WKIT_HEADERS} ${LOCO_FSYSTEM_INCLUDE} LocoDefaultJSInit.h LocoApp.h )
 
 ####CONFIGURE EXECUTABLE
 add_executable( loco ${SRCS} ${SRCS_INCLUDE} ${MOC_SRCS} ${RCC_SRCS} )

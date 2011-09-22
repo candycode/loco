@@ -9,7 +9,6 @@
 
 #include <QSharedPointer>
 
-#include "CmdLine.h"
 #include "LocoObject.h"
 #include "LocoContext.h"
 #include "LocoNetworkAccessManager.h"
@@ -20,21 +19,23 @@
 namespace loco {
 
 typedef QMap< QString, Object* > ModuleMap;
-typedef QVariantMap CMDLine; //using QVariantMap allows to pass the command line as a json object
+typedef QStringList CMDLine;
 
 class App : public QObject {
     Q_OBJECT
 public:
 	App( int argc, char** argv, QSharedPointer< ObjectInfo > oi ) : app_( argc, argv ),
-	    defaultScript_( ":/loco/main" ), info_( oi ) { //read from embedded resource; 'main' is an alias for 'main.loco' file
+	    defaultScript_( ":/loco/main" ),
+	    info_( oi ),
+#ifdef LOCO_GUI
+	    startEventLoop_( true ) { //read from embedded resource; 'main' is an alias for 'main.loco' file
+#else
+		startEventLoop_( false ) {
+#endif
 
 	    // 1 - Read code to execute
         static const bool DO_NOT_REPORT_UNKNOWN_PARAMS = false;
         static const bool OPTIONAL = true;
-        CmdLine cl( DO_NOT_REPORT_UNKNOWN_PARAMS );
-        cmdLine_ = ParsedCommandsToCMDLine( cl.ParseCommandLine( argc, argv ) );
-		//ctx_.setParent( this );
-		helpText_ = "Usage: loco <script file>";
         ctx_.SetNetworkAccessManager( &netAccess_ );
         ctx_.SetFileAccessManager( &fileAccess_ );
         connect( this, SIGNAL( OnException( const QString&  ) ),
@@ -44,8 +45,14 @@ public:
         app_.setApplicationVersion( info_->version().join( "," ) );
         app_.setApplicationName( info_->name() ); 
         ctx_.SetAppInfo( info_ );
-
+        cmdLine_ = QCoreApplication::arguments();
+        if( std::find( cmdLine_.begin(), cmdLine_.end(), "--no-event-loop" ) != cmdLine_.end() ||
+        	std::find( cmdLine_.begin(), cmdLine_.end(), "-nl" ) != cmdLine_.end() ) startEventLoop_ = false;
 	}
+
+	bool GetEventLoopEnable() const { return startEventLoop_; }
+
+	void SetEventLoopEnable( bool yes ) { startEventLoop_ = yes; }
 
 	void SetInterpreter( QSharedPointer< IJSInterpreter > i ) { jsInterpreter_ = i; }
     
@@ -83,10 +90,10 @@ public:
 
     int Execute() {
         try {		
-            QString scriptFileName = defaultScript_; 
-		    if( cmdLine_[ " " ].toStringList().size() > 1 ) {
-                scriptFileName = *( ++( cmdLine_[ " " ].toStringList().begin() ) );
-            }
+            QString scriptFileName = defaultScript_;
+            const QString lastCmd = cmdLine_.back();
+            if( !lastCmd.startsWith( "-" ) ) scriptFileName = lastCmd;
+
             QFile scriptFile( scriptFileName );
             if( !scriptFile.exists() ) {
 			    throw std::runtime_error( "file " + scriptFileName.toStdString() + " does not exist" );
@@ -107,8 +114,10 @@ public:
 
 	        // 3 - execute
 	        execResult_ = ctx_.Eval( jscriptCode );
+            int execResult = 0;
+	        if( startEventLoop_ ) execResult = app_.exec();
 		    if( execResult_.isValid() && execResult_.type() == QVariant::Int ) return execResult_.toInt();
-		    return 0;
+		    else return execResult;
         } catch( const std::exception& e ) {
             emit OnException( e.what() );
             std::cerr << e.what() << std::endl;
@@ -141,20 +150,6 @@ signals:
     void OnException( const QString& );
 
 private:
-	CMDLine ParsedCommandsToCMDLine( const CmdLine::ParsedEntries& cmd ) {
-	    CMDLine cl;
-	    for( CmdLine::ParsedEntries::const_iterator i = cmd.begin(); i != cmd.end(); ++i ) {
-		    QStringList sl;
-		    typedef std::vector< std::string > VS;
-		    const VS& vs = i->second;
-		    for( VS::const_iterator v = vs.begin(); v != vs.end(); ++v ) {
-			    sl << QString( v->c_str() );
-		    }
-		    cl[ i->first.c_str() ] = sl;
-	    }
-	    return cl;
-    }
-private:
 	CMDLine cmdLine_;
 	LocoQtApp app_;
 	QSharedPointer< IJSInterpreter > jsInterpreter_;
@@ -165,5 +160,6 @@ private:
 	QVariant execResult_;
     NetworkAccessManager netAccess_;
     FileAccessManager fileAccess_;
+    bool startEventLoop_;
 };
 }

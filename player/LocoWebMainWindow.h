@@ -40,9 +40,9 @@ public:
 		connect( webView_->page(), SIGNAL( loadFinished( bool ) ), this, SIGNAL( loadFinished( bool ) ) );
 		connect( webView_->page(), SIGNAL( loadProgress( int ) ), this, SIGNAL( loadProgress( int ) ) );
 		connect( webView_->page(), SIGNAL( loadStarted() ), this, SIGNAL( loadStarted() ) );
-		connect( webView_->page(), SIGNAL( linkClicked( const QString& ) ), this, SIGNAL( linkClicked( const QString& ) ) );
-		connect( wf_, SIGNAL( urlChanged( const QString& ) ), this, SIGNAL( urlChanged( const QString& ) ) );
-		connect( webView_->page(), SIGNAL( tileChanged( const QString& ) ), this, SIGNAL( tileChanged( const QString& ) ) );
+		connect( webView_->page(), SIGNAL( linkClicked( const QUrl& ) ), this, SIGNAL( linkClicked( const QUrl& ) ) );
+		connect( wf_, SIGNAL( urlChanged( const QUrl& ) ), this, SIGNAL( urlChanged( const QUrl& ) ) );
+		connect( wf_, SIGNAL( titleChanged( const QString& ) ), this, SIGNAL( titleChanged( const QString& ) ) );
 		connect( webView_->page(), SIGNAL( selectionChanged() ), this, SIGNAL( selectionChanged() ) );
     }
     void AddSelfToJSContext() {
@@ -170,9 +170,6 @@ public slots:
 	QString selectedText() const { return webView_->page()->selectedText(); }
 
 
-signals:
-    void actionTriggered( const QString& path );
-
 private:
    void SetMenu( QMenu* parent, const QVariantMap& jsonTree, QString path ) {
   	   for( QVariantMap::const_iterator i = jsonTree.begin();
@@ -217,13 +214,14 @@ private slots:
         }
     }
 signals:
-    void linkClicked( const QString& );
+    void actionTriggered( const QString& path );
+    void linkClicked( const QUrl& );
     void loadFinished( bool );
     void loadProgress( int );
     void loadStarted();
     void selectionChanged();
     void titleChanged( const QString& );
-    void urlChanged( const QString& );
+    void urlChanged( const QUrl& );
 	void closing();
 private:
    WebView* webView_;

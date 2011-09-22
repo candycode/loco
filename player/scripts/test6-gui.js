@@ -1,8 +1,12 @@
-Loco.console.println("Hello loco");
-
 try {
-  var menu = function() {
-    return {
+
+  function printWkitConfig( attr ) {
+    for( k in attr ) {
+      Loco.console.println( k + ": " + attr[ k ] );
+    }
+  }
+
+  var menu = {
       "File": {
         "Open": {
           "cback"  : "alert('Open')",
@@ -23,35 +27,29 @@ try {
         }
       }   
     };
-  };
+ 
   var ww = Loco.gui.create( "WebMainWindow" );
-
-  ww.setAttribute( "AutoLoadImages", false );
+  printWkitConfig( ww.getAttributes() );
   ww.setAddParentObjectsToJS( true );
-  ww.setContentEditable( true );
-  ww.setMenu( menu() );
+  ww.setMenu( menu );
   ww.loadProgress.connect( function( i ) { ww.setStatusBarText( i + "%" ); } );
   ww.loadFinished.connect( function( ok ) { 
     if( ok ) {
+      var html = '\
+      <html><head></head><body> \
+      <h1>DONE!!!</h1>   \
+      </body></html>';
       ww.setStatusBarText( "DONE" );
-      //ww.eval( "alert('done')");
+      ww.eval( "alert('done')");
+      ww.eval( "document.write('" + html + "');" ); 
     } 
   } );
   ww.selectionChanged.connect( function() {
     Loco.console.println( ww.selectedText() );  
   } );
-  ww.load("http://www.wsj.com");
-  ww.show();
   ww.setStatusBarText( "Loading..." );
-  Loco.ctx.eventLoop();
-  /*ww.closing.connect( el.quit );
-  ww.load("http://www.wsj.com");
-  ww.show(); el.exec();
-  ww.setHtml("");
-  Loco.sys.sleep( 5000 );
-  ww.load("http://lastampa.it");
-  ww.show(); el.exec();*/
-  //Loco.ctx.exec();
+  ww.load("http://www.geek.com");
+  ww.show();
 } catch(e) {
   Loco.console.printerrln(e);
 }
