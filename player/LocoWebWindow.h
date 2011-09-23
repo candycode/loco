@@ -34,6 +34,8 @@ public:
 		connect( webView_.page(), SIGNAL( selectionChanged() ), this, SIGNAL( selectionChanged() ) );
     }
 
+	QString frameName() const { return wf_->frameName(); }
+
     void AddSelfToJSContext() {
         wf_->addToJavaScriptWindowObject( name(), this );
     }

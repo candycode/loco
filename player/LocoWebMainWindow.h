@@ -37,6 +37,8 @@ public:
 		connect( mapper_, SIGNAL( mapped( QObject* ) ), this, SLOT( ActionTriggered( QObject* ) ) );
 		connect( wf_, SIGNAL( javaScriptWindowObjectCleared () ), this, SLOT( JSContextCleared() ) );
 		connect( webView_, SIGNAL( closing() ), this, SLOT( OnClose() ) );
+		connect( webView_, SIGNAL( keyPress( int, int, int ) ), this, SIGNAL( keyPress( int, int, int ) ) );
+		connect( webView_, SIGNAL( keyRelease( int, int, int ) ), this, SIGNAL( keyRelease( int, int, int ) ) );
 		connect( webView_->page(), SIGNAL( loadFinished( bool ) ), this, SIGNAL( loadFinished( bool ) ) );
 		connect( webView_->page(), SIGNAL( loadProgress( int ) ), this, SIGNAL( loadProgress( int ) ) );
 		connect( webView_->page(), SIGNAL( loadStarted() ), this, SIGNAL( loadStarted() ) );
@@ -101,8 +103,13 @@ public slots:
     	}
     }
 public slots:
+	void setMenuBarVisibility( bool on ) { if( mw_.menuBar() ) mw_.menuBar()->setVisible( on ); }
+	void setStatusBarVisibility( bool on ) { if( mw_.statusBar() ) mw_.statusBar()->setVisible( on ); }
+	QString frameName() const { return wf_->frameName(); }
 	void setEnableContextMenu( bool yes ) { webView_->EatContextMenuEvent( !yes ); }
-	bool getEnableContextMenu() const { return webView_->EatingContextMenuEvent(); }
+	bool getEnableContextMenu() const { return !webView_->EatingContextMenuEvent(); }
+	void setForwardKeyEvents( bool yes ) { webView_->EatKeyEvents( !yes ); }
+	bool getForwardKeyEvents( bool yes ) const { return !webView_->EatingKeyEvents(); }
     void setWindowTitle( const QString& t ) { mw_.setWindowTitle( t ); }
     QString title() const { return mw_.windowTitle(); }
     void showNormal() { mw_.showNormal(); }
@@ -255,6 +262,8 @@ signals:
     void titleChanged( const QString& );
     void urlChanged( const QUrl& );
 	void closing();
+	void keyPress( int key, int modifiers, int count );
+	void keyRelease( int key, int modifiers, int count );
 private:
    WebView* webView_;
    bool addSelf_;

@@ -1,5 +1,8 @@
 try {
 
+  var $include = Loco.ctx.include;
+  $include( 'keys.js' );
+
   var print = Loco.console.println;
 
   function printWkitConfig( attr ) {
@@ -31,6 +34,7 @@ try {
     };
  
   
+  Loco.console.println( LocoKey.F11 );
   var ww = Loco.gui.create( "WebMainWindow" );
   printWkitConfig( ww.getAttributes() );
   ww.setAddParentObjectsToJS( true );
@@ -38,6 +42,10 @@ try {
   ww.setAttributes( {DeveloperExtrasEnabled: true } );
   ww.setEnableContextMenu( true );
   ww.loadProgress.connect( function( i ) { ww.setStatusBarText( i + "%" ); } );
+  ww.keyPress.connect( function( k, m, c ) { 
+  if( k === LocoKey.F11 ) ww.showNormal();
+    Loco.console.println( k ); 
+  } );
   ww.loadFinished.connect( function( ok ) { 
     if( ok ) {
       var html = '\
@@ -46,9 +54,13 @@ try {
       </body></html>';
       ww.setStatusBarText( "DONE" );
       ww.eval( "document.onkeypress = function( k ) { \
+                Loco.console.println( k.keyCode ); \
                 if( k.keyCode == 27 ) LocoWebMainWindow.showNormal(); }" );
       ww.eval( 'LocoWebMainWindow.showFullScreen()' );  
-      ww.eval( "alert('done')");
+      //ww.setMenuBarVisibility( false );
+      //ww.setStatusBarVisibility( false );
+      //ww.eval( "alert('done')");
+      ww.eval( "Loco.gui.infoDialog( 'Frame name', LocoWebMainWindow.frameName() )");
       //ww.eval( "document.write('" + html + "');" ); 
     } 
   } );
@@ -57,10 +69,11 @@ try {
   } );
   ww.setStatusBarText( "Loading..." );
   ww.setWindowTitle( Loco.ctx.appName() ); 
-  Loco.ctx.onError.connect( function( err ) { Loco.gui.criticalDialog( "Error", err ); Loco.ctx.exit(-1); } );
+  Loco.ctx.onError.connect( function( err ) { Loco.gui.criticalDialog( "Error", err ); Loco.ctx.exit( -1 ); } );
   ww.load("http://www.nyt.com");
   ww.show();
 } catch(e) {
   Loco.console.printerrln(e);
+  Loco.ctx.exit( -1 );
 }
 
