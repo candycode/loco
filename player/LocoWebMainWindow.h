@@ -30,7 +30,7 @@ typedef QMap< QAction*, QString > CBackMap;
 class WebMainWindow : public Object {
     Q_OBJECT
 public:
-    WebMainWindow() : Object( 0, "LocoWebMainWindow", "Loco/GUI/Window" ), webView_( new WebView() )  {
+    WebMainWindow() : Object( 0, "LocoWebMainWindow", "Loco/GUI/Window" ), webView_( new WebView() ), addSelf_( true )  {
 		wf_ = webView_->page()->mainFrame();
 	    mw_.setCentralWidget( webView_ ); // webView_ lifetime managed by mw_;
 		mapper_ = new QSignalMapper( this );

@@ -45,16 +45,20 @@ try {
       <h1>DONE!!!</h1>   \
       </body></html>';
       ww.setStatusBarText( "DONE" );
+      ww.eval( "document.onkeypress = function( k ) { \
+                if( k.keyCode == 27 ) LocoWebMainWindow.showNormal(); }" );
+      ww.eval( 'LocoWebMainWindow.showFullScreen()' );  
       ww.eval( "alert('done')");
-      ww.eval( "document.write('" + html + "');" ); 
+      //ww.eval( "document.write('" + html + "');" ); 
     } 
   } );
   ww.selectionChanged.connect( function() {
     Loco.console.println( ww.selectedText() );  
   } );
   ww.setStatusBarText( "Loading..." );
+  ww.setWindowTitle( Loco.ctx.appName() ); 
   Loco.ctx.onError.connect( function( err ) { Loco.gui.criticalDialog( "Error", err ); Loco.ctx.exit(-1); } );
-  ww.load("http://www.amazon.co.uk");
+  ww.load("http://www.nyt.com");
   ww.show();
 } catch(e) {
   Loco.console.printerrln(e);

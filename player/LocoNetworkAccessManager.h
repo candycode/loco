@@ -30,7 +30,8 @@ public:
         rxPattern_( QRegExp::RegExp2 ),
         filterRequests_( true ),
         allowNetAccess_( false ),
-        enableUrlMapping_( false ) {}
+        enableUrlMapping_( false ),
+        signalAccessDenied_( true ) {}
     QRegExp::PatternSyntax GetRxPatternSyntax() const { return rxPattern_; }
     void SetRxPatternSyntax( QRegExp::PatternSyntax ps ) { rxPattern_ = ps; }
     bool GetFilterRequests() const { return filterRequests_; }
@@ -44,6 +45,10 @@ public:
     const RegExps& GetAllowRules() const { return allow_; }
     bool GetAllowNetAccess() const { return allowNetAccess_; }
     void SetAllowNetAccess( bool na ) { allowNetAccess_ = na; }
+    void SetSignalAccessDenied( bool yes ) { signalAccessDenied_ = yes; }
+    bool GetSignalAccessDenied() const { return signalAccessDenied_; }
+    void SetDefaultUrl( const QString& durl ) { defaultUrl_ = durl; }
+    const QString& GetDefaultUrl() const { return defaultUrl_; }
 protected:
     virtual QNetworkReply* createRequest( Operation op,
                                           const QNetworkRequest& req,
@@ -52,7 +57,7 @@ protected:
         if( !allowNetAccess_ ) {
             emit UnauthorizedNetworkAccessAttempt();
 			QNetworkRequest nr;
-		    nr.setUrl(QString(""));
+		    nr.setUrl( defaultUrl_ );
             return QNetworkAccessManager::createRequest( op, nr, outgoingData );
         }        
         
@@ -75,9 +80,9 @@ protected:
     
         for( RegExps::const_iterator i = deny_.begin(); i != deny_.end(); ++i ) {
             if( i->exactMatch( url ) ) {
-                emit UrlAccessDenied( url );
+                if( signalAccessDenied_ ) emit UrlAccessDenied( url );
                 QNetworkRequest nr;
-		        nr.setUrl(QString(""));
+		        nr.setUrl( defaultUrl_ );
                 return QNetworkAccessManager::createRequest( op, nr, outgoingData );
             }
         }
@@ -87,9 +92,9 @@ protected:
             }
         }
 
-        emit UrlAccessDenied( url );
+        if( signalAccessDenied_ ) emit UrlAccessDenied( url );
         QNetworkRequest nr;
-		nr.setUrl(QString(""));
+		nr.setUrl( defaultUrl_ );
         return QNetworkAccessManager::createRequest( op, nr, outgoingData );   
     }
 signals:
@@ -104,7 +109,9 @@ private:
     RegExps allow_;
     RegExps deny_;
     bool enableUrlMapping_;
-    RedirMap redirMap_;     
+    RedirMap redirMap_;
+    bool signalAccessDenied_;
+    QString defaultUrl_;
 
 };
 

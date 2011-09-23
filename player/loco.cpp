@@ -78,6 +78,7 @@ int main(int argc, char *argv[])
 		app.SetAllowNetAccess( true );
 		app.SetFilterNetRequests( false );
 #endif
+		app.ParseCommandLine();
 		ret = app.Execute();
 	} catch( const std::exception& e ) {
 		std::cerr << e.what() << std::endl;

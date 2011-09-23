@@ -18,7 +18,7 @@ protected:
 		if( !eatContextMenuEvent_ ) QWebView::contextMenuEvent( e );
 	}
 signals:
-	void closing();
+    void closing();
 private:
 	bool eatContextMenuEvent_;
 };
