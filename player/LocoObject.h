@@ -44,7 +44,7 @@ public:
 	const QString& GetModule() const { return module_; }  
     void SetPluginLoader( QPluginLoader* pl ) { pluginLoader_ = pl; }
 	QPluginLoader* GetPluginLoader() const { return pluginLoader_; }
-    void SetContext( Context* c ) { context_ = c; }
+    virtual void SetContext( Context* c ) { context_ = c; }
     Context* GetContext() const { return context_; }
     const QString& name() const { return name_; }
     const QString& type() const { return type_; }

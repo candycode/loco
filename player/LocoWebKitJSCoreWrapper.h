@@ -10,13 +10,11 @@
 
 namespace loco {
 
-class WebKitJSCore : public IJSInterpreter {
+class WebKitJSCoreWrapper : public IJSInterpreter {
 	Q_OBJECT
 public:
-	WebKitJSCore()  {
-		wf_ = wp_.mainFrame();
-		connect( wf_, SIGNAL( javaScriptWindowObjectCleared() ),
-			     this, SIGNAL( JavaScriptContextCleared() ) );
+	WebKitJSCoreWrapper( QWebPage* wp = 0 ) : wp_( wp ), wf_( 0 ) {
+	    if( wp ) wf_ = wp->mainFrame();
 	}
 	QVariant EvaluateJavaScript( const QString& code ) {
 		return wf_->evaluateJavaScript( code );
@@ -28,10 +26,16 @@ public:
 		wf_->addToJavaScriptWindowObject( name, obj, vo );
 	}
 	void Init() {}
+	void SetWebPage( QWebPage* wp ) { 
+		wp_ = wp;
+		wf_ = wp_->mainFrame();
+		connect( wf_, SIGNAL( javaScriptWindowObjectCleared() ),
+			     this, SIGNAL( JavaScriptContextCleared() ) );
+	}
 signals:
 	void JavaScriptContextCleared(); // = javaScriptWindowObjectCleared()
 private:
-    QWebPage wp_;
+    QWebPage* wp_;
     QWebFrame* wf_;
 };
 

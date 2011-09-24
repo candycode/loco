@@ -41,7 +41,7 @@ public:
     }
     
     void AddParentObjects() {
-        GetContext()->AddJSStdObjects( wf_ );
+        //GetContext()->AddJSStdObjects( wf_ );
     }
 
     void SetNetworkAccessManager( QNetworkAccessManager* nam ) {

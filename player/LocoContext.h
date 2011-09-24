@@ -87,6 +87,8 @@ public:
 // called from C++
 public:
 
+	void SetParentContext( Context* pc ) { parent_ = pc; }
+
     QString GetJSInitCode() const { return jsInitGenerator_->GenerateCode(); }
 
     void AddNameFilterMapping( const QRegExp& rx, const QStringList& filterIds ) {
@@ -343,19 +345,6 @@ public slots:
             wf->AddObjectToJS( (*i)->jsInstanceName(), *i );  
         } 
     }
-
-#ifdef LOCO_WKIT
-	// allow to add objects to other frames
-    void AddJSStdObjects( QWebFrame* wf ) {
-        for( JScriptObjCtxInstances::const_iterator i = jscriptStdObjects_.begin();
-             i != jscriptStdObjects_.end(); ++i ) {
-            if( (*i)->GetContext() == 0 ) (*i)->SetContext( this );      
-            ConnectErrCBack( *i );
-            if( (*i)->GetPluginLoader() == 0 && (*i)->parent() == 0 ) (*i)->setParent( this );
-            wf->addToJavaScriptWindowObject( (*i)->jsInstanceName(), *i );  
-        } 
-    }
-#endif
 
 private slots:
     void OnSelfError( const QString& err ) {
