@@ -182,7 +182,7 @@ public:
             if( jscriptCode.isEmpty() ) throw std::logic_error( "Empty javascript source file" );
                                                 
             // 2 - Create run-time environment                             
-	        ctx_.Init( jsInterpreter_.data(), &app_, cmdLine_ );
+	        ctx_.Init( jsInterpreter_, &app_, cmdLine_ );
 
 	        // 3 - execute
 	        execResult_ = ctx_.Eval( jscriptCode );

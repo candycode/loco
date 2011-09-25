@@ -2,12 +2,11 @@ try {
 
   var $include = Loco.ctx.include;
   $include( 'keys.js' );
-
   var print = Loco.console.println;
-
+  var ctx = Loco.ctx;
   function printWkitConfig( attr ) {
     for( k in attr ) {
-      Loco.console.println( k + ": " + attr[ k ] );
+      print( k + ": " + attr[ k ] );
     }
   }
 
@@ -34,18 +33,21 @@ try {
     };
  
   
-  Loco.console.println( LocoKey.F11 );
   var ww = Loco.gui.create( "WebMainWindow" );
+  ww.addParentObjectsToJS();
+  ww.addSelfToJSContext( "webWindow" );
+  ww.eval( 'Loco.console.println("ciao")');
   printWkitConfig( ww.getAttributes() );
-  ww.setAddParentObjectsToJS( true );
+  
   ww.setMenu( menu );
   ww.setAttributes( {DeveloperExtrasEnabled: true } );
   ww.setEnableContextMenu( true );
   ww.loadProgress.connect( function( i ) { ww.setStatusBarText( i + "%" ); } );
   ww.keyPress.connect( function( k, m, c ) { 
   if( k === LocoKey.F11 ) ww.showNormal();
-    Loco.console.println( k ); 
+    print( k ); 
   } );
+  ww.loadStarted.connect( function() { ww.eval("var MyGlobal='MyGlobal'"); } );
   ww.loadFinished.connect( function( ok ) { 
     if( ok ) {
       var html = '\
@@ -55,12 +57,13 @@ try {
       ww.setStatusBarText( "DONE" );
       ww.eval( "document.onkeypress = function( k ) { \
                 Loco.console.println( k.keyCode ); \
-                if( k.keyCode == 27 ) LocoWebMainWindow.showNormal(); }" );
-      ww.eval( 'LocoWebMainWindow.showFullScreen()' );  
+                if( k.keyCode == 27 ) webWindow.showNormal(); }" );
+      ww.eval( 'webWindow.showFullScreen()' );  
       //ww.setMenuBarVisibility( false );
       //ww.setStatusBarVisibility( false );
       //ww.eval( "alert('done')");
-      ww.eval( "Loco.gui.infoDialog( 'Frame name', LocoWebMainWindow.frameName() )");
+      ww.eval( "Loco.gui.infoDialog( 'Frame name', webWindow.frameName() )");
+      ww.eval( "Loco.console.println(MyGlobal)" );
       //ww.eval( "document.write('" + html + "');" ); 
     } 
   } );
@@ -68,10 +71,11 @@ try {
     Loco.console.println( ww.selectedText() );  
   } );
   ww.setStatusBarText( "Loading..." );
-  ww.setWindowTitle( Loco.ctx.appName() ); 
-  Loco.ctx.onError.connect( function( err ) { Loco.gui.criticalDialog( "Error", err ); Loco.ctx.exit( -1 ); } );
+  ww.setWindowTitle( ctx.appName() ); 
+  ctx.onError.connect( function( err ) { Loco.gui.criticalDialog( "Error", err ); ctx.exit( -1 ); } );
+  ww.show(); 
   ww.load("http://www.nyt.com");
-  ww.show();
+  
 } catch(e) {
   Loco.console.printerrln(e);
   Loco.ctx.exit( -1 );

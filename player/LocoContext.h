@@ -62,7 +62,7 @@ typedef QList< QPair< QRegExp, QStringList > > NameFilterMap;
 
 struct IJavaScriptInit {
     virtual void SetContext( Context*  ) = 0;
-    virtual QString GenerateCode() const = 0;
+    virtual QString GenerateCode( bool = false ) const = 0; // bool = true append, false generate
     virtual ~IJavaScriptInit() {}
 };
 
@@ -79,13 +79,15 @@ public:
     
     Context( Context* parent = 0 );
    
-    Context( IJSInterpreter* wf, LocoQtApp* app, const QStringList& cmdLine,
+    Context( QSharedPointer< IJSInterpreter > wf, LocoQtApp* app, const QStringList& cmdLine,
              Context* parent = 0 );
 
-    void Init( IJSInterpreter* wf, LocoQtApp* app = 0, 
+    void Init( QSharedPointer< IJSInterpreter > wf, LocoQtApp* app = 0, 
                const QStringList& cmdLine = QStringList(), Context* parent = 0 );
 // called from C++
 public:
+
+	void SetAddObjectsFromParentContext( bool yes ) { addParentObjs_ = yes; }
 
 	void SetParentContext( Context* pc ) { parent_ = pc; }
 
@@ -227,6 +229,7 @@ public:
 
 	void Exit( int r ) { app_->exit( r ); ::exit( r ); }
 
+	void SetJSContextName( const QString& n ); 
  // attched to internal signals            
 private slots:
    
@@ -248,8 +251,13 @@ private slots:
     
     /// 
     void InitJScript() {
-        if( jsInitCode_.isEmpty() ) jsInitCode_ = jsInitGenerator_->GenerateCode();
-        jsInterpreter_->EvaluateJavaScript( jsInitCode_ );
+		if( addParentObjs_ && parent_ != 0 ) {
+		    jsInterpreter_->EvaluateJavaScript( parent_->GetJSInitCode() );
+			const bool APPEND_TO_GLOBAL_LOCO_OBJECT = true;
+			jsInterpreter_->EvaluateJavaScript( jsInitGenerator_->GenerateCode( APPEND_TO_GLOBAL_LOCO_OBJECT ) );
+		} else {
+		    jsInterpreter_->EvaluateJavaScript( jsInitGenerator_->GenerateCode() );
+		}
     }
 
     /// this slot can be called from child contexts to make objects
@@ -267,9 +275,10 @@ private slots:
 
     /// Add javascript objects that need to be available at initialization time
     void AddJavaScriptObjects() {
-        AddJSStdObjects( jsInterpreter_ );
-        ///@todo sjould we add parent's context std objects or parent's instance objects ?
-        /// Parent()->jscriptsStdObjects()
+        if( addParentObjs_ && parent_ != 0  ) {
+            parent_->AddJSStdObjects( jsInterpreter_ );
+        }
+		AddJSStdObjects( jsInterpreter_ );
     }
 
     /// Remove instance objects created during context operations
@@ -336,13 +345,13 @@ public slots:
         error( err );
     }
     // allow to add objects to other contexts
-    void AddJSStdObjects( IJSInterpreter* wf ) {
+    void AddJSStdObjects( QSharedPointer< IJSInterpreter > jsi ) {
         for( JScriptObjCtxInstances::const_iterator i = jscriptStdObjects_.begin();
              i != jscriptStdObjects_.end(); ++i ) {
             if( (*i)->GetContext() == 0 ) (*i)->SetContext( this );      
             ConnectErrCBack( *i );
             if( (*i)->GetPluginLoader() == 0 && (*i)->parent() == 0 ) (*i)->setParent( this );
-            wf->AddObjectToJS( (*i)->jsInstanceName(), *i );  
+            jsi->AddObjectToJS( (*i)->jsInstanceName(), *i );  
         } 
     }
 
@@ -503,7 +512,7 @@ private:
 
 private:
     QSharedPointer< JSContext > jsContext_;
-    IJSInterpreter* jsInterpreter_;
+    QSharedPointer< IJSInterpreter > jsInterpreter_;
     LocoQtApp* app_;
     Context* parent_;
     QStringList cmdLine_;
@@ -520,9 +529,9 @@ private:
     URIObjectMap uriObjectMap_;
     URIFilterMap uriFilterMap_;
     QString globalContextJSName_;
-    QString jsInitCode_;
     NameFilterMap nameFilterMap_;
     bool autoMapFilters_;
+	bool addParentObjs_;
 private: 
     QSharedPointer< IJavaScriptInit > jsInitGenerator_; 
     NetworkAccessManager* netAccessMgr_;

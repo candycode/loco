@@ -9,7 +9,8 @@
 namespace loco {
 
 QVariant GUI::create( const QString& name, const QVariantMap& params ) const {
-    if( GetContext() == 0 ) {
+   
+	if( GetContext() == 0 ) {
         error( "NULL Context" );
         return QVariant();
     }

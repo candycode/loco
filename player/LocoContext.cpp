@@ -16,23 +16,23 @@ Context::Context( Context* parent ) : jsContext_( new JSContext( *this ) ), jsIn
                      app_( 0 ), parent_( 0 ), globalContextJSName_( "Loco" ),
                      jsInitGenerator_( 0 ), netAccessMgr_( 0 ),
                      readNetworkTimeout_( 10000 ), maxNetRedirections_( 0 ),
-                     autoMapFilters_( false )  {
+                     autoMapFilters_( false ), addParentObjs_( false )   {
     connect( this, SIGNAL( onError( const QString& ) ), 
              this, SLOT( OnSelfError( const QString& ) ) );
 
 } 
 
 
-Context::Context( IJSInterpreter* wf, LocoQtApp* app, const QStringList& cmdLine,
+Context::Context( QSharedPointer< IJSInterpreter > jsi, LocoQtApp* app, const QStringList& cmdLine,
                   Context* parent)
 :   jsContext_( new JSContext( *this ) ),
-    jsInterpreter_( wf ), app_( app ), parent_( parent ), cmdLine_( cmdLine ),
+    jsInterpreter_( jsi ), app_( app ), parent_( parent ), cmdLine_( cmdLine ),
     globalContextJSName_( "Loco" ), jsInitGenerator_( 0 ), netAccessMgr_( 0 ),
     readNetworkTimeout_( 10000 ), maxNetRedirections_( 0 ),
-    autoMapFilters_( false )  {
+    autoMapFilters_( false ), addParentObjs_( false )  {
     connect( this, SIGNAL( onError( const QString& ) ), 
              this, SLOT( OnSelfError( const QString& ) ) );
-    Init( wf, app, cmdLine, parent );
+    Init( jsi, app, cmdLine, parent );
 }
 
 
@@ -43,23 +43,21 @@ void Context::ConnectErrCBack( Object* obj ) {
     connect( obj, SIGNAL( onError( const QString& ) ), this, SLOT( OnObjectError( const QString& ) ) );
 }
 
-
-
-void Context::Init( IJSInterpreter* wf, LocoQtApp* app, const QStringList& cmdLine,
+void Context::Init( QSharedPointer< IJSInterpreter > jsi, LocoQtApp* app, const QStringList& cmdLine,
                     Context* parent ) {
 
-    jsInterpreter_ = wf,
+    jsInterpreter_ = jsi,
     app_ = app;
     parent_ = parent,
     cmdLine_ = cmdLine;
     
-    connect( jsInterpreter_, SIGNAL( JavaScriptContextCleared() ),
+    connect( jsInterpreter_.data(), SIGNAL( JavaScriptContextCleared() ),
          this, SLOT( RemoveInstanceObjects() ) );
-    connect( jsInterpreter_, SIGNAL( JavaScriptContextCleared() ),
+    connect( jsInterpreter_.data(), SIGNAL( JavaScriptContextCleared() ),
          this, SLOT( RemoveFilters() ) );
-    connect( jsInterpreter_, SIGNAL( JavaScriptContextCleared() ),
+    connect( jsInterpreter_.data(), SIGNAL( JavaScriptContextCleared() ),
          this, SLOT( AddJavaScriptObjects() ) );
-    connect( jsInterpreter_, SIGNAL( JavaScriptContextCleared() ),
+    connect( jsInterpreter_.data(), SIGNAL( JavaScriptContextCleared() ),
          this, SLOT( InitJScript() ) );
 
     connect( this, SIGNAL( destroyed() ), this, SLOT( RemoveInstanceObjects() ) );
@@ -179,5 +177,7 @@ QByteArray Context::ReadFile( const QString& f ) {
     }
     return b;
 }      
+
+void Context::SetJSContextName( const QString& n ) { jsContext_->SetName( n ); }
 
 }

@@ -31,12 +31,12 @@ typedef QMap< QAction*, QString > CBackMap;
 class WebMainWindow : public Object {
     Q_OBJECT
 public:
-    WebMainWindow() : Object( 0, "LocoWebMainWindow", "Loco/GUI/Window" ), webView_( new WebView() ), addSelf_( true )  {
+    WebMainWindow() : Object( 0, "LocoWebMainWindow", "Loco/GUI/Window" ), 
+		webView_( new WebView() ), jsInterpreter_( new WebKitJSCoreWrapper )  {
 		wf_ = webView_->page()->mainFrame();
 	    mw_.setCentralWidget( webView_ ); // webView_ lifetime managed by mw_;
 		mapper_ = new QSignalMapper( this );
 		connect( mapper_, SIGNAL( mapped( QObject* ) ), this, SLOT( ActionTriggered( QObject* ) ) );
-		connect( &jsInterpreter_, SIGNAL( JavaScriptContextCleared() ), this, SLOT( JSContextCleared() ) );
 		connect( webView_, SIGNAL( closing() ), this, SLOT( OnClose() ) );
 		connect( webView_, SIGNAL( keyPress( int, int, int ) ), this, SIGNAL( keyPress( int, int, int ) ) );
 		connect( webView_, SIGNAL( keyRelease( int, int, int ) ), this, SIGNAL( keyRelease( int, int, int ) ) );
@@ -47,19 +47,18 @@ public:
 		connect( wf_, SIGNAL( urlChanged( const QUrl& ) ), this, SIGNAL( urlChanged( const QUrl& ) ) );
 		connect( wf_, SIGNAL( titleChanged( const QString& ) ), this, SIGNAL( titleChanged( const QString& ) ) );
 		connect( webView_->page(), SIGNAL( selectionChanged() ), this, SIGNAL( selectionChanged() ) );
-		jsInterpreter_.SetWebPage( webView_->page() );   
-		ctx_.Init( &jsInterpreter_ );	 
+		jsInterpreter_->SetWebPage( webView_->page() );   
+		ctx_.Init( jsInterpreter_ );
+		ctx_.SetJSContextName( "wctx" ); //web window context
+		ctx_.AddContextToJS();
+		
     }
-    void AddSelfToJSContext() {
-       jsInterpreter_.AddObjectToJS( name(), this );
+    void AddSelfToJSContext( const QString& n = QString() ) {
+	    jsInterpreter_->AddObjectToJS( n.isEmpty() ? name() : n, this );
     }
     
-    void AddParentObjects() {
-        GetContext()->AddJSStdObjects( &jsInterpreter_ );
-    }
-
     void SetNetworkAccessManager( QNetworkAccessManager* nam ) {
-	   webView_->page()->setNetworkAccessManager( nam );
+	    webView_->page()->setNetworkAccessManager( nam );
     }
 
 	void SetContext( Context* ctx ) {
@@ -68,14 +67,7 @@ public:
 	}
 
 private slots:
-    void JSContextCleared() {
-        if( addParentObjs_ ) {
-            AddParentObjects();
-            ctx_.Eval( GetContext()->GetJSInitCode() );
-        }
-        if( addSelf_ ) AddSelfToJSContext();
-        if( !preLoadCBack_.isEmpty() ) wf_->evaluateJavaScript( preLoadCBack_ );
-    }
+  
 	void OnClose() { emit closing(); }
 
 public slots:
@@ -112,6 +104,7 @@ public slots:
     	}
     }
 public slots:
+	void addSelfToJSContext( const QString& n = QString() ) { AddSelfToJSContext( n ); }
 	void setMenuBarVisibility( bool on ) { if( mw_.menuBar() ) mw_.menuBar()->setVisible( on ); }
 	void setStatusBarVisibility( bool on ) { if( mw_.statusBar() ) mw_.statusBar()->setVisible( on ); }
 	QString frameName() const { return wf_->frameName(); }
@@ -178,14 +171,13 @@ public slots:
     //setOfflineWebApplicationCachePath( const QString& );
     //void setOfflineWebApplicationCacheQuota( qint64 );
     QVariant eval( const QString& code, const QStringList& filters = QStringList() ) {
-        return wf_->evaluateJavaScript( GetContext()->Filter( code, filters ) ); 
+		return ctx_.Eval( code, filters );
     }  
-    void setAddSelfToJS( bool yes ) { addSelf_ = yes; }
-    void setAddParentObjectsToJS( bool yes ) { addParentObjs_ = yes; }
-	QString toHtml() const { return wf_->toHtml(); }
-	void setPreLoadCBack( const QString& code, const QStringList& filters = QStringList() ) {
-		preLoadCBack_ = GetContext()->Filter( code, filters );
+    void addParentObjectsToJS() { 
+		ctx_. SetAddObjectsFromParentContext( true );
 	}
+	QString toHtml() const { return wf_->toHtml(); }
+	
 	QString selectedText() const { return webView_->page()->selectedText(); }
 
     void configScrolling( const QVariantMap& sc ) {
@@ -276,8 +268,6 @@ signals:
 private:
    WebView* webView_; //owned by main window
    Context ctx_; // this is where objects are created
-   bool addSelf_;
-   bool addParentObjs_;
    QWebFrame* wf_; //owned by webview
    QMainWindow mw_;
    MenuMap menuItems_;
@@ -285,9 +275,8 @@ private:
    CBackMap cbacks_;
    ActionPath actionPath_;
    QSignalMapper* mapper_;
-   QString preLoadCBack_;
    WebKitAttributeMap attrMap_;
-   WebKitJSCoreWrapper jsInterpreter_;
+   QSharedPointer< WebKitJSCoreWrapper > jsInterpreter_;
 };
 
 }

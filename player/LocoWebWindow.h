@@ -12,6 +12,7 @@
 #include "LocoContext.h"
 #include "LocoWebView.h"
 #include "LocoWebKitAttributeMap.h"
+#include "LocoWebKitJSCoreWrapper.h"
 
 namespace loco {
 
@@ -21,8 +22,6 @@ class WebWindow : public Object {
 public:
     WebWindow() : Object( 0, "LocoWebWindow", "Loco/GUI/Window" ) {
         wf_ = webView_.page()->mainFrame(); 
-        connect( wf_, SIGNAL( javaScriptWindowObjectCleared () ),
-                 this, SLOT( JSContextCleared() ) );
 		connect( &webView_, SIGNAL( closing() ),
 			     this, SLOT( OnClose() ) );
         connect( webView_.page(), SIGNAL( loadFinished( bool ) ), this, SIGNAL( loadFinished( bool ) ) );
@@ -32,37 +31,30 @@ public:
 		connect( wf_, SIGNAL( urlChanged( const QUrl& ) ), this, SIGNAL( urlChanged( const QUrl& ) ) );
 	    connect( wf_, SIGNAL( titleChanged( const QString& ) ), this, SIGNAL( titleChanged( const QString& ) ) );
 		connect( webView_.page(), SIGNAL( selectionChanged() ), this, SIGNAL( selectionChanged() ) );
+		jsInterpreter_->SetWebPage( webView_.page() );   
+		ctx_.Init( jsInterpreter_ );
+		ctx_.SetJSContextName( "wctx" ); //web window context
+		ctx_.AddContextToJS();
     }
 
-	QString frameName() const { return wf_->frameName(); }
-
-    void AddSelfToJSContext() {
-        wf_->addToJavaScriptWindowObject( name(), this );
+	void AddSelfToJSContext( const QString& n = QString() ) {
+        jsInterpreter_->AddObjectToJS( n.isEmpty() ? name() : n, this );
     }
     
-    void AddParentObjects() {
-        //GetContext()->AddJSStdObjects( wf_ );
-    }
-
     void SetNetworkAccessManager( QNetworkAccessManager* nam ) {
 	   webView_.page()->setNetworkAccessManager( nam );
     }
 
 private slots:
-    void JSContextCleared() {
-        if( addParentObjs_ ) {
-            AddParentObjects();
-            wf_->evaluateJavaScript( GetContext()->GetJSInitCode() );
-        }
-        if( addSelf_ ) AddSelfToJSContext();
-        if( !preLoadCBack_.isEmpty() ) wf_->evaluateJavaScript( preLoadCBack_ );
-    }
+   
 	void OnClose() { emit closing(); }
     
 public slots:
+	void addSelfToJSContext( const QString& n = QString() ) { AddSelfToJSContext( n ); }
 	void setEnableContextMenu( bool yes ) { webView_.EatContextMenuEvent( !yes ); }
 	bool getEnableContextMenu() const { return webView_.EatingContextMenuEvent(); }
-    //connect from parent context Context::onError() -> WebWindow::onParentError()
+    QString frameName() const { return wf_->frameName(); }
+	//connect from parent context Context::onError() -> WebWindow::onParentError()
     void onParentError( const QString& err ) {
         wf_->evaluateJavaScript( "throw " + err + ";\n" );
     }  
@@ -119,14 +111,15 @@ public slots:
     //setOfflineWebApplicationCachePath( const QString& );
     //void setOfflineWebApplicationCacheQuota( qint64 );
     QVariant eval( const QString& code, const QStringList& filters = QStringList() ) {
-        return wf_->evaluateJavaScript( GetContext()->Filter( code, filters ) ); 
+       return ctx_.Eval( code, filters );
     }  
-    void setAddSelfToJS( bool yes ) { addSelf_ = yes; }
-    void setAddParentObjectsToJS( bool yes ) { addParentObjs_ = yes; }
-	QString toHtml() const { return wf_->toHtml(); }
-	void setPreLoadCBack( const QString& code, const QStringList& filters = QStringList() ) {
-	    preLoadCBack_ = GetContext()->Filter( code, filters );
+  
+    void addParentObjectsToJS() { 
+		ctx_.SetAddObjectsFromParentContext( true );
 	}
+
+	QString toHtml() const { return wf_->toHtml(); }
+
 	QString selectedText() const { return webView_.page()->selectedText(); }
 
 	void configScrolling( const QVariantMap& sc ) {
@@ -169,11 +162,10 @@ signals:
 	void closing();
 private:
     WebView webView_;
+	Context ctx_; // this is where objects are created
     QWebFrame* wf_; 
-    bool addSelf_;
-    bool addParentObjs_;
-    QString preLoadCBack_;
     WebKitAttributeMap attrMap_;
+	QSharedPointer< WebKitJSCoreWrapper > jsInterpreter_;
 };
 
 }

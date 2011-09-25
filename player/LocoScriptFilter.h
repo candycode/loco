@@ -10,15 +10,15 @@ namespace loco {
 class ScriptFilter : public Filter {
     Q_OBJECT
 public:
-    ScriptFilter( IJSInterpreter* jsInterpreter,
+    ScriptFilter( QSharedPointer< IJSInterpreter > jsInterpreter,
 				  const QString& jfun,
 				  const QString& jcode = "", 
                   const QString& jerrfun = "",
                   const QString& codePlaceHolder = "" ) 
         : jsInterpreter_( jsInterpreter ), jfun_( jfun), jcode_( jcode ),
           jerrfun_( jerrfun ), codePlaceHolder_( codePlaceHolder ) {}
-    void SetJSIntepreter( IJSInterpreter* jsInterpreter ) { jsInterpreter_ = jsInterpreter; }
-    IJSInterpreter* GetJSInterpreter() const { return jsInterpreter_; }
+    void SetJSIntepreter( QSharedPointer< IJSInterpreter > jsInterpreter ) { jsInterpreter_ = jsInterpreter; }
+    QSharedPointer< IJSInterpreter > GetJSInterpreter() const { return jsInterpreter_; }
     void SetJCode( const QString& f ) { jcode_ = f; }
     const QString& GetJCode() const { return jcode_; }
     void SetJErrCode( const QString& f ) { jerrfun_ = f; }
@@ -53,7 +53,7 @@ public:
     }
     ~ScriptFilter() {}
 private:
-    IJSInterpreter* jsInterpreter_;
+	QSharedPointer< IJSInterpreter > jsInterpreter_;
 	QString jfun_; 
     QString jcode_;
     QString jerrfun_;
