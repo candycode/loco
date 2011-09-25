@@ -47,14 +47,17 @@ public:
 		connect( wf_, SIGNAL( urlChanged( const QUrl& ) ), this, SIGNAL( urlChanged( const QUrl& ) ) );
 		connect( wf_, SIGNAL( titleChanged( const QString& ) ), this, SIGNAL( titleChanged( const QString& ) ) );
 		connect( webView_->page(), SIGNAL( selectionChanged() ), this, SIGNAL( selectionChanged() ) );
+		connect( jsInterpreter_.data(), SIGNAL( JavaScriptContextCleared() ), this, SLOT( PreLoadCBack() ) );
 		jsInterpreter_->SetWebPage( webView_->page() );   
 		ctx_.Init( jsInterpreter_ );
 		ctx_.SetJSContextName( "wctx" ); //web window context
 		ctx_.AddContextToJS();
+		thisJSName_ = name();
 		
     }
     void AddSelfToJSContext( const QString& n = QString() ) {
-	    jsInterpreter_->AddObjectToJS( n.isEmpty() ? name() : n, this );
+	    jsInterpreter_->AddObjectToJS( n.isEmpty() ? thisJSName_ : n, this );
+		if( !n.isEmpty() ) thisJSName_ = n;
     }
     
     void SetNetworkAccessManager( QNetworkAccessManager* nam ) {
@@ -67,10 +70,13 @@ public:
 	}
 
 private slots:
-  
+
+	void PreLoadCBack() { AddSelfToJSContext(); jsInterpreter_->EvaluateJavaScript( preLoadCBack_ ); }
 	void OnClose() { emit closing(); }
 
 public slots:
+
+	void setPreLoadCBack( const QString& cback ) { preLoadCBack_ = cback; }
 
     void setStatusBarText( const QString& text, int timeout = 0 ) {
     	mw_.statusBar()->showMessage( text, timeout );
@@ -277,6 +283,8 @@ private:
    QSignalMapper* mapper_;
    WebKitAttributeMap attrMap_;
    QSharedPointer< WebKitJSCoreWrapper > jsInterpreter_;
+   QString preLoadCBack_;
+   QString thisJSName_;
 };
 
 }

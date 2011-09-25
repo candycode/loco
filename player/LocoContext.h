@@ -230,6 +230,9 @@ public:
 	void Exit( int r ) { app_->exit( r ); ::exit( r ); }
 
 	void SetJSContextName( const QString& n ); 
+
+	void Quit() { app_->quit(); }
+
  // attched to internal signals            
 private slots:
    
@@ -593,6 +596,8 @@ public slots: // js interface
         return ctx_.GetAppInfo() ? ctx_.GetAppInfo()->ToVariantMap()
                                  : QVariantMap();
     }
+
+	void quit() { ctx_.Quit(); }
 
     // IMPORTANT: this sets the paths associated with a specific resource tag
     // e.g. "images" "$home/images"

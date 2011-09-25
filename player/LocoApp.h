@@ -48,6 +48,7 @@ public:
         app_.setApplicationName( info_->name() ); 
         ctx_.SetAppInfo( info_ );
         cmdLine_ = QCoreApplication::arguments();
+		
 	}
 
 	bool GetEventLoopEnable() const { return startEventLoop_; }
