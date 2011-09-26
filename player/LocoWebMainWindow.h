@@ -47,17 +47,16 @@ public:
 		connect( wf_, SIGNAL( urlChanged( const QUrl& ) ), this, SIGNAL( urlChanged( const QUrl& ) ) );
 		connect( wf_, SIGNAL( titleChanged( const QString& ) ), this, SIGNAL( titleChanged( const QString& ) ) );
 		connect( webView_->page(), SIGNAL( selectionChanged() ), this, SIGNAL( selectionChanged() ) );
-		connect( jsInterpreter_.data(), SIGNAL( JavaScriptContextCleared() ), this, SLOT( PreLoadCBack() ) );
+		connect( &ctx_, SIGNAL( JSContextCleared() ), this, SLOT( PreLoadCBack() ) );
+
 		jsInterpreter_->SetWebPage( webView_->page() );   
 		ctx_.Init( jsInterpreter_ );
 		ctx_.SetJSContextName( "wctx" ); //web window context
 		ctx_.AddContextToJS();
-		thisJSName_ = name();
 		
     }
-    void AddSelfToJSContext( const QString& n = QString() ) {
-	    jsInterpreter_->AddObjectToJS( n.isEmpty() ? thisJSName_ : n, this );
-		if( !n.isEmpty() ) thisJSName_ = n;
+    void AddSelfToJSContext() {
+	    ctx_.AddJSStdObject( this );
     }
     
     void SetNetworkAccessManager( QNetworkAccessManager* nam ) {
@@ -71,7 +70,7 @@ public:
 
 private slots:
 
-	void PreLoadCBack() { AddSelfToJSContext(); jsInterpreter_->EvaluateJavaScript( preLoadCBack_ ); }
+	void PreLoadCBack() { ctx_.Eval( preLoadCBack_ ); }
 	void OnClose() { emit closing(); }
 
 public slots:
@@ -110,7 +109,8 @@ public slots:
     	}
     }
 public slots:
-	void addSelfToJSContext( const QString& n = QString() ) { AddSelfToJSContext( n ); }
+    void setName( const QString& n ) { Object::setName( n ); }
+	void addSelfToJSContext() { AddSelfToJSContext(); }
 	void setMenuBarVisibility( bool on ) { if( mw_.menuBar() ) mw_.menuBar()->setVisible( on ); }
 	void setStatusBarVisibility( bool on ) { if( mw_.statusBar() ) mw_.statusBar()->setVisible( on ); }
 	QString frameName() const { return wf_->frameName(); }
@@ -125,7 +125,7 @@ public slots:
     void show() {  mw_.show(); }
 	//connect from parent context Context::onError() -> WebWindow::onParentError()
     void onParentError( const QString& err ) {
-        wf_->evaluateJavaScript( "throw " + err + ";\n" );
+        ctx_.Eval( "throw " + err + ";\n" );
     }  
     void load( const QString& url ) { webView_->load( url ); }
     bool isModified() { return webView_->isModified(); }
@@ -177,7 +177,7 @@ public slots:
     //setOfflineWebApplicationCachePath( const QString& );
     //void setOfflineWebApplicationCacheQuota( qint64 );
     QVariant eval( const QString& code, const QStringList& filters = QStringList() ) {
-		return ctx_.Eval( code, filters );
+        return ctx_.Eval( code, filters );
     }  
     void addParentObjectsToJS() { 
 		ctx_. SetAddObjectsFromParentContext( true );
@@ -255,7 +255,7 @@ private slots:
         if( !a ) error( "Type mismatch" );
         else {
         	CBackMap::const_iterator i = cbacks_.find( a );
-			if( i != cbacks_.end() ) wf_->evaluateJavaScript( cbacks_[ a ] );
+			if( i != cbacks_.end() ) ctx_.Eval( cbacks_[ a ] );
             else emit actionTriggered( actionPath_[ a ] );
         }
     }
@@ -284,7 +284,6 @@ private:
    WebKitAttributeMap attrMap_;
    QSharedPointer< WebKitJSCoreWrapper > jsInterpreter_;
    QString preLoadCBack_;
-   QString thisJSName_;
 };
 
 }

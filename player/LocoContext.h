@@ -236,8 +236,7 @@ public:
  // attched to internal signals            
 private slots:
    
-
-    void RemoveScopeObject( QObject* o ) {
+   void RemoveScopeObject( QObject* o ) {
         Object* obj = qobject_cast< Object* >( o );
         JScriptObjCtxInstances::iterator i = 
             std::find( instanceObjs_.begin(), instanceObjs_.end(), obj );
@@ -332,7 +331,15 @@ private slots:
         ResetNameFilterMap(); 
     }
 	
-
+    void OnJSContextCleared() {
+       	RemoveInstanceObjects();
+        RemoveFilters();
+        AddJavaScriptObjects();
+       	InitJScript();
+       	emit JSContextCleared();
+    }
+signals:
+    void JSContextCleared();
 public slots:
     // loco::Objects should be connected to this slot to have errors handled by the context
     // and indirectly by javascript
@@ -468,7 +475,7 @@ private:
     }
 
 
-    QStringList Cmdline() const { return cmdLine_; }
+    QStringList CmdLine() const { return cmdLine_; }
 
     void RegisterJSErrCBack( const QString& code, const QStringList& filters = QStringList() ) { 
         jsErrCBack_ = Filter( code, filters );

@@ -196,6 +196,7 @@ public:
             std::cerr << e.what() << std::endl;
             return -1;
         }
+        return -1;
 	}
 
     void ConfigNetAccessFromFile( const QString& deny,

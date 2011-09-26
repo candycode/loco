@@ -50,15 +50,10 @@ void Context::Init( QSharedPointer< IJSInterpreter > jsi, LocoQtApp* app, const 
     app_ = app;
     parent_ = parent,
     cmdLine_ = cmdLine;
+    jsInitGenerator_ = QSharedPointer< IJavaScriptInit >( new DefaultJSInit( this ) );
     
     connect( jsInterpreter_.data(), SIGNAL( JavaScriptContextCleared() ),
-         this, SLOT( RemoveInstanceObjects() ) );
-    connect( jsInterpreter_.data(), SIGNAL( JavaScriptContextCleared() ),
-         this, SLOT( RemoveFilters() ) );
-    connect( jsInterpreter_.data(), SIGNAL( JavaScriptContextCleared() ),
-         this, SLOT( AddJavaScriptObjects() ) );
-    connect( jsInterpreter_.data(), SIGNAL( JavaScriptContextCleared() ),
-         this, SLOT( InitJScript() ) );
+         this, SLOT( OnJSContextCleared() ) );
 
     connect( this, SIGNAL( destroyed() ), this, SLOT( RemoveInstanceObjects() ) );
     connect( this, SIGNAL( destroyed() ), this, SLOT( RemoveStdObjects() ) );
@@ -67,8 +62,6 @@ void Context::Init( QSharedPointer< IJSInterpreter > jsi, LocoQtApp* app, const 
     
     //allow js context to receive errors from context and emit signals
     connect( this, SIGNAL( onError( const QString&) ), jsContext_.data(), SLOT( ForwardError( const QString& ) ) );
-
-    jsInitGenerator_ = QSharedPointer< IJavaScriptInit >( new DefaultJSInit( this ) );
 
 	jsInterpreter_->Init();
 }

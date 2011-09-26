@@ -24,7 +24,7 @@ class Context;
 
 class Object : public EWL {
     Q_OBJECT
-    Q_PROPERTY( QString name READ name )
+    Q_PROPERTY( QString name READ name WRITE setName )
     Q_PROPERTY( QString type READ type )
     Q_PROPERTY( QString jsInstance READ jsInstanceName )
 public:    
@@ -48,6 +48,7 @@ public:
     Context* GetContext() const { return context_; }
     const QString& name() const { return name_; }
     const QString& type() const { return type_; }
+    void setName( const QString& n ) { name_ = n; }
     void SetName( const QString& n ) { name_ = n; }
     void SetType( const QString& t ) { type_ = t; }
     const QString& jsInstanceName() const { return jsInstanceName_; }
@@ -78,7 +79,7 @@ public:
     static void SetObjNamePrefix( const QString& p ) { objNamePrefix_ = p; }
     static void SetObjNameSuffix( const QString& s ) { objNameSuffix_ = s; }      
 public slots:
-	QSharedPointer< ObjectInfo > info() const { return info_; }
+	ObjectInfo* info() const { return info_.data(); }
     void destroy() {
         //global objects set from Context must never be destroyed
         if( !destroyable_ ) {
@@ -89,6 +90,7 @@ public slots:
         if( !pluginLoader_ ) { setParent( 0 ); deleteLater(); }
         else { pluginLoader_->unload(); }
     }
+
 public slots:
     void OnDestroy( QObject* obj );
 private:
