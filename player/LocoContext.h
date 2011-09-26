@@ -656,7 +656,7 @@ public slots: // js interface
         ctx_.LoadScriptFilter( id, uri, jfun, jerrfun, codePlaceHolder );
     }
 
-    QStringList cmdLine() const { return ctx_.Cmdline(); }
+    QStringList cmdLine() const { return ctx_.CmdLine(); }
     
     QString env( const QString& envVarName ) const {
 #if !defined( Q_WS_WIN )
