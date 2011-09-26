@@ -15,7 +15,7 @@ try {
       else  f += e["name"];
       f +="</li><li><em>execution time</em>: ";
       if( i < Wrapper.log.length - 1 ) f +=  Wrapper.log[ i + 1 ]["time"] - e["time"] + " ms";
-      else f +=  "N/A";//e["time"] - timeFinished  + " ms";
+      else f +=  "N/A";
       f += "</li><li><em>arguments</em>: ";
       var args = e["args"];
       for( var a = 0; a < args.length; a += 1 ) {
@@ -45,14 +45,16 @@ try {
       "Show trace": {
           "cback"  : showTrace.toString() + "showTrace();",
           "tooltip": "Show trace",
-          "status" : "Show call trace"
+          "status" : "Show call trace",
+          "icon"   : ""
       }
     },
     "Exit" : {
       "Quit": {
           "cback"  : "Loco.ctx.quit()",
           "tooltip": "Quit",
-          "status" : "Exit from application"
+          "status" : "Exit from application",
+          "icon"   : ""
        }
      }
     };
@@ -100,7 +102,7 @@ try {
                        } );
   ww.setPreLoadCBack( jsFilter+wrap );
   ww.loadFinished.connect( function( ok ) { 
-    if( ok ) ww.eval("var timeFinished = new Date().getTime(); Loco.webWindow.setStatusBarText('DONE');");
+    if( ok ) ww.eval("Loco.webWindow.setStatusBarText('DONE');");
     else Loco.gui.errorDialog( "Error loading page" );
   });
   ww.setStatusBarText( "Loading..." );

@@ -16,17 +16,17 @@ QVariant GUI::create( const QString& name, const QVariantMap& params ) const {
     }
 
     //will be replaced with an IGUIFactory class
-    //if we need to support other Widget type
+    //if support for different Widget sets is needed
 
     if( name == "WebWindow" ) {
         WebWindow* wv = new WebWindow();
-		if( !GetContext()->GetNetworkAccessManager() ) throw std::runtime_error( "NULL context" );
+		if( !GetContext()->GetNetworkAccessManager() ) throw std::runtime_error( "NULL Network Access Manager" );
 		wv->SetNetworkAccessManager( GetContext()->GetNetworkAccessManager() );
         QVariant obj = GetContext()->AddObjToJSContext( wv );
         return obj;
     } else  if( name == "WebMainWindow" ) {
         WebMainWindow* wv = new WebMainWindow();
-		if( !GetContext()->GetNetworkAccessManager() ) throw std::runtime_error( "NULL context" );
+		if( !GetContext()->GetNetworkAccessManager() ) throw std::runtime_error( "NULL Network Access Manager" );
 		wv->SetNetworkAccessManager( GetContext()->GetNetworkAccessManager() );
         QVariant obj = GetContext()->AddObjToJSContext( wv );
         return obj;
@@ -35,13 +35,5 @@ QVariant GUI::create( const QString& name, const QVariantMap& params ) const {
         return QVariant();
     }
 }
-
-//QVariantMap GUI::colorDialog( const QString& title = "", const QVariantMap& c = QVariantMap() ) {
-//    if( !c.isEmpty() ) {
-//        QColor color( c["r"].toInt(), c["g"].toInt(), c["b"].toInt(), c["a"].toInt() );
-//        color = QColorDialog::getColor( color, 0, title, QColorDialog::ShowAlphaChannel );
-//    }
-//}
-
 
 }

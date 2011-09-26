@@ -676,18 +676,14 @@ public slots: // js interface
         ctx_.RegisterJSErrCBack( code, filterIds );
     }
 
-    
     QString qtVersion() const { return qVersion(); }
 
-    //QString qtWebkitVersion() { return ::qtWebkitVersion(); }
-
-
     QString os() const {
-        #if defined( Q_WS_X11 )
+        #if defined( Q_OS_UNIX )
             return "UNIX";
-        #elif defined( Q_WS_WIN )
+        #elif defined( Q_OS_WIN )
             return "WINDOWS";
-        #elif defined( Q_WS_MAC )
+        #elif defined( Q_OS_MAC )
             return "MAC"
         #else
             return "";

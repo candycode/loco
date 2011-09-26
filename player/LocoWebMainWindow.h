@@ -31,7 +31,7 @@ typedef QMap< QAction*, QString > CBackMap;
 class WebMainWindow : public Object {
     Q_OBJECT
 public:
-    WebMainWindow() : Object( 0, "LocoWebMainWindow", "Loco/GUI/Window" ), 
+    WebMainWindow() : Object( 0, "LocoWebMainWindow", "Loco/GUI/Window" ),
 		webView_( new WebView() ), jsInterpreter_( new WebKitJSCoreWrapper )  {
 		wf_ = webView_->page()->mainFrame();
 	    mw_.setCentralWidget( webView_ ); // webView_ lifetime managed by mw_;
