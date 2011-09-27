@@ -179,7 +179,7 @@ public:
       
     void SetJSErrCBack( const QString& code,
                         const QStringList& filterIds = QStringList() ) {
-        jsErrCBack_ = Filter( code, filterIds );
+        jsErrCBack_ = ApplyFilter( code, filterIds );
     }
 
     const QString& GetJSErrCBack() const { return jsErrCBack_; }
@@ -233,13 +233,15 @@ public:
  // attched to internal signals            
 private slots:
    
-    void RemoveJSCtxObject( Object* obj ) {
+    void RemoveJSCtxObject( QObject* o ) {
+        Object* obj = qobject_cast< Object* >( o );
         JScriptObjCtxInstances::iterator i = 
             std::find( jscriptCtxInstances_.begin(), jscriptCtxInstances_.end(), obj );
         if( i != jscriptCtxInstances_.end() ) jscriptCtxInstances_.erase( i );
     }
 
-    void RemoveStdObject( Object* obj ) {
+    void RemoveStdObject( QObject* o ) {
+        Object* obj = qobject_cast< Object* >( o );
         JScriptObjCtxInstances::iterator i = 
             std::find( jscriptStdObjects_.begin(), jscriptStdObjects_.end(), obj );
         if( i != jscriptStdObjects_.end() ) jscriptStdObjects_.erase( i );
@@ -390,7 +392,7 @@ friend class JSContext;
 public: 
     // Eval needs to be accessible for starting script execution
     QVariant Eval( QString code, const QStringList& filters = QStringList() ) { 
-       code = Filter( code, filters );
+       code = ApplyFilter( code, filters );
        if( !error() ) return jsInterpreter_->EvaluateJavaScript( code );
        else {
            jsInterpreter_->EvaluateJavaScript( jsErrCBack_ );
@@ -403,12 +405,12 @@ public:
 
     // DataT = QByteArray OR QString
     template < typename DataT >
-    DataT Filter( DataT data, const QStringList& filterIds = QStringList() ) {
+    DataT ApplyFilter( DataT data, const QStringList& filterIds = QStringList() ) {
         for( QStringList::const_iterator f = filterIds.begin();
              f != filterIds.end(); ++f ) { 
             Filters::iterator i = filters_.find( *f );
             if( i != filters_.end() ) {
-                ::loco::Filter* fp =  i.value();
+                Filter* fp =  i.value();
                 data = fp->Apply( data );
                 if( fp->error() ) break;                 
             }
@@ -460,7 +462,7 @@ private:
 						  const QString& jcode = "",
                           const QString& jerrfun = "",
                           const QString& codePlaceHolder = "" ) {
-        ::loco::Filter* lf = new ScriptFilter( jsInterpreter_, jfun, jcode, jerrfun, codePlaceHolder );
+        Filter* lf = new ScriptFilter( jsInterpreter_, jfun, jcode, jerrfun, codePlaceHolder );
         connect( lf, SIGNAL( onError( const QString& ) ), 
                                       this, SLOT( OnFilterError( const QString& ) ) );
         filters_[ id ] = lf;
@@ -477,7 +479,7 @@ private:
         }
         QString f = Read( uri );
         if( f.isEmpty() ) return;   
-        ::loco::Filter* lf = new ScriptFilter( jsInterpreter_, jfun, f, jerrfun, codePlaceHolder );
+        Filter* lf = new ScriptFilter( jsInterpreter_, jfun, f, jerrfun, codePlaceHolder );
         connect( lf, SIGNAL( onError( const QString& ) ), 
                                       this, SLOT( OnFilterError( const QString& ) ) );
         filters_[ id ] = lf;
@@ -487,13 +489,13 @@ private:
     QStringList CmdLine() const { return cmdLine_; }
 
     void RegisterJSErrCBack( const QString& code, const QStringList& filters = QStringList() ) { 
-        jsErrCBack_ = Filter( code, filters );
+        jsErrCBack_ = ApplyFilter( code, filters );
     }
 
     QByteArray Read( const QString& uri, const QStringList& filters = QStringList() ) {
         // resources: ':/' -> file; 'qrc://' -> url
         QByteArray ret = uri.contains( "://" ) ? ReadUrl( uri ) : ReadFile( uri );
-        if( !ret.isEmpty() ) return Filter( ret, filters );
+        if( !ret.isEmpty() ) return ApplyFilter( ret, filters );
         return ret;
     }
 
@@ -633,7 +635,7 @@ public slots: // js interface
                          bool persistent = false ) { return ctx_.LoadObject( uri, persistent ); }
     
     QString filter( QString code, const QStringList& filterIds = QStringList() ) {
-        return ctx_.Filter( code, filterIds );
+        return ctx_.ApplyFilter( code, filterIds );
     }
 #ifdef LOCO_GUI
     int eventLoop() { return ctx_.Exec(); }
