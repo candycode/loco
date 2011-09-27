@@ -57,7 +57,6 @@ void Context::Init( QSharedPointer< IJSInterpreter > jsi, LocoQtApp* app, const 
 
     connect( this, SIGNAL( destroyed() ), this, SLOT( RemoveInstanceObjects() ) );
     connect( this, SIGNAL( destroyed() ), this, SLOT( RemoveStdObjects() ) );
-
     connect( this, SIGNAL( destroyed() ), this, SLOT( RemoveFilters() ) );
     
     //allow js context to receive errors from context and emit signals

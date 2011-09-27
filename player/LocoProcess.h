@@ -25,11 +25,11 @@ public:
         connect( &p_, SIGNAL( finished( int, QProcess::ExitStatus ) ),
                  this, SLOT( OnProcessFinished( int, QProcess::ExitStatus ) ) );
         connect( &p_, SIGNAL( readyReadStandardError() ),
-                 this, SLOT( OnProcessStdErrReady() ) );
+                 this, SIGNAL( readyReadStandardError() ) );
         connect( &p_, SIGNAL( readyReadStandardOutput() ),
-                 this, SLOT( OnProcessStdOutReady() ) );
+                 this, SIGNAL( readyStdout() ) );
         connect( &p_, SIGNAL( started() ),
-                 this, SLOT( OnProcessStarted() ) );
+                 this, SIGNAL( started() ) );
         connect( &p_, SIGNAL( stateChanged( QProcess::ProcessState ) ),
                  this, SLOT( OnProcessStateChanged( QProcess::ProcessState ) ) );  
     } 
@@ -37,19 +37,34 @@ public:
 private slots:
 
     void OnProcessError( QProcess::ProcessError pe ) {
+        QString e = "Process unknown error";
+        if( pe == QProcess::FailedToStart ) e = "Process FailedToStart";
+        else if( pe == QProcess::Crashed ) e = "Process crashed";
+        else if( pe == QProcess::Timedout ) e = "Process timed out";
+        else if( pe == QProcess::ReadError ) e = "Process read error";
+        else if( pe == QProcess::ReadError ) e = "Process read error";
+        error( e );
     }
     void OnProcessFinished( int ret, QProcess::ExitStatus es ) {
-    }
-    void OnProcessStdErrReady() {
-    }
-    void OnProcessStdOutReady() {    
-    }
-    void OnProcessStarted() {
+        QString e = "Process unknown exit status";
+        if( es == QProcess::NormalExit ) e = "NormalExit";
+        else if( es == QProcess::CrashExit ) e = "CrashExit";
+        emit finished( ret, e );                   
     }
     void OnProcessStateChanged( QProcess::ProcessState ps ) {
+        QString s = "Proces unknown state";
+        if( ps == QProcess::NotRunning ) s = "NotRunning";
+        else if( ps == QProcess::Starting ) s = "Starting";
+        else if( ps == QProcess::Running ) s = "Running";
+        emit stateChanged( s ); 
     }
 
-
+signals:
+    void finished( int, const QString& );
+    void readyReadStandardError();
+    void readyStdout();
+    void started();
+    void stateChanged( const QString& );   
 
 public slots:
     void start( const QString& program,
@@ -178,7 +193,6 @@ private:
     }
    
 private:
-    
     QProcess& GetProcess() { return p_; }   
 
 private:

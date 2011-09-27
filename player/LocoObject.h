@@ -91,8 +91,6 @@ public slots:
         else { pluginLoader_->unload(); }
     }
 
-public slots:
-    void OnDestroy( QObject* obj );
 private:
     QString FormatEWLMsg( const QString& msg ) const {
         return type_ + " " + jsInstanceName_ + ": " + msg; 

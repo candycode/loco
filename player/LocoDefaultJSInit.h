@@ -4,6 +4,7 @@
 #include <QString>
 #include <QMap>
 #include <QRegExp>
+#include <QPointer>
 
 #include "LocoContext.h"
 
@@ -61,7 +62,7 @@ private:
         else return n; 
     }
 private:
-    Context*   ctx_;
+    QPointer< Context >  ctx_;
     Dictionary dictionary_;
 	mutable QString cache_;
 

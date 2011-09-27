@@ -25,6 +25,7 @@
 #include <QSet>
 #include <QUrl>
 #include <QRegExp>
+#include <QPointer>
 
 #include <algorithm>
 #include <cstdlib>
@@ -120,6 +121,7 @@ public:
         if( obj->GetContext() == 0 ) obj->SetContext( this );
         if( obj->GetPluginLoader() == 0 && obj->parent() == 0 ) obj->setParent( this );
         ConnectErrCBack( obj );
+        connect( obj, SIGNAL( destroyed( QObject* ) ), this, SLOT( RemoveStdObject( QObject* ) ) );
         if( immediateAdd ) {
             jsInterpreter_->AddObjectToJS( obj->jsInstanceName(), obj );
         }
@@ -130,16 +132,11 @@ public:
         if( obj->GetContext() == 0 ) obj->SetContext( this );
         if( obj->GetPluginLoader() == 0 && obj->parent() == 0 ) obj->setParent( this );
         ConnectErrCBack( obj );
+        connect( obj, SIGNAL( destroyed( QObject* ) ), this, SLOT( RemoveJSCtxObject( QObject* ) ) );
         if( immediateAdd ) {
             jsInterpreter_->AddObjectToJS( obj->jsInstanceName(), obj );
         }
        
-    }
-
-    void RemoveJSCtxObject( Object* obj ) {
-        JScriptObjCtxInstances::iterator i = 
-            std::find( jscriptCtxInstances_.begin(), jscriptCtxInstances_.end(), obj );
-        if( i != jscriptCtxInstances_.end() ) jscriptCtxInstances_.erase( i );
     }
 
     // call this method from factory objects willing to add new objects into
@@ -236,6 +233,18 @@ public:
  // attched to internal signals            
 private slots:
    
+    void RemoveJSCtxObject( Object* obj ) {
+        JScriptObjCtxInstances::iterator i = 
+            std::find( jscriptCtxInstances_.begin(), jscriptCtxInstances_.end(), obj );
+        if( i != jscriptCtxInstances_.end() ) jscriptCtxInstances_.erase( i );
+    }
+
+    void RemoveStdObject( Object* obj ) {
+        JScriptObjCtxInstances::iterator i = 
+            std::find( jscriptStdObjects_.begin(), jscriptStdObjects_.end(), obj );
+        if( i != jscriptStdObjects_.end() ) jscriptStdObjects_.erase( i );
+    }
+
    void RemoveScopeObject( QObject* o ) {
         Object* obj = qobject_cast< Object* >( o );
         JScriptObjCtxInstances::iterator i = 
@@ -544,8 +553,8 @@ private:
 	bool addParentObjs_;
 private: 
     QSharedPointer< IJavaScriptInit > jsInitGenerator_; 
-    NetworkAccessManager* netAccessMgr_;
-    FileAccessManager* fileAccessMgr_;
+    QPointer< NetworkAccessManager > netAccessMgr_;
+    QPointer< FileAccessManager > fileAccessMgr_;
 private:
     QSet< QString > includeSet_;
 private:
