@@ -2,7 +2,7 @@
 //#SRCHEADER
 #include <QString>
 #include <QVariant>
-#include <QScopedPointer>
+#include <QPointer>
 #include <QtWebKit/QWebPage>
 #include <QtWebKit/QWebFrame>
 
@@ -35,8 +35,8 @@ public:
 signals:
 	void JavaScriptContextCleared(); // = javaScriptWindowObjectCleared()
 private:
-    QWebPage* wp_;
-    QWebFrame* wf_;
+    QPointer< QWebPage > wp_;
+    QPointer< QWebFrame > wf_;
 };
 
 }

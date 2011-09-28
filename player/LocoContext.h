@@ -20,12 +20,12 @@
 #include <QProcess>
 #include <QProcessEnvironment>
 #include <QDir>
-#include <QSharedPointer>
 #include <QtNetwork/QNetworkAccessManager>
 #include <QSet>
 #include <QUrl>
 #include <QRegExp>
 #include <QPointer>
+#include <QMap>
 
 #include <algorithm>
 #include <cstdlib>
@@ -41,12 +41,7 @@
 #include "LocoFileAccessManager.h"
 #include "LocoObjectInfo.h"
 #include "LocoIJSInterpreter.h"
-
-#ifdef LOCO_GUI
-typedef QApplication LocoQtApp;
-#else
-typedef QCoreApplication LocoQtApp;
-#endif
+#include "LocoQtApp.h"
 
 
 namespace loco {
@@ -61,12 +56,14 @@ typedef QMap< QString, Filter* > URIFilterMap;
 typedef QList< QPair< QRegExp, QStringList > > NameFilterMap;
 
 
-struct IJavaScriptInit {
+struct IJavaScriptInit : QObject {
     virtual void SetContext( Context*  ) = 0;
     virtual QString GenerateCode( bool = false ) const = 0; // bool = true append, false generate
     virtual ~IJavaScriptInit() {}
 };
 
+typedef QMap< QString, Object* > NamePointerMap;
+typedef QMap< Object*, QString > PointerNameMap;
 
 
 class JSContext;
@@ -80,10 +77,10 @@ public:
     
     Context( Context* parent = 0 );
    
-    Context( QSharedPointer< IJSInterpreter > wf, LocoQtApp* app, const QStringList& cmdLine,
+    Context( IJSInterpreter* jsi, LocoQtApp* app, const QStringList& cmdLine,
              Context* parent = 0 );
 
-    void Init( QSharedPointer< IJSInterpreter > wf, LocoQtApp* app = 0, 
+    void Init( IJSInterpreter* jsi, LocoQtApp* app = 0, 
                const QStringList& cmdLine = QStringList(), Context* parent = 0 );
 // called from C++
 public:
@@ -110,7 +107,7 @@ public:
 
     void ResetNameFilterMap() { nameFilterMap_.clear(); }
 
-    void SetAppInfo( QSharedPointer< ObjectInfo > ai ) { appInfo_ = ai; }
+    void SetAppInfo( ObjectInfo* ai ) { appInfo_ = ai; }
 
     // object ownership is transferred to context 
     
@@ -170,12 +167,13 @@ public:
         return globalContextJSName_;
     }
 
-	void SetJSInitializer( QSharedPointer< IJavaScriptInit > jsi ) { 
-        if( jsi == jsInitGenerator_ ) return;
+	void SetJSInitializer( IJavaScriptInit* jsi ) { 
+        if( jsInitGenerator_ != 0 && jsi == jsInitGenerator_ ) return;
+        jsInitGenerator_->deleteLater();
         jsInitGenerator_ = jsi;
     } 
 
-	QSharedPointer< IJavaScriptInit > GetJSInitializer() const { return jsInitGenerator_; }
+	IJavaScriptInit* GetJSInitializer() const { return jsInitGenerator_; }
       
     void SetJSErrCBack( const QString& code,
                         const QStringList& filterIds = QStringList() ) {
@@ -184,12 +182,14 @@ public:
 
     const QString& GetJSErrCBack() const { return jsErrCBack_; }
 
-    void SetJSInitGenerator( QSharedPointer< IJavaScriptInit > jsi ) {
+    void SetJSInitGenerator( IJavaScriptInit* jsi ) {
         if( jsi == jsInitGenerator_ ) return;
+        if( jsInitGenerator_ != 0 ) jsInitGenerator_->deleteLater();
         jsInitGenerator_ = jsi;
+        jsInitGenerator_->setParent( this ); 
     }
 
-    QSharedPointer< IJavaScriptInit > GetJSInitGenerator() const { return jsInitGenerator_; }
+    IJavaScriptInit* GetJSInitGenerator() const { return jsInitGenerator_; }
 
 	const JScriptObjCtxInstances& GetStdJSObjects() const { return jscriptStdObjects_; }
 
@@ -238,6 +238,7 @@ private slots:
         JScriptObjCtxInstances::iterator i = 
             std::find( jscriptCtxInstances_.begin(), jscriptCtxInstances_.end(), obj );
         if( i != jscriptCtxInstances_.end() ) jscriptCtxInstances_.erase( i );
+        EraseObjectFromMaps( obj );
     }
 
     void RemoveStdObject( QObject* o ) {
@@ -245,6 +246,7 @@ private slots:
         JScriptObjCtxInstances::iterator i = 
             std::find( jscriptStdObjects_.begin(), jscriptStdObjects_.end(), obj );
         if( i != jscriptStdObjects_.end() ) jscriptStdObjects_.erase( i );
+        EraseObjectFromMaps( obj );
     }
 
    void RemoveScopeObject( QObject* o ) {
@@ -252,6 +254,7 @@ private slots:
         JScriptObjCtxInstances::iterator i = 
             std::find( instanceObjs_.begin(), instanceObjs_.end(), obj );
         if( i != instanceObjs_.end() ) instanceObjs_.erase( i ); 
+        EraseObjectFromMaps( obj ); 
     }
 
     void OnUnauthorizedNetworkAccess() {
@@ -276,13 +279,13 @@ private slots:
     /// this slot can be called from child contexts to make objects
     /// in the parent context available within the child context
     
-    void AddJSCtxObjects( IJSInterpreter* wf ) {
+    void AddJSCtxObjects( IJSInterpreter* jsi ) {
         for( JScriptObjCtxInstances::const_iterator i = jscriptCtxInstances_.begin();
              i != jscriptCtxInstances_.end(); ++i ) {
             if( (*i)->GetContext() == 0 ) (*i)->SetContext( this );
             ConnectErrCBack( *i );
             if( (*i)->GetPluginLoader() == 0 && (*i)->parent() == 0 ) (*i)->setParent( this );
-            wf->AddObjectToJS( (*i)->jsInstanceName(), *i );  
+            jsi->AddObjectToJS( (*i)->jsInstanceName(), *i );  
         }
     }
 
@@ -366,7 +369,7 @@ public slots:
         error( err );
     }
     // allow to add objects to other contexts
-    void AddJSStdObjects( QSharedPointer< IJSInterpreter > jsi ) {
+    void AddJSStdObjects( IJSInterpreter* jsi ) {
         for( JScriptObjCtxInstances::const_iterator i = jscriptStdObjects_.begin();
              i != jscriptStdObjects_.end(); ++i ) {
             if( (*i)->GetContext() == 0 ) (*i)->SetContext( this );      
@@ -385,7 +388,13 @@ private:
     
     void ConnectErrCBack( Object* obj );
 
-private: //js interface invoked from JSContext
+    void EraseObjectFromMaps( Object* obj ) {
+        PointerNameMap::iterator n = pointerToName_.find( obj );
+        if( n != pointerToName_.end() ) {
+            nameToPointer_.erase( nameToPointer_.find( n.value() ) );
+            pointerToName_.erase( n );
+        } 
+    }
 
 friend class JSContext;
 
@@ -401,7 +410,7 @@ public:
     }
 
 
-    ObjectInfo* GetAppInfo() const { return appInfo_.data(); }
+    ObjectInfo* GetAppInfo() const { return appInfo_; }
 
     // DataT = QByteArray OR QString
     template < typename DataT >
@@ -462,7 +471,7 @@ private:
 						  const QString& jcode = "",
                           const QString& jerrfun = "",
                           const QString& codePlaceHolder = "" ) {
-        Filter* lf = new ScriptFilter( jsInterpreter_, jfun, jcode, jerrfun, codePlaceHolder );
+        Filter* lf = new ScriptFilter( jsInterpreter_.data(), jfun, jcode, jerrfun, codePlaceHolder );
         connect( lf, SIGNAL( onError( const QString& ) ), 
                                       this, SLOT( OnFilterError( const QString& ) ) );
         filters_[ id ] = lf;
@@ -532,10 +541,10 @@ private:
     void jsErr() { jsInterpreter_->EvaluateJavaScript( jsErrCBack_ ); }
 
 private:
-    QSharedPointer< JSContext > jsContext_;
-    QSharedPointer< IJSInterpreter > jsInterpreter_;
-    LocoQtApp* app_;
-    Context* parent_;
+    JSContext* jsContext_;
+    QPointer< IJSInterpreter > jsInterpreter_;
+    QPointer< LocoQtApp > app_;
+    QPointer< Context > parent_;
     QStringList cmdLine_;
    
 private:
@@ -544,7 +553,7 @@ private:
     PluginLoaders ctxPluginLoaders_;
     PluginLoaders filterPluginLoaders_;    
     JScriptObjCtxInstances jscriptStdObjects_;
-    JScriptObjCtxInstances jscriptCtxInstances_;
+    JScriptObjCtxInstances jscriptCtxInstances_;    
     JScriptObjCtxInstances instanceObjs_; 
     QString jsErrCBack_;
     URIObjectMap uriObjectMap_;
@@ -553,8 +562,10 @@ private:
     NameFilterMap nameFilterMap_;
     bool autoMapFilters_;
 	bool addParentObjs_;
+    NamePointerMap nameToPointer_;
+    PointerNameMap pointerToName_;
 private: 
-    QSharedPointer< IJavaScriptInit > jsInitGenerator_; 
+    IJavaScriptInit* jsInitGenerator_; 
     QPointer< NetworkAccessManager > netAccessMgr_;
     QPointer< FileAccessManager > fileAccessMgr_;
 private:
@@ -562,7 +573,7 @@ private:
 private:
     int readNetworkTimeout_;
     int maxNetRedirections_;
-    QSharedPointer< ObjectInfo > appInfo_;        
+    QPointer< ObjectInfo > appInfo_;        
 };
 
 //==============================================================================
@@ -570,7 +581,7 @@ private:
 class JSContext : public Object {
     Q_OBJECT
 public:
-    JSContext( Context& ctx ) : Object( 0, "LocoContext", "Loco/Context" ),
+    JSContext( Context* ctx ) : Object( 0, "LocoContext", "Loco/Context" ),
     ctx_( ctx )  {
         SetDestroyable( false );       
     }
@@ -578,18 +589,18 @@ public:
 // invocable from javascript
 public slots: // js interface
     
-	void exit( int code ) { ctx_.Exit( code ); }
+	void exit( int code ) { ctx_->Exit( code ); }
 
 	QVariant include( const QString& path, const QStringList& filters = QStringList() ) {
-        return ctx_.Include( path, filters );
+        return ctx_->Include( path, filters );
     }
 
     QVariant insert( const QString& path, const QStringList& filters = QStringList() ) {
-        return ctx_.Insert( path, filters );
+        return ctx_->Insert( path, filters );
     }
     
 	QString read( const QString& path, const QStringList& filters = QStringList() ) {
-	    return ctx_.Read( path, filters );
+	    return ctx_->Read( path, filters );
     }
     
 	QStringList pluginPath() const { return QCoreApplication::libraryPaths(); }
@@ -611,11 +622,11 @@ public slots: // js interface
 	QString homeDir() const { return QDir::home().absolutePath(); }
 
     QVariantMap appInfo() const { 
-        return ctx_.GetAppInfo() ? ctx_.GetAppInfo()->ToVariantMap()
+        return ctx_->GetAppInfo() ? ctx_->GetAppInfo()->ToVariantMap()
                                  : QVariantMap();
     }
 
-	void quit() { ctx_.Quit(); }
+	void quit() { ctx_->Quit(); }
 
     // IMPORTANT: this sets the paths associated with a specific resource tag
     // e.g. "images" "$home/images"
@@ -628,35 +639,35 @@ public slots: // js interface
     QStringList searchPaths( const QString& prefix ) { return QDir::searchPaths( prefix ); }
 
     QVariant eval( QString code, const QStringList& filters = QStringList() ) { 
-        return ctx_.Eval( code, filters );
+        return ctx_->Eval( code, filters );
     }
 
     QVariant loadObject( const QString& uri,  //used as a regular file path for now
-                         bool persistent = false ) { return ctx_.LoadObject( uri, persistent ); }
+                         bool persistent = false ) { return ctx_->LoadObject( uri, persistent ); }
     
     QString filter( QString code, const QStringList& filterIds = QStringList() ) {
-        return ctx_.ApplyFilter( code, filterIds );
+        return ctx_->ApplyFilter( code, filterIds );
     }
 #ifdef LOCO_GUI
-    int eventLoop() { return ctx_.Exec(); }
+    int eventLoop() { return ctx_->Exec(); }
 #endif
     
     QVariant evalFile( const QString& uri, const QStringList& filterIds = QStringList() ) {
-		return ctx_.Include( uri, filterIds );
+		return ctx_->Include( uri, filterIds );
 	}
 
     void loadFilter( const QString& id, const QString& uri ) {
-        ctx_.LoadFilter( id, uri );
+        ctx_->LoadFilter( id, uri );
     }
 
-    bool hasFilter( const QString& id ) { return ctx_.HasFilter( id ); }
+    bool hasFilter( const QString& id ) { return ctx_->HasFilter( id ); }
 
     void addScriptFilter( const QString& id,
                           const QString& jfun,
 						  const QString& jcode = "", 
                           const QString& jerrfun = "",
                           const QString& codePlaceHolder = "" ) {
-        ctx_.AddScriptFilter( id, jfun, jcode, jerrfun, codePlaceHolder );
+        ctx_->AddScriptFilter( id, jfun, jcode, jerrfun, codePlaceHolder );
     }
 
 	void loadScriptFilter( const QString& id,
@@ -664,10 +675,10 @@ public slots: // js interface
                            const QString& jfun,
                            const QString& jerrfun = "",
                            const QString& codePlaceHolder = "" ) {
-        ctx_.LoadScriptFilter( id, uri, jfun, jerrfun, codePlaceHolder );
+        ctx_->LoadScriptFilter( id, uri, jfun, jerrfun, codePlaceHolder );
     }
 
-    QStringList cmdLine() const { return ctx_.CmdLine(); }
+    QStringList cmdLine() const { return ctx_->CmdLine(); }
     
     QString env( const QString& envVarName ) const {
 #if !defined( Q_WS_WIN )
@@ -684,7 +695,7 @@ public slots: // js interface
     }
     
     void registerErrCBack( const QString& code, const QStringList& filterIds = QStringList() ) { 
-        ctx_.RegisterJSErrCBack( code, filterIds );
+        ctx_->RegisterJSErrCBack( code, filterIds );
     }
 
     QString qtVersion() const { return qVersion(); }
@@ -719,7 +730,7 @@ private slots:
      
 
 private:
-    Context& ctx_;
+    Context* ctx_;
 
 };
 

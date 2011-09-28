@@ -12,6 +12,7 @@ class EWL : public QObject {
 	Q_OBJECT
 public:
     EWL( bool autoDeleteEntries = false ) : autoDelete_( autoDeleteEntries ) {}
+    virtual ~EWL() {}
 public slots:
     QString lastError() const { 
         if( errors_.isEmpty() ) return "";

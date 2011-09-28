@@ -7,7 +7,7 @@
 #include <QVariantMap>
 #include <QStringList>
 #include <QPluginLoader>
-#include <QSharedPointer>
+#include <QPointer>
 
 #include "EWL.h"
 #include "LocoObjectInfo.h"
@@ -39,7 +39,8 @@ public:
         pluginLoader_( 0 ), destroyable_( destroyable )  {
     	jsInstanceName_ = objNamePrefix_ + module_ + "_" + 
 			              name() + objNameSuffix_ + QString("%1").arg( instanceId_ );
-        setObjectName( jsInstanceName_ ); //choose unique name for Qt object instance                   
+        setObjectName( jsInstanceName_ ); //choose unique name for Qt object instance
+        if( info_ != 0 ) info_->setParent( this );                   
     }
 	const QString& GetModule() const { return module_; }  
     void SetPluginLoader( QPluginLoader* pl ) { pluginLoader_ = pl; }
@@ -49,21 +50,21 @@ public:
     const QString& name() const { return name_; }
     const QString& type() const { return type_; }
     void setName( const QString& n ) { name_ = n; }
-    void SetName( const QString& n ) { name_ = n; }
     void SetType( const QString& t ) { type_ = t; }
     const QString& jsInstanceName() const { return jsInstanceName_; }
     void SetJSInstanceName( const QString& jsi ) { jsInstanceName_ = jsi; }
     void SetDestroyable( bool d ) { destroyable_ = d; }
     bool GetDestroyable() const { return destroyable_; }
+    void SetObjectInfo( ObjectInfo* oi ) {
+        if( info_ != 0 && oi == info_ ) return;
+        if( info_ != 0 ) info_->deleteLater();
+        info_ = oi;
+        info_->setParent( this );        
+    }
     virtual void error( const QString& em ) const { EWL::error( FormatEWLMsg( em ) ); }
     virtual void warning( const QString& em ) const { EWL::warn( FormatEWLMsg( em ) ); }
     virtual void log( const QString& em ) const { EWL::log( FormatEWLMsg( em ) ); }
-    virtual bool error() const { return EWL::error(); }
-    virtual ~Object() {        
-        DecInstanceCount(); 
-        if( info_ ) info_->deleteLater();
-    }
-  
+    virtual bool error() const { return EWL::error(); }  
 private:
     static int IncInstanceCount()  { 
 	    const int c = instanceCount_.fetchAndAddAcquire( 1 );
@@ -79,7 +80,7 @@ public:
     static void SetObjNamePrefix( const QString& p ) { objNamePrefix_ = p; }
     static void SetObjNameSuffix( const QString& s ) { objNameSuffix_ = s; }      
 public slots:
-	ObjectInfo* info() const { return info_.data(); }
+	ObjectInfo* info() const { return info_; }
     void destroy() {
         //global objects set from Context must never be destroyed
         if( !destroyable_ ) {
@@ -90,20 +91,22 @@ public slots:
         if( !pluginLoader_ ) { setParent( 0 ); deleteLater(); }
         else { pluginLoader_->unload(); }
     }
-
 private:
     QString FormatEWLMsg( const QString& msg ) const {
         return type_ + " " + jsInstanceName_ + ": " + msg; 
     }
 private:
-    Context* context_;
+    Context* context_; // ONLY EXCEPTION TO THE QPointer rule for non-owned object;
+                       // required because QPointer needs to know that Context is derived from QObject
+                       // and this in turn requires the inclusion of LocoContext.h but LocoContext.h
+                       // *does* need LocoObjects.h.
     QString name_;
     QString type_;
     QString jsInstanceName_;
     int instanceId_;
 	QString module_;
-	QSharedPointer< ObjectInfo > info_;
-    QPluginLoader* pluginLoader_;
+	ObjectInfo* info_;
+    QPointer< QPluginLoader > pluginLoader_;
     bool destroyable_; 
 private:
     static QAtomicInt instanceCount_;

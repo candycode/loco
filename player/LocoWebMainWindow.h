@@ -49,6 +49,7 @@ public:
 		connect( webView_->page(), SIGNAL( selectionChanged() ), this, SIGNAL( selectionChanged() ) );
 		connect( &ctx_, SIGNAL( JSContextCleared() ), this, SLOT( PreLoadCBack() ) );
 
+        jsInterpreter_->setParent( this );
 		jsInterpreter_->SetWebPage( webView_->page() );   
 		ctx_.Init( jsInterpreter_ );
 		ctx_.SetJSContextName( "wctx" ); //web window context
@@ -272,9 +273,9 @@ signals:
 	void keyPress( int key, int modifiers, int count );
 	void keyRelease( int key, int modifiers, int count );
 private:
-   WebView* webView_; //owned by main window
+   QPointer< WebView > webView_; //owned by main window
    Context ctx_; // this is where objects are created
-   QWebFrame* wf_; //owned by webview
+   QPointer< QWebFrame > wf_; //owned by webview
    QMainWindow mw_;
    MenuMap menuItems_;
    ActionMap actions_;
@@ -282,7 +283,7 @@ private:
    ActionPath actionPath_;
    QSignalMapper* mapper_;
    WebKitAttributeMap attrMap_;
-   QSharedPointer< WebKitJSCoreWrapper > jsInterpreter_;
+   WebKitJSCoreWrapper* jsInterpreter_;
    QString preLoadCBack_;
 };
 

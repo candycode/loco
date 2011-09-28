@@ -7,14 +7,14 @@
 #include <QStringList>
 #include <QMap>
 #include <QListIterator>
-#include <QSharedPointer>
+#include <QPointer>
 
 #include "LocoObject.h"
 #include "LocoContext.h"
 #include "LocoNetworkAccessManager.h"
 #include "LocoFileAccessManager.h"     
 #include "LocoObjectInfo.h" //reusing this for app info
-                                    
+#include "LocoQtApp.h"                                    
 
 namespace loco {
 
@@ -26,7 +26,8 @@ class App : public QObject {
 private:
     enum RuleType { NetDeny, NetAllow, FileDeny, FileAllow };
 public:
-	App( int argc, char** argv, QSharedPointer< ObjectInfo > oi ) : app_( argc, argv ),
+	App( LocoQtApp& app, int argc, char** argv, ObjectInfo* oi ) : app_( app ),
+        jsInterpreter_( 0 ),
 	    defaultScript_( ":/loco/main" ),
 	    info_( oi ),
 #ifdef LOCO_GUI
@@ -34,7 +35,7 @@ public:
 #else
 		startEventLoop_( false ) {
 #endif
-
+        info_->setParent( this );
 	    // 1 - Read code to execute
         static const bool DO_NOT_REPORT_UNKNOWN_PARAMS = false;
         static const bool OPTIONAL = true;
@@ -55,10 +56,15 @@ public:
 
 	void SetEventLoopEnable( bool yes ) { startEventLoop_ = yes; }
 
-	void SetInterpreter( QSharedPointer< IJSInterpreter > i ) { jsInterpreter_ = i; }
+	void SetInterpreter( IJSInterpreter* i ) {
+        if( jsInterpreter_ != 0 && i == jsInterpreter_ ) return;
+        if( jsInterpreter_ != 0 ) jsInterpreter_->deleteLater();
+        jsInterpreter_ = i;
+        jsInterpreter_->setParent( this ); // app owns interpreter
+    }
     
 	void AddModuleToJS( Object* obj ) {
-		ctx_.AddJSStdObject( obj );
+		ctx_.AddJSStdObject( obj ); // context owns module
 	}
 
 	void AddContextToJS() { //adds context to the list of objects accessible from javascript
@@ -263,11 +269,11 @@ private:
 
 private:
 	CMDLine cmdLine_;
-	LocoQtApp app_;
-	QSharedPointer< IJSInterpreter > jsInterpreter_;
+	LocoQtApp& app_;
+	IJSInterpreter* jsInterpreter_;
 	Context ctx_;
 	QString defaultScript_;
-    QSharedPointer< ObjectInfo > info_;
+    QPointer< ObjectInfo > info_;
 	QString helpText_;
 	QVariant execResult_;
     NetworkAccessManager netAccess_;

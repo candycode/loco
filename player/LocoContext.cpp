@@ -12,55 +12,58 @@
 namespace loco {
 
 
-Context::Context( Context* parent ) : jsContext_( new JSContext( *this ) ), jsInterpreter_( 0 ),
-                     app_( 0 ), parent_( 0 ), globalContextJSName_( "Loco" ),
-                     jsInitGenerator_( 0 ), netAccessMgr_( 0 ),
+Context::Context( Context* parent ) : jsContext_( new JSContext( this ) ),
+                     jsInterpreter_( 0 ), jsInitGenerator_( 0 ),
+                     app_( 0 ), parent_( 0 ), globalContextJSName_( "Loco" ), netAccessMgr_( 0 ),
                      readNetworkTimeout_( 10000 ), maxNetRedirections_( 0 ),
-                     autoMapFilters_( false ), addParentObjs_( false )   {
+                     autoMapFilters_( false ), addParentObjs_( false ), appInfo_( 0 )  {
     connect( this, SIGNAL( onError( const QString& ) ), 
              this, SLOT( OnSelfError( const QString& ) ) );
-
+    jsContext_->setParent( this );
 } 
 
 
-Context::Context( QSharedPointer< IJSInterpreter > jsi, LocoQtApp* app, const QStringList& cmdLine,
+Context::Context( IJSInterpreter* jsi, LocoQtApp* app, const QStringList& cmdLine,
                   Context* parent)
-:   jsContext_( new JSContext( *this ) ),
+:   jsContext_( new JSContext( this ) ), jsInitGenerator_( 0 ),
     jsInterpreter_( jsi ), app_( app ), parent_( parent ), cmdLine_( cmdLine ),
-    globalContextJSName_( "Loco" ), jsInitGenerator_( 0 ), netAccessMgr_( 0 ),
+    globalContextJSName_( "Loco" ), netAccessMgr_( 0 ),
     readNetworkTimeout_( 10000 ), maxNetRedirections_( 0 ),
-    autoMapFilters_( false ), addParentObjs_( false )  {
+    autoMapFilters_( false ), addParentObjs_( false ), appInfo_( 0 )  {
     connect( this, SIGNAL( onError( const QString& ) ), 
              this, SLOT( OnSelfError( const QString& ) ) );
     Init( jsi, app, cmdLine, parent );
+    jsContext_->setParent( this );
 }
 
 
-void Context::AddContextToJS() { AddJSStdObject( jsContext_.data() ); }
+void Context::AddContextToJS() { AddJSStdObject( jsContext_ ); }
 
 void Context::ConnectErrCBack( Object* obj ) {
     if( obj == jsContext_ ) return;  
     connect( obj, SIGNAL( onError( const QString& ) ), this, SLOT( OnObjectError( const QString& ) ) );
 }
 
-void Context::Init( QSharedPointer< IJSInterpreter > jsi, LocoQtApp* app, const QStringList& cmdLine,
+void Context::Init( IJSInterpreter* jsi, LocoQtApp* app, const QStringList& cmdLine,
                     Context* parent ) {
 
     jsInterpreter_ = jsi,
     app_ = app;
     parent_ = parent,
     cmdLine_ = cmdLine;
-    jsInitGenerator_ = QSharedPointer< IJavaScriptInit >( new DefaultJSInit( this ) );
+    if( jsInitGenerator_ != 0 ) jsInitGenerator_->deleteLater();
+    jsInitGenerator_ =  new DefaultJSInit( this );
+    jsInitGenerator_->setParent( this );
+    
     
     connect( jsInterpreter_.data(), SIGNAL( JavaScriptContextCleared() ),
          this, SLOT( OnJSContextCleared() ) );
 
-    connect( this, SIGNAL( destroyed() ), this, SLOT( RemoveInstanceObjects() ) );
-    connect( this, SIGNAL( destroyed() ), this, SLOT( RemoveStdObjects() ) );
-    connect( this, SIGNAL( destroyed() ), this, SLOT( RemoveFilters() ) );
-    
+    // all objects are set as children of this context and will therefore be
+    // automatically deleted when the context is destroyed
+       
     //allow js context to receive errors from context and emit signals
-    connect( this, SIGNAL( onError( const QString&) ), jsContext_.data(), SLOT( ForwardError( const QString& ) ) );
+    connect( this, SIGNAL( onError( const QString&) ), jsContext_, SLOT( ForwardError( const QString& ) ) );
 
 	jsInterpreter_->Init();
 }
@@ -170,6 +173,6 @@ QByteArray Context::ReadFile( const QString& f ) {
     return b;
 }      
 
-void Context::SetJSContextName( const QString& n ) { jsContext_->SetName( n ); }
+void Context::SetJSContextName( const QString& n ) { jsContext_->setName( n ); }
 
 }

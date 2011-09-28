@@ -31,7 +31,8 @@ public:
 		connect( wf_, SIGNAL( urlChanged( const QUrl& ) ), this, SIGNAL( urlChanged( const QUrl& ) ) );
 	    connect( wf_, SIGNAL( titleChanged( const QString& ) ), this, SIGNAL( titleChanged( const QString& ) ) );
 		connect( webView_.page(), SIGNAL( selectionChanged() ), this, SIGNAL( selectionChanged() ) );
-		jsInterpreter_->SetWebPage( webView_.page() );   
+		jsInterpreter_->setParent( this );
+        jsInterpreter_->SetWebPage( webView_.page() );   
 		ctx_.Init( jsInterpreter_ );
 		ctx_.SetJSContextName( "wctx" ); //web window context
 		ctx_.AddContextToJS();
@@ -165,7 +166,7 @@ private:
 	Context ctx_; // this is where objects are created
     QWebFrame* wf_; 
     WebKitAttributeMap attrMap_;
-	QSharedPointer< WebKitJSCoreWrapper > jsInterpreter_;
+	WebKitJSCoreWrapper* jsInterpreter_;
 };
 
 }

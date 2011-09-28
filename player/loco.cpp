@@ -3,8 +3,6 @@
 #include <iostream>
 #include <stdexcept>
 
-#include <QSharedPointer>
-
 #include "LocoApp.h"
 
 #ifdef LOCO_CONSOLE
@@ -26,7 +24,10 @@
 #include "LocoGUI.h"
 #endif
 
+#include "LocoQtApp.h"
+
 #include <LocoAppConfig.h>
+
 
 
 using namespace loco;
@@ -36,7 +37,8 @@ int main(int argc, char *argv[])
 {
 	int ret = -1;
 	try {
-        QSharedPointer< loco::ObjectInfo > i( new loco::ObjectInfo );
+        LocoQtApp qtApp( argc, argv );
+        loco::ObjectInfo* i = new loco::ObjectInfo;
         QStringList sl = LOCO_APP_VERSION.split(".");
         i->SetName( LOCO_APP_NAME )
           .SetVersion( sl )
@@ -45,15 +47,15 @@ int main(int argc, char *argv[])
           .SetCopyright( LOCO_APP_COPYRIGHT )
           .SetVendor( LOCO_APP_VENDOR )
           .SetUrl( LOCO_APP_URL );
-		loco::App app( argc, argv, i );
+		loco::App app( qtApp, argc, argv, i );
 		//WARNING: interpreter MUST BE CREATED AFTER APP if not
 		//a ERROR IS REPORTED (QWidgets must be created after QApplication
 		//and in the case of the QtWebKit jscore interpreter the interpreter
 		//is inside a class that has a dependency on QWidget.
 #ifdef LOCO_WKIT
-		app.SetInterpreter( QSharedPointer< WebKitJSCore >( new WebKitJSCore ) );
+		app.SetInterpreter( new WebKitJSCore ); // app owns interpreter
 #else
-		app.SetInterpreter( QSharedPointer< DefaultJS >( new DefaultJS ) );
+		app.SetInterpreter( new DefaultJS );
 #endif
 
 #ifdef LOCO_CONSOLE

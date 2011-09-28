@@ -2,7 +2,7 @@
 //#SRCHEADER
 #include <QString>
 #include <QVariant>
-#include <QScopedPointer>
+#include <QPointer>
 #include <QtWebKit/QWebPage>
 #include <QtWebKit/QWebFrame>
 
@@ -13,10 +13,11 @@ namespace loco {
 class WebKitJSCore : public IJSInterpreter {
 	Q_OBJECT
 public:
-	WebKitJSCore()  {
-		wf_ = wp_.mainFrame();
+	WebKitJSCore() : wp_( new QWebPage )  {
+		wf_ = wp_->mainFrame();
 		connect( wf_, SIGNAL( javaScriptWindowObjectCleared() ),
 			     this, SIGNAL( JavaScriptContextCleared() ) );
+        wp_->setParent( this );
 	}
 	QVariant EvaluateJavaScript( const QString& code ) {
 		return wf_->evaluateJavaScript( code );
@@ -28,11 +29,14 @@ public:
 		wf_->addToJavaScriptWindowObject( name, obj, vo );
 	}
 	void Init() {}
+    ~WebKitJSCore() {
+        QObject* p = parent();
+    }
 signals:
 	void JavaScriptContextCleared(); // = javaScriptWindowObjectCleared()
 private:
-    QWebPage wp_;
-    QWebFrame* wf_;
+    QWebPage* wp_;
+    QPointer< QWebFrame > wf_;
 };
 
 }
