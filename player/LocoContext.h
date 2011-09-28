@@ -85,6 +85,12 @@ public:
 // called from C++
 public:
 
+    Object* JSObjToPointer( const QVariantMap& jsObj ) {
+        NamePointerMap::const_iterator i = nameToPointer_.find( jsObj[ "jsInstanceName" ].toString() );
+        if( i == nameToPointer_.end() ) return 0;
+        return i.value();
+    }
+
 	void SetAddObjectsFromParentContext( bool yes ) { addParentObjs_ = yes; }
 
 	void SetParentContext( Context* pc ) { parent_ = pc; }

@@ -9,6 +9,8 @@
 #include <QMenuBar>
 #include <QStatusBar>
 #include <QMap>
+#include <QPixmap>
+#include <QBitmap>
 #include <QtWebKit/QWebPage>
 #include <QtWebKit/QWebFrame>
 #include <QtWebKit/QWebSettings>
@@ -32,99 +34,117 @@ class WebMainWindow : public Object {
     Q_OBJECT
 public:
     WebMainWindow() : Object( 0, "LocoWebMainWindow", "Loco/GUI/Window" ),
-		webView_( new WebView() ), jsInterpreter_( new WebKitJSCoreWrapper )  {
-		wf_ = webView_->page()->mainFrame();
-	    mw_.setCentralWidget( webView_ ); // webView_ lifetime managed by mw_;
-		mapper_ = new QSignalMapper( this );
-		connect( mapper_, SIGNAL( mapped( QObject* ) ), this, SLOT( ActionTriggered( QObject* ) ) );
-		connect( webView_, SIGNAL( closing() ), this, SLOT( OnClose() ) );
-		connect( webView_, SIGNAL( keyPress( int, int, int ) ), this, SIGNAL( keyPress( int, int, int ) ) );
-		connect( webView_, SIGNAL( keyRelease( int, int, int ) ), this, SIGNAL( keyRelease( int, int, int ) ) );
-		connect( webView_->page(), SIGNAL( loadFinished( bool ) ), this, SIGNAL( loadFinished( bool ) ) );
-		connect( webView_->page(), SIGNAL( loadProgress( int ) ), this, SIGNAL( loadProgress( int ) ) );
-		connect( webView_->page(), SIGNAL( loadStarted() ), this, SIGNAL( loadStarted() ) );
-		connect( webView_->page(), SIGNAL( linkClicked( const QUrl& ) ), this, SIGNAL( linkClicked( const QUrl& ) ) );
-		connect( wf_, SIGNAL( urlChanged( const QUrl& ) ), this, SIGNAL( urlChanged( const QUrl& ) ) );
-		connect( wf_, SIGNAL( titleChanged( const QString& ) ), this, SIGNAL( titleChanged( const QString& ) ) );
-		connect( webView_->page(), SIGNAL( selectionChanged() ), this, SIGNAL( selectionChanged() ) );
-		connect( &ctx_, SIGNAL( JSContextCleared() ), this, SLOT( PreLoadCBack() ) );
+        webView_( new WebView() ), jsInterpreter_( new WebKitJSCoreWrapper )  {
+        wf_ = webView_->page()->mainFrame();
+        ws_ = webView_->page()->settings();
+        mw_.setCentralWidget( webView_ ); // webView_ lifetime managed by mw_;
+        mapper_ = new QSignalMapper( this );
+        connect( mapper_, SIGNAL( mapped( QObject* ) ), this, SLOT( ActionTriggered( QObject* ) ) );
+        connect( webView_, SIGNAL( closing() ), this, SLOT( OnClose() ) );
+        connect( webView_, SIGNAL( keyPress( int, int, int ) ), this, SIGNAL( keyPress( int, int, int ) ) );
+        connect( webView_, SIGNAL( keyRelease( int, int, int ) ), this, SIGNAL( keyRelease( int, int, int ) ) );
+        connect( webView_->page(), SIGNAL( loadFinished( bool ) ), this, SIGNAL( loadFinished( bool ) ) );
+        connect( webView_->page(), SIGNAL( loadProgress( int ) ), this, SIGNAL( loadProgress( int ) ) );
+        connect( webView_->page(), SIGNAL( loadStarted() ), this, SIGNAL( loadStarted() ) );
+        connect( webView_->page(), SIGNAL( linkClicked( const QUrl& ) ), this, SIGNAL( linkClicked( const QUrl& ) ) );
+        connect( wf_, SIGNAL( urlChanged( const QUrl& ) ), this, SIGNAL( urlChanged( const QUrl& ) ) );
+        connect( wf_, SIGNAL( titleChanged( const QString& ) ), this, SIGNAL( titleChanged( const QString& ) ) );
+        connect( webView_->page(), SIGNAL( selectionChanged() ), this, SIGNAL( selectionChanged() ) );
+        connect( &ctx_, SIGNAL( JSContextCleared() ), this, SLOT( PreLoadCBack() ) );
 
         jsInterpreter_->setParent( this );
-		jsInterpreter_->SetWebPage( webView_->page() );   
-		ctx_.Init( jsInterpreter_ );
-		ctx_.SetJSContextName( "wctx" ); //web window context
-		ctx_.AddContextToJS();
-		
+        jsInterpreter_->SetWebPage( webView_->page() );   
+        ctx_.Init( jsInterpreter_ );
+        ctx_.SetJSContextName( "wctx" ); //web window context
+        ctx_.AddContextToJS();
+        
     }
     void AddSelfToJSContext() {
-	    ctx_.AddJSStdObject( this );
+        ctx_.AddJSStdObject( this );
     }
     
     void SetNetworkAccessManager( QNetworkAccessManager* nam ) {
-	    webView_->page()->setNetworkAccessManager( nam );
+        webView_->page()->setNetworkAccessManager( nam );
     }
 
-	void SetContext( Context* ctx ) {
-		Object::SetContext( ctx );
-		ctx_.SetParentContext( GetContext() );
-	}
+    void SetContext( Context* ctx ) {
+        Object::SetContext( ctx );
+        ctx_.SetParentContext( GetContext() );
+    }
+
+    QMainWindow* GetMainWindow() { return &mw_; }
 
 private slots:
 
-	void PreLoadCBack() { ctx_.Eval( preLoadCBack_ ); }
-	void OnClose() { emit closing(); }
+    void PreLoadCBack() { ctx_.Eval( preLoadCBack_ ); }
+    void OnClose() { emit closing(); }
 
 public slots:
 
-	void setPreLoadCBack( const QString& cback ) { preLoadCBack_ = cback; }
+    void setWindowOpacity( double op ) { mw_.setWindowOpacity( op ); }
+    double windowOpacity() const { return mw_.windowOpacity(); }
+    void setMask( const QPixmap& p ) {
+        mw_.setMask( p.mask() );
+    }
+    void setMask( const QString& ppath ) {
+        QPixmap p( ppath );
+        mw_.setMask( p.mask() );
+    }  
+    void setPreLoadCBack( const QString& cback ) { preLoadCBack_ = cback; }
 
     void setStatusBarText( const QString& text, int timeout = 0 ) {
-    	mw_.statusBar()->showMessage( text, timeout );
+        mw_.statusBar()->showMessage( text, timeout );
     }
     void setMenu( const QVariantMap& jsonTree ) { SetMenu( 0, jsonTree, "" ); }
     void setMenuItemProperty( const QString& path, const QString& prop, const QString& value ) {
-    	MenuMap::iterator mi = menuItems_.find( path );
-    	if( mi != menuItems_.end() ) {
-    		SetMenuProperty( mi.value(), prop, value );
-    	} else {
-    		ActionMap::iterator ai = actions_.find( path );
-    		if( ai != actions_.end() ) {
-    			SetActionProperty( ai.value(), prop, value );
-    		}
-    		else error( "Menu item " + path + " not found" );
-    	}
+        MenuMap::iterator mi = menuItems_.find( path );
+        if( mi != menuItems_.end() ) {
+            SetMenuProperty( mi.value(), prop, value );
+        } else {
+            ActionMap::iterator ai = actions_.find( path );
+            if( ai != actions_.end() ) {
+                SetActionProperty( ai.value(), prop, value );
+            }
+            else error( "Menu item " + path + " not found" );
+        }
     }
     QString getMenuItemProperty( const QString& path, const QString& prop ) const {
-    	MenuMap::const_iterator mi = menuItems_.find( path );
-    	if( mi != menuItems_.end() ) {
-    	    return GetMenuProperty( mi.value(), prop );
-    	} else {
-    	    ActionMap::const_iterator ai = actions_.find( path );
-    	    if( ai != actions_.end() ) {
-    	        return GetActionProperty( ai.value(), prop );
-    	    }
-    	    else {
-    	    	error( "Menu item " + path + " not found" );
-    	    	return "";
-    	    }
-    	}
+        MenuMap::const_iterator mi = menuItems_.find( path );
+        if( mi != menuItems_.end() ) {
+            return GetMenuProperty( mi.value(), prop );
+        } else {
+            ActionMap::const_iterator ai = actions_.find( path );
+            if( ai != actions_.end() ) {
+                return GetActionProperty( ai.value(), prop );
+            }
+            else {
+                error( "Menu item " + path + " not found" );
+                return "";
+            }
+        }
     }
 public slots:
+    void setWindowIcon( const QPixmap& p ) { webView_->setWindowIcon( p ); }
+    void setWindowIcon( const QString& f ) { webView_->setWindowIcon( QIcon( f ) ); }  
+    void move( int x, int y ) { mw_.move( x, y ); }
+    void enableAction( QWebPage::WebAction action, bool yes ) { webView_->pageAction( action )->setEnabled( yes ); }
+    bool isActionEnabled( QWebPage::WebAction action ) const { return webView_->pageAction( action )->isEnabled(); }
+    void trriggerAction( QWebPage::WebAction action, bool checked = false ) { webView_->triggerPageAction( action, checked ); }
     void setName( const QString& n ) { Object::setName( n ); }
-	void addSelfToJSContext() { AddSelfToJSContext(); }
-	void setMenuBarVisibility( bool on ) { if( mw_.menuBar() ) mw_.menuBar()->setVisible( on ); }
-	void setStatusBarVisibility( bool on ) { if( mw_.statusBar() ) mw_.statusBar()->setVisible( on ); }
-	QString frameName() const { return wf_->frameName(); }
-	void setEnableContextMenu( bool yes ) { webView_->EatContextMenuEvent( !yes ); }
-	bool getEnableContextMenu() const { return !webView_->EatingContextMenuEvent(); }
-	void setForwardKeyEvents( bool yes ) { webView_->EatKeyEvents( !yes ); }
-	bool getForwardKeyEvents( bool yes ) const { return !webView_->EatingKeyEvents(); }
+    void addSelfToJSContext() { AddSelfToJSContext(); }
+    void setMenuBarVisibility( bool on ) { if( mw_.menuBar() ) mw_.menuBar()->setVisible( on ); }
+    void setStatusBarVisibility( bool on ) { if( mw_.statusBar() ) mw_.statusBar()->setVisible( on ); }
+    QString frameName() const { return wf_->frameName(); }
+    void setEnableContextMenu( bool yes ) { webView_->EatContextMenuEvent( !yes ); }
+    bool getEnableContextMenu() const { return !webView_->EatingContextMenuEvent(); }
+    void setForwardKeyEvents( bool yes ) { webView_->EatKeyEvents( !yes ); }
+    bool getForwardKeyEvents( bool yes ) const { return !webView_->EatingKeyEvents(); }
     void setWindowTitle( const QString& t ) { mw_.setWindowTitle( t ); }
     QString title() const { return mw_.windowTitle(); }
     void showNormal() { mw_.showNormal(); }
     void showFullScreen() { mw_.showFullScreen(); }
     void show() {  mw_.show(); }
-	//connect from parent context Context::onError() -> WebWindow::onParentError()
+    //connect from parent context Context::onError() -> WebWindow::onParentError()
     void onParentError( const QString& err ) {
         ctx_.Eval( "throw " + err + ";\n" );
     }  
@@ -142,108 +162,113 @@ public slots:
     void setContentEditable( bool yes ) { webView_->page()->setContentEditable( yes ); }
     qint64 totalBytes() const { return webView_->page()->totalBytes(); }
     void setAttribute( const QString& attr, bool on ) {
-       	webView_->page()->settings()->setAttribute( attrMap_[ attr ], on );
+           webView_->page()->settings()->setAttribute( attrMap_[ attr ], on );
     }
     bool testAttribute( const QString& attr) const {
         return webView_->page()->settings()->testAttribute( attrMap_[ attr ] );
     }
     void setAttributes( const QVariantMap& attr ) {
-      	QWebSettings& s = *( webView_->page()->settings() );
-       	for( QVariantMap::const_iterator i = attr.begin();
+           QWebSettings& s = *( webView_->page()->settings() );
+           for( QVariantMap::const_iterator i = attr.begin();
                 i != attr.end(); ++i ) {
                s.setAttribute( attrMap_[ i.key() ], i.value().toBool() );
-       	}
+           }
     }
     QVariant getAttributes() const {
-       	const QWebSettings& s = *( webView_->page()->settings() );
-       	AttributeTextMap::const_iterator i = attrMap_.GetAttributeToTextMap().begin();
-       	const AttributeTextMap::const_iterator e = attrMap_.GetAttributeToTextMap().end();
-       	QVariantMap m;
-       	for( ; i != e; ++i ) {
-       		m[ i.value() ] = s.testAttribute( i.key() );
-       	}
-       	return m;
+           const QWebSettings& s = *( webView_->page()->settings() );
+           AttributeTextMap::const_iterator i = attrMap_.GetAttributeToTextMap().begin();
+           const AttributeTextMap::const_iterator e = attrMap_.GetAttributeToTextMap().end();
+           QVariantMap m;
+           for( ; i != e; ++i ) {
+               m[ i.value() ] = s.testAttribute( i.key() );
+           }
+           return m;
     }
-    //void setAttribute( const QString&, bool );
-    //bool testAtribute( const QString& ) const;
-    //void setLocalStoragePath( const QString& sp );
-    //QString localStoragePath() const;
-    //void enablePersistentStorage( const QString& );
-    //void setMaximumPagesInCache( int );
-    //void setOfflineStoragePath( const QString& );
-    //void setOfflineStorageQuota( quint64 );
-    //quint64 offlineStorageQuota() const;
-    //QString offlineStoragePath() const;
-    //void setOfflineWebApplicationCachePath( const QString& );
-    //setOfflineWebApplicationCachePath( const QString& );
-    //void setOfflineWebApplicationCacheQuota( qint64 );
+    void setLocalStoragePath( const QString& sp ) { ws_->setLocalStoragePath( sp ); }     
+    QString localStoragePath() const { return ws_->localStoragePath(); }
+    void setUserCSS( const QString& url ) { ws_->setUserStyleSheetUrl( QUrl( url ) ); }
+    QString userCSS() const { return ws_->userStyleSheetUrl().toString(); }
+    void enablePersistentStorage( const QString& p = QString() ) { ws_->enablePersistentStorage( p ); }
+    void setMaxPagesInCache( int m ) { ws_->setMaximumPagesInCache( m ); }
+    void setOfflineStoragePath( const QString& p ) { ws_->setOfflineStoragePath( p ); }
+    void setOfflineStorageQuota( quint64 q ) { ws_->setOfflineStorageDefaultQuota( q ); }
+    quint64 offlineStorageQuota() const { return ws_->offlineStorageDefaultQuota(); }
+    QString offlineStoragePath() const { return ws_->offlineStoragePath(); }
+    void setOfflineWebApplicationCachePath( const QString& cp ) { ws_->setOfflineWebApplicationCachePath( cp ); }
+    void setOfflineWebApplicationCacheQuota( qint64 q ) { ws_->setOfflineWebApplicationCacheQuota( q ); }    
     QVariant eval( const QString& code, const QStringList& filters = QStringList() ) {
         return ctx_.Eval( code, filters );
     }  
     void addParentObjectsToJS() { 
-		ctx_. SetAddObjectsFromParentContext( true );
-	}
-	QString toHtml() const { return wf_->toHtml(); }
-	
-	QString selectedText() const { return webView_->page()->selectedText(); }
-
+        ctx_. SetAddObjectsFromParentContext( true );
+    }
+    QString toHtml() const { return wf_->toHtml(); }
+    QString selectedText() const { return webView_->page()->selectedText(); }
     void configScrolling( const QVariantMap& sc ) {
-    	const QString& h = sc[ "h" ].toString();
-    	const QString& v = sc[ "v" ].toString();
-    	Qt::ScrollBarPolicy sbp;
-    	if( h == "on" ) sbp = Qt::ScrollBarAlwaysOn;
-    	else if( h == "off" ) sbp = Qt::ScrollBarAlwaysOff;
-    	else sbp = Qt::ScrollBarAsNeeded;
-    	wf_->setScrollBarPolicy( Qt::Horizontal, sbp );
-    	if( v == "on" ) sbp = Qt::ScrollBarAlwaysOn;
-    	else if( v == "off" ) sbp = Qt::ScrollBarAlwaysOff;
-    	else sbp = Qt::ScrollBarAsNeeded;
-    	wf_->setScrollBarPolicy( Qt::Vertical, sbp );
+        const QString& h = sc[ "h" ].toString();
+        const QString& v = sc[ "v" ].toString();
+        Qt::ScrollBarPolicy sbp;
+        if( h == "on" ) sbp = Qt::ScrollBarAlwaysOn;
+        else if( h == "off" ) sbp = Qt::ScrollBarAlwaysOff;
+        else sbp = Qt::ScrollBarAsNeeded;
+        wf_->setScrollBarPolicy( Qt::Horizontal, sbp );
+        if( v == "on" ) sbp = Qt::ScrollBarAlwaysOn;
+        else if( v == "off" ) sbp = Qt::ScrollBarAlwaysOff;
+        else sbp = Qt::ScrollBarAsNeeded;
+        wf_->setScrollBarPolicy( Qt::Vertical, sbp );
     }
-
     QVariantMap scrollingConfig() {
-    	QVariantMap sc;
-    	Qt::ScrollBarPolicy sbp = wf_->scrollBarPolicy( Qt::Vertical );
-    	if( sbp == Qt::ScrollBarAlwaysOn ) sc[ "v" ] = "on";
-    	else if( sbp == Qt::ScrollBarAlwaysOff ) sc[ "v" ] = "off";
-    	else sc[ "v" ] = "as needed";
-    	sbp = wf_->scrollBarPolicy( Qt::Horizontal );
-    	if( sbp == Qt::ScrollBarAlwaysOn ) sc[ "h" ] = "on";
-    	else if( sbp == Qt::ScrollBarAlwaysOff ) sc[ "h" ] = "off";
-    	else sc[ "h" ] = "as needed";
-    	return sc;
+        QVariantMap sc;
+        Qt::ScrollBarPolicy sbp = wf_->scrollBarPolicy( Qt::Vertical );
+        if( sbp == Qt::ScrollBarAlwaysOn ) sc[ "v" ] = "on";
+        else if( sbp == Qt::ScrollBarAlwaysOff ) sc[ "v" ] = "off";
+        else sc[ "v" ] = "as needed";
+        sbp = wf_->scrollBarPolicy( Qt::Horizontal );
+        if( sbp == Qt::ScrollBarAlwaysOn ) sc[ "h" ] = "on";
+        else if( sbp == Qt::ScrollBarAlwaysOff ) sc[ "h" ] = "off";
+        else sc[ "h" ] = "as needed";
+        return sc;
     }
-
     void scrollToAnchor( const QString& a ) { wf_->scrollToAnchor( a ); }
-
 
 private:
    void SetMenu( QMenu* parent, const QVariantMap& jsonTree, QString path ) {
-  	   for( QVariantMap::const_iterator i = jsonTree.begin();
-  			i != jsonTree.end(); ++i ) {
-  		   const bool leaf = i.value().type() == QVariant::Map &&
-  				             (i.value().toMap().begin()).value().type() == QVariant::String;
-  		   if( leaf ) {
-  			   QAction* a = new QAction( i.key(), &mw_ );
-			   mapper_->setMapping( a, a );
-  		       connect( a, SIGNAL( triggered() ), mapper_, SLOT( map() ) );
-  			   parent->addAction( a );
-  			   QString cback = i.value().toMap()[ "cback" ].toString();
-  		       if( !cback.isEmpty() ) cbacks_[ a ] = cback;
-  		       actions_[ path ] = a;
-  		       actionPath_[ a ] = path;
-  		   } else {
-  			   QMenu* m = 0;
-  		       if( parent != 0 ) {
-  			       m = parent->addMenu( i.key() );
-  		       } else {
-  		    	   m = mw_.menuBar()->addMenu( i.key() );
-  		       }
-  		       const QString menuPath = path + "/" + i.key();
-  		       menuItems_[ menuPath ] = m;
-  		       SetMenu( m, i.value().toMap(), menuPath );
-  		   }
-  	   }
+         for( QVariantMap::const_iterator i = jsonTree.begin();
+              i != jsonTree.end(); ++i ) {
+             const bool leaf = i.value().type() == QVariant::Map &&
+                               (i.value().toMap().begin()).value().type() == QVariant::String;
+             if( leaf ) {
+                 QAction* a = new QAction( i.key(), &mw_ );
+                 mapper_->setMapping( a, a );
+                 connect( a, SIGNAL( triggered() ), mapper_, SLOT( map() ) );
+                 parent->addAction( a );
+                 QVariantMap m = i.value().toMap();
+                 a->setToolTip( m[ "tooltip" ].toString() );
+                 a->setStatusTip( m[ "status" ].toString() );
+                 a->setIcon( QIcon( m[ "icon" ].toString() ) );
+                 a->setIconText( m[ "icon_text" ].toString() ); 
+                 QString cback = m[ "cback" ].toString();
+                 if( !cback.isEmpty() ) cbacks_[ a ] = cback;
+                 actions_[ path ] = a;
+                 actionPath_[ a ] = path;
+             } else {
+                 QMenu* m = 0;
+                 if( parent != 0 ) {
+                   const QString entry = i.key();
+                   if( !entry.startsWith( "__" ) && !entry.startsWith( "--" ) ) {   
+                         m = parent->addMenu( i.key() );
+                   } else {
+                       parent->addSeparator();
+                       continue;
+                   }                   
+                 } else {
+                     m = mw_.menuBar()->addMenu( i.key() );
+                 }
+                 const QString menuPath = path + "/" + i.key();
+                 menuItems_[ menuPath ] = m;
+                 SetMenu( m, i.value().toMap(), menuPath );
+             }
+         }
    }
    void SetMenuProperty( QMenu*, const QString&, const QString& ) {}
    void SetActionProperty( QAction*, const QString&, const QString& ) {}
@@ -255,8 +280,8 @@ private slots:
         QAction* a = qobject_cast< QAction* >( action );
         if( !a ) error( "Type mismatch" );
         else {
-        	CBackMap::const_iterator i = cbacks_.find( a );
-			if( i != cbacks_.end() ) ctx_.Eval( cbacks_[ a ] );
+            CBackMap::const_iterator i = cbacks_.find( a );
+            if( i != cbacks_.end() ) ctx_.Eval( cbacks_[ a ] );
             else emit actionTriggered( actionPath_[ a ] );
         }
     }
@@ -269,13 +294,14 @@ signals:
     void selectionChanged();
     void titleChanged( const QString& );
     void urlChanged( const QUrl& );
-	void closing();
-	void keyPress( int key, int modifiers, int count );
-	void keyRelease( int key, int modifiers, int count );
+    void closing();
+    void keyPress( int key, int modifiers, int count );
+    void keyRelease( int key, int modifiers, int count );
 private:
    QPointer< WebView > webView_; //owned by main window
    Context ctx_; // this is where objects are created
    QPointer< QWebFrame > wf_; //owned by webview
+   QWebSettings* ws_; //owned by web frame; not a QObject cannot wrap into a QPointer
    QMainWindow mw_;
    MenuMap menuItems_;
    ActionMap actions_;

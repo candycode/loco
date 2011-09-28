@@ -28,22 +28,30 @@ try {
       f += "</li></ul>";
       return f;
     };
-    var w = Loco.gui.create('WebMainWindow');
+   
+    //w.setType( ["drawer"] );  
     var html = "<html><head></head><body style='font-family:\"Courier new\"'><ol>";
     var entries = Wrapper.log;
     for( var e = 0; e < Wrapper.log.length; e += 1 ) {
       html += "<li>" + format( entries[ e ], e ) + "</li>";
     }
     html += "</ol></body></html>";
-    w.setHtml( html );
-    w.show();
+    var sw = Loco.gui.create( "WebWindow" );
+    //sw.setParentWindow( Loco.webWindow );
+    //sw.setMask( "../res/mask.png" ); 
+    if( Loco.ctx.os() !== "MAC")  
+      sw.setWindowType( ["tool"] );
+    else
+      sw.setWindowType( ["drawer"] );  
+    sw.setHtml( html );
+    sw.show();
   }
 
 // main window menu
   var menu = {
     "Log" : {
       "Show trace": {
-          "cback"  : showTrace.toString() + "showTrace();",
+          "cback"  : showTrace.toString() + "\nshowTrace();",
           "tooltip": "Show trace",
           "status" : "Show call trace",
           "icon"   : ""
@@ -69,6 +77,9 @@ try {
   ww.setName( "webWindow" ); 
   ww.addParentObjectsToJS(); // add objects in this context to web page context
   ww.addSelfToJSContext();   // add web page to its own context
+ 
+  //ww.setMask( "../res/mask.png" ); 
+  //ww.setWindowOpacity( 0.3 );
 
 // code to add tracing wrappers to every global javascript function 
   var jsFilter = 'var Wrapper = { wrap: function(that, v) { \
@@ -100,7 +111,7 @@ try {
   ww.keyPress.connect( function( k, m, c ) { 
                          if( k === LocoKey.F11 ) ww.showNormal();
                        } );
-  ww.setPreLoadCBack( jsFilter+wrap );
+  ww.setPreLoadCBack( jsFilter + wrap );
   ww.loadFinished.connect( function( ok ) { 
     if( ok ) ww.eval("Loco.webWindow.setStatusBarText('DONE');");
     else Loco.gui.errorDialog( "Error loading page" );

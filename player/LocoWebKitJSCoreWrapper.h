@@ -29,7 +29,7 @@ public:
 	void SetWebPage( QWebPage* wp ) { 
 		wp_ = wp;
 		wf_ = wp_->mainFrame();
-		connect( wf_, SIGNAL( javaScriptWindowObjectCleared() ),
+		connect( wf_,  SIGNAL( javaScriptWindowObjectCleared() ),
 			     this, SIGNAL( JavaScriptContextCleared() ) );
 	}
 signals:
