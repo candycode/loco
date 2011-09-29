@@ -691,12 +691,14 @@ public slots: // js interface
     }
     QString qtVersion() const { return qVersion(); }
     QString os() const {
-        #if defined( Q_OS_UNIX )
-            return "UNIX";
+        #if defined( Q_OS_MAC )
+            return "MAC";
         #elif defined( Q_OS_WIN )
             return "WINDOWS";
-        #elif defined( Q_OS_MAC )
-            return "MAC";
+        #elif defined( Q_OS_LINUX )
+            return "LINUX"; 
+        #elif defined( Q_OS_UNIX )
+            return "UNIX";
         #else
             return "";
         #endif                 
