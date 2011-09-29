@@ -22,6 +22,9 @@
 
 #include <iostream>
 
+
+class QWebPluginFactory;
+
 namespace loco {
 
 typedef QMap< QString, QMenu* > MenuMap;
@@ -70,6 +73,10 @@ public:
     }
 
     WebView* GetWebView() const { return webView_; }
+
+    void SetWebPluginFactory( QWebPluginFactory* wpf ) { webView_->SetWebPluginFactory( wpf ); }
+
+    QWebPluginFactory* GetWebPluginFactory() const { return webView_->GetWebPluginFactory(); }
 
 private slots:
 

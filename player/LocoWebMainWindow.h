@@ -24,6 +24,8 @@
 #include "LocoWebKitAttributeMap.h"
 #include "LocoWebKitJSCoreWrapper.h"
 
+class QWebPluginFactory;
+
 namespace loco {
 
 typedef QMap< QString, QMenu* > MenuMap;
@@ -75,6 +77,10 @@ public:
     }
 
     QMainWindow* GetMainWindow() { return &mw_; }
+
+    void SetWebPluginFactory( QWebPluginFactory* wpf ) { webView_->SetWebPluginFactory( wpf ); }
+
+    QWebPluginFactory* GetWebPluginFactory() const { return webView_->GetWebPluginFactory(); }
 
 private slots:
 

@@ -43,7 +43,6 @@ namespace loco {
     	LOCO_MAPATTR( TiledBackingStoreEnabled );
     	LOCO_MAPATTR( FrameFlatteningEnabled );
     	LOCO_MAPATTR( SiteSpecificQuirksEnabled );
-    	//m[ "AutoLoadImages" ] = QWebSettings::AutoLoadImages;
 
     }
 #undef LOCO_MAPATTR

@@ -105,7 +105,9 @@ try {
 
  // setup main window 
   ww.setMenu( menu );
-  ww.setAttributes( {DeveloperExtrasEnabled: true } );
+  ww.setAttributes( {DeveloperExtrasEnabled: true,
+                     LocalContentCanAccessFileUrls: true,
+                     LocalContentCanAccessRemoteUrls: true } );
   ww.setEnableContextMenu( true );
   ww.loadProgress.connect( function( i ) { ww.setStatusBarText( i + "%" ); } );
   ww.keyPress.connect( function( k, m, c ) { 

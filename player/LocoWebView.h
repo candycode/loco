@@ -3,6 +3,9 @@
 
 #include <QtWebKit/QWebView>
 #include <QKeyEvent>
+#include <QMouseEvent>
+
+class QWebPluginFactory;
 
 class WebView : public QWebView {
 	Q_OBJECT
@@ -14,6 +17,16 @@ public:
 	bool EatingKeyEvents() const { return eatKeyEvents_; }
     void EatMouseEvents( bool yes ) { eatMouseEvents_ = yes; }
     bool EatingMouseEvents() const { return eatMouseEvents_; }
+    void SetWebPluginFactory( QWebPluginFactory* pf ) {
+        /*QWebPluginFactory* wpf = page()->pluginFactory(); // is plugin factory owned by Page() ?
+        if( wpf != 0 && pf == wpf ) return;
+        if( wpf != 0 ) {
+            wpf_->setParent( 0 );
+            wpf_->deleteLater();
+        }*/
+        page()->setPluginFactory( pf );       
+    }
+    QWebPluginFactory* GetWebPluginFactory() const { return page()->pluginFactory(); } 
 protected:
 	void closeEvent( QCloseEvent* e ) {
 		emit closing();

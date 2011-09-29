@@ -82,8 +82,9 @@ if( "${LOCO_SYSTEM}" STREQUAL "ON" )
 endif()
 if( "${LOCO_WKIT}" STREQUAL "ON" )
   set( LOCO_WKIT_MOC_HEADERS LocoWebMainWindow.h LocoWebWindow.h 
-       LocoWebKitJSCore.h LocoWebKitJSCoreWrapper.h LocoWebView.h )
-  set( LOCO_WKIT_HEADERS LocoWebKitAttributeMap.h )
+       LocoWebKitJSCore.h LocoWebKitJSCoreWrapper.h LocoWebView.h
+       LocoDynamicWebPluginFactory.h )
+  set( LOCO_WKIT_HEADERS LocoWebKitAttributeMap.h LocoStaticWebPluginFactory.h )
   set( LOCO_WKIT_SRCS LocoWebKitAttributeMap.cpp )
 endif()
 if( "${LOCO_GUI}" STREQUAL "ON" )

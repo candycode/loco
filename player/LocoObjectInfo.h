@@ -33,6 +33,7 @@ class ObjectInfo : public QObject {
 	Q_PROPERTY( QString docUrl READ docUrl )
 	Q_PROPERTY( QString updateUrl READ updateUrl )
 	Q_PROPERTY( QVariantMap vendorData READ vendorData )
+    Q_PROPERTY( QString email READ email )
 public:
     QVariantMap ToVariantMap() const {
         const QMetaObject* mo = this->metaObject();
@@ -63,6 +64,7 @@ public:
 	const QString& docUrl() const { return docUrl_; }
 	const QString& updateUrl() const { return updateUrl_; }
     const QVariantMap& vendorData() const { return vendorData_; }
+    const QString email() const { return email_; }
 public:
 	ObjectInfo& SetName( const QString& n ) { name_ = n; return *this; }
 	ObjectInfo& SetResourceAccess( const QStringList& r ) { resourceAccess_ = r; return *this; }
@@ -111,6 +113,7 @@ private:
 	QString docUrl_;
 	QString updateUrl_;
 	QVariantMap vendorData_;
+    QString email_; 
 
 };
 

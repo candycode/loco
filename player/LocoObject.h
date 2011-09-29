@@ -42,6 +42,7 @@ public:
         setObjectName( jsInstanceName_ ); //choose unique name for Qt object instance
         if( info_ != 0 ) info_->setParent( this );                   
     }
+    virtual void Init( const QVariantMap& ) {}
 	const QString& GetModule() const { return module_; }  
     void SetPluginLoader( QPluginLoader* pl ) { pluginLoader_ = pl; }
 	QPluginLoader* GetPluginLoader() const { return pluginLoader_; }
