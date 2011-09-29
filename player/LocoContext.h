@@ -438,6 +438,12 @@ public:
     }
 
 private:
+/*
+    void AddToIncludePath( const QString& p ) { includePath_ << p; }
+    
+    void SetIncludePath( const QStringList& sl ) { includePath_ = sl; }
+
+    const QStringList& GetIncludePath() const { return includePath_; }*/
 
     QVariant LoadObject( const QString& uri,  //used as a regular file/resource path for now
                          bool persistent = false );
@@ -579,7 +585,8 @@ private:
 private:
     int readNetworkTimeout_;
     int maxNetRedirections_;
-    QPointer< ObjectInfo > appInfo_;        
+    QPointer< ObjectInfo > appInfo_;
+    QStringList includePath_;
 };
 
 //==============================================================================
@@ -594,80 +601,63 @@ public:
 
 // invocable from javascript
 public slots: // js interface
-    
-	void exit( int code ) { ctx_->Exit( code ); }
+   /* 
+    void setIncludePath( const QString& ip ) { setIncludePath( ip.split( ":" ) ); }
+    void setIncludePath( const QStringList& ip ) { ctx_->SetIncludePath( ip ); }
+    void addToIncludePath( const QString& p ) { ctx_->AddToIncludePath( p ); }
+    QStringList includePath() const { return ctx_->GetIncludePath(); }
+    */
 
+	void exit( int code ) { ctx_->Exit( code ); }
 	QVariant include( const QString& path, const QStringList& filters = QStringList() ) {
         return ctx_->Include( path, filters );
     }
-
     QVariant insert( const QString& path, const QStringList& filters = QStringList() ) {
         return ctx_->Insert( path, filters );
-    }
-    
+    }  
 	QString read( const QString& path, const QStringList& filters = QStringList() ) {
 	    return ctx_->Read( path, filters );
-    }
-    
+    }    
 	QStringList pluginPath() const { return QCoreApplication::libraryPaths(); }
-
 	void setPluginPath( const QStringList& paths ) { QCoreApplication::setLibraryPaths( paths ); }
-
 	QString appFilePath() const { return QCoreApplication::applicationFilePath(); }
-
 	QString appDirPath() const { return QCoreApplication::applicationDirPath(); }
-
 	QString appName() const { return QCoreApplication::applicationName(); }
-
 	QString appVersion() const { return QCoreApplication::applicationVersion(); }
-
 	QString appVendor() const { return QCoreApplication::organizationName(); }
-
 	QString currentDir() const { return QDir::current().absolutePath(); }
-
 	QString homeDir() const { return QDir::home().absolutePath(); }
-
     QVariantMap appInfo() const { 
         return ctx_->GetAppInfo() ? ctx_->GetAppInfo()->ToVariantMap()
                                  : QVariantMap();
     }
-
 	void quit() { ctx_->Quit(); }
-
     // IMPORTANT: this sets the paths associated with a specific resource tag
     // e.g. "images" "$home/images"
     // allows to specify filenames as "images:mypicture.jpg" which gets
     // translated to "$home/images/mypicture.jpg"
     void setSearchPaths( const QString& prefix, const QStringList& paths ) {
         QDir::setSearchPaths( prefix, paths );
-    }
-     
+    }   
     QStringList searchPaths( const QString& prefix ) { return QDir::searchPaths( prefix ); }
-
     QVariant eval( QString code, const QStringList& filters = QStringList() ) { 
         return ctx_->Eval( code, filters );
     }
-
     QVariant loadObject( const QString& uri,  //used as a regular file path for now
-                         bool persistent = false ) { return ctx_->LoadObject( uri, persistent ); }
-    
+                         bool persistent = false ) { return ctx_->LoadObject( uri, persistent ); }    
     QString filter( QString code, const QStringList& filterIds = QStringList() ) {
         return ctx_->ApplyFilter( code, filterIds );
     }
 #ifdef LOCO_GUI
     int eventLoop() { return ctx_->Exec(); }
 #endif
-    
     QVariant evalFile( const QString& uri, const QStringList& filterIds = QStringList() ) {
 		return ctx_->Include( uri, filterIds );
 	}
-
     void loadFilter( const QString& id, const QString& uri ) {
         ctx_->LoadFilter( id, uri );
     }
-
     bool hasFilter( const QString& id ) { return ctx_->HasFilter( id ); }
-
     void addScriptFilter( const QString& id,
                           const QString& jfun,
 						  const QString& jcode = "", 
@@ -675,7 +665,6 @@ public slots: // js interface
                           const QString& codePlaceHolder = "" ) {
         ctx_->AddScriptFilter( id, jfun, jcode, jerrfun, codePlaceHolder );
     }
-
 	void loadScriptFilter( const QString& id,
 		                   const QString& uri,
                            const QString& jfun,
@@ -683,9 +672,7 @@ public slots: // js interface
                            const QString& codePlaceHolder = "" ) {
         ctx_->LoadScriptFilter( id, uri, jfun, jerrfun, codePlaceHolder );
     }
-
     QStringList cmdLine() const { return ctx_->CmdLine(); }
-    
     QString env( const QString& envVarName ) const {
 #if !defined( Q_WS_WIN )
         return ::getenv( envVarName.toAscii().constData() );
@@ -698,26 +685,22 @@ public slots: // js interface
         free( p );
         return ret;
 #endif
-    }
-    
+    }  
     void registerErrCBack( const QString& code, const QStringList& filterIds = QStringList() ) { 
         ctx_->RegisterJSErrCBack( code, filterIds );
     }
-
     QString qtVersion() const { return qVersion(); }
-
     QString os() const {
         #if defined( Q_OS_UNIX )
             return "UNIX";
         #elif defined( Q_OS_WIN )
             return "WINDOWS";
         #elif defined( Q_OS_MAC )
-            return "MAC"
+            return "MAC";
         #else
             return "";
         #endif                 
     }
-
     QVariantMap env() const {
         QProcessEnvironment pe = QProcessEnvironment::systemEnvironment();
         QStringList e = pe.toStringList();
@@ -739,8 +722,5 @@ private:
     Context* ctx_;
 
 };
-
-
-
 
 }

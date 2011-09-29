@@ -10,6 +10,7 @@
 #include <QtWebKit/QWebPage>
 #include <QtWebKit/QWebFrame>
 #include <QtWebKit/QWebSettings>
+#include <QCursor>
 
 
 #include "LocoObject.h"
@@ -81,6 +82,36 @@ public slots:
 
 public slots:
 
+    void setMouseCursor( const QString& shape ) {
+        if( shape == "arrow" ) webView_->setCursor( Qt::ArrowCursor );
+        else if( shape == "upArrow" ) webView_->setCursor( Qt::UpArrowCursor );
+        else if( shape == "cross" )  webView_->setCursor( Qt::CrossCursor );
+        else if( shape == "wait" ) webView_->setCursor( Qt::WaitCursor );
+        else if( shape == "ibeam" ) webView_->setCursor( Qt::IBeamCursor );
+        else if( shape == "sizeVert" ) webView_->setCursor( Qt::SizeVerCursor );
+        else if( shape == "sizeHor" ) webView_->setCursor( Qt::SizeHorCursor );
+        else if( shape == "wait" ) webView_->setCursor( Qt::WaitCursor );
+        else if( shape == "sizeAll" ) webView_->setCursor( Qt::SizeAllCursor );
+        else if( shape == "hide" ) webView_->setCursor( Qt::BlankCursor );
+        else if( shape == "splitVert" ) webView_->setCursor( Qt::SplitVCursor );
+        else if( shape == "splitHor" ) webView_->setCursor( Qt::SplitHCursor );
+        else if( shape == "pointHand" ) webView_->setCursor( Qt::PointingHandCursor );
+        else if( shape == "forbid" ) webView_->setCursor( Qt::ForbiddenCursor );
+        else if( shape == "openHand" ) webView_->setCursor( Qt::OpenHandCursor );
+        else if( shape == "closedHand" ) webView_->setCursor( Qt::ClosedHandCursor );
+        else if( shape == "whatsThis" ) webView_->setCursor( Qt::WhatsThisCursor );
+        else if( shape == "busy" ) webView_->setCursor( Qt::BusyCursor );
+        else if( shape == "dragMove" ) webView_->setCursor( Qt::DragMoveCursor );
+        else if( shape == "dragCopy" ) webView_->setCursor( Qt::DragCopyCursor );
+        else if( shape == "dragLink" ) webView_->setCursor( Qt::DragLinkCursor ); 
+    }
+    void setMouseCursor( const QPixmap& pmap, int hotX = -1, int hotY = -1 ) {
+        QCursor c( pmap, hotX, hotY );
+        webView_->setCursor( c );
+    }
+    void setWindowAttributes( Qt::WidgetAttribute wa ) {
+        webView_->setAttribute( wa );
+    }
     void setWindowIcon( const QPixmap& p ) { webView_->setWindowIcon( p ); }
     void setWindowIcon( const QString& f ) { webView_->setWindowIcon( QIcon( f ) ); }  
     void move( int x, int y ) { webView_->move( x, y ); }

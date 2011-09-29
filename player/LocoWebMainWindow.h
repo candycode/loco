@@ -14,6 +14,8 @@
 #include <QtWebKit/QWebPage>
 #include <QtWebKit/QWebFrame>
 #include <QtWebKit/QWebSettings>
+#include <QToolBar>
+#include <QVariantList>
 
 
 #include "LocoObject.h"
@@ -34,7 +36,7 @@ class WebMainWindow : public Object {
     Q_OBJECT
 public:
     WebMainWindow() : Object( 0, "LocoWebMainWindow", "Loco/GUI/Window" ),
-        webView_( new WebView() ), jsInterpreter_( new WebKitJSCoreWrapper )  {
+        webView_( new WebView() ), jsInterpreter_( new WebKitJSCoreWrapper ), toolBar_( 0 )  {
         wf_ = webView_->page()->mainFrame();
         ws_ = webView_->page()->settings();
         mw_.setCentralWidget( webView_ ); // webView_ lifetime managed by mw_;
@@ -124,6 +126,65 @@ public slots:
         }
     }
 public slots:
+    void setMouseCursor( const QString& shape ) {
+        if( shape == "arrow" ) mw_.setCursor( Qt::ArrowCursor );
+        else if( shape == "upArrow" ) mw_.setCursor( Qt::UpArrowCursor );
+        else if( shape == "cross" )  mw_.setCursor( Qt::CrossCursor );
+        else if( shape == "wait" ) mw_.setCursor( Qt::WaitCursor );
+        else if( shape == "ibeam" ) mw_.setCursor( Qt::IBeamCursor );
+        else if( shape == "sizeVert" ) mw_.setCursor( Qt::SizeVerCursor );
+        else if( shape == "sizeHor" ) mw_.setCursor( Qt::SizeHorCursor );
+        else if( shape == "wait" ) mw_.setCursor( Qt::WaitCursor );
+        else if( shape == "sizeAll" ) mw_.setCursor( Qt::SizeAllCursor );
+        else if( shape == "hide" ) mw_.setCursor( Qt::BlankCursor );
+        else if( shape == "splitVert" ) mw_.setCursor( Qt::SplitVCursor );
+        else if( shape == "splitHor" ) mw_.setCursor( Qt::SplitHCursor );
+        else if( shape == "pointHand" ) mw_.setCursor( Qt::PointingHandCursor );
+        else if( shape == "forbid" ) mw_.setCursor( Qt::ForbiddenCursor );
+        else if( shape == "openHand" ) mw_.setCursor( Qt::OpenHandCursor );
+        else if( shape == "closedHand" ) mw_.setCursor( Qt::ClosedHandCursor );
+        else if( shape == "whatsThis" ) mw_.setCursor( Qt::WhatsThisCursor );
+        else if( shape == "busy" ) mw_.setCursor( Qt::BusyCursor );
+        else if( shape == "dragMove" ) mw_.setCursor( Qt::DragMoveCursor );
+        else if( shape == "dragCopy" ) mw_.setCursor( Qt::DragCopyCursor );
+        else if( shape == "dragLink" ) mw_.setCursor( Qt::DragLinkCursor ); 
+    }
+    void setMouseCursor( const QPixmap& pmap, int hotX = -1, int hotY = -1 ) {
+        QCursor c( pmap, hotX, hotY );
+        mw_.setCursor( c );
+    }
+    void setToolbar( const QVariantList& jsonData ) {
+       if( toolBar_ == 0 ) {
+           toolBar_ = new QToolBar;
+           mw_.addToolBar( toolBar_ );
+       }  
+       for( QVariantList::const_iterator i = jsonData.begin(); i != jsonData.end(); ++i ) {
+            if( !i->toMap().isEmpty() ) {
+                const QVariantMap m = i->toMap();
+                if( m[ "type" ].toString() == "separator" ) {
+                    toolBar_->addSeparator();
+                } else if(  m[ "type"  ].toString() == "button" &&
+                           !m[ "icon"  ].toString().isEmpty()   &&
+                           !m[ "path"  ].toString().isEmpty()   &&
+                           !m[ "cback" ].toString().isEmpty() ) {
+                    QAction* a = new QAction( QIcon( m[ "icon" ].toString() ), m[ "text" ].toString(), toolBar_ );
+                    a->setToolTip( m[ "tooltip" ].toString() );
+                    a->setStatusTip( m[ "status" ].toString() );
+                    mapper_->setMapping( a, a );
+                    connect( a, SIGNAL( triggered() ), mapper_, SLOT( map() ) );
+                    cbacks_[ a ] = m[ "cback" ].toString(); 
+                    actions_[ "path" ] = a;
+                    actionPath_[ a ] = "path";     
+                }
+            }            
+        }
+    }
+    void hideToolBar() { toolBar_->hide(); }
+    void showToolBar() { toolBar_->show(); }
+    void hideMenu() { mw_.menuBar()->hide(); }
+    void showMenu() { mw_.menuBar()->show(); }
+    void hideStatusBar() { mw_.statusBar()->hide(); }
+    void showStatusBar() { mw_.statusBar()->show(); }
     void setWindowIcon( const QPixmap& p ) { webView_->setWindowIcon( p ); }
     void setWindowIcon( const QString& f ) { webView_->setWindowIcon( QIcon( f ) ); }  
     void move( int x, int y ) { mw_.move( x, y ); }
@@ -298,19 +359,20 @@ signals:
     void keyPress( int key, int modifiers, int count );
     void keyRelease( int key, int modifiers, int count );
 private:
-   QPointer< WebView > webView_; //owned by main window
-   Context ctx_; // this is where objects are created
-   QPointer< QWebFrame > wf_; //owned by webview
-   QWebSettings* ws_; //owned by web frame; not a QObject cannot wrap into a QPointer
-   QMainWindow mw_;
-   MenuMap menuItems_;
-   ActionMap actions_;
-   CBackMap cbacks_;
-   ActionPath actionPath_;
-   QSignalMapper* mapper_;
-   WebKitAttributeMap attrMap_;
-   WebKitJSCoreWrapper* jsInterpreter_;
-   QString preLoadCBack_;
+    QPointer< WebView > webView_; //owned by main window
+    Context ctx_; // this is where objects are created
+    QPointer< QWebFrame > wf_; //owned by webview
+    QWebSettings* ws_; //owned by web frame; not a QObject cannot wrap into a QPointer
+    QMainWindow mw_;
+    MenuMap menuItems_;
+    ActionMap actions_;
+    CBackMap cbacks_;
+    ActionPath actionPath_;
+    QSignalMapper* mapper_;
+    WebKitAttributeMap attrMap_;
+    WebKitJSCoreWrapper* jsInterpreter_;
+    QString preLoadCBack_;
+    QToolBar* toolBar_;    
 };
 
 }

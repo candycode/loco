@@ -20,6 +20,8 @@ Context::Context( Context* parent ) : jsContext_( new JSContext( this ) ),
     connect( this, SIGNAL( onError( const QString& ) ), 
              this, SLOT( OnSelfError( const QString& ) ) );
     jsContext_->setParent( this );
+    includePath_ << "." << QCoreApplication::applicationDirPath() + "/include"
+                 << QCoreApplication::applicationDirPath() + "/scripts";
 } 
 
 
@@ -34,6 +36,8 @@ Context::Context( IJSInterpreter* jsi, LocoQtApp* app, const QStringList& cmdLin
              this, SLOT( OnSelfError( const QString& ) ) );
     Init( jsi, app, cmdLine, parent );
     jsContext_->setParent( this );
+    includePath_ << "." << QCoreApplication::applicationDirPath() + "/include"
+                 << QCoreApplication::applicationDirPath() + "/scripts";
 }
 
 
@@ -91,12 +95,12 @@ Object* Context::Find( const QString& jsInstanceName ) const {
         return jsInterpreter_->EvaluateJavaScript( obj->jsInstanceName() );
     }
     QPluginLoader* pl = new QPluginLoader( uri );
-		if( !pl->load() ) {
-			delete pl;
-			error( "Cannot load " + uri );
-			jsInterpreter_->EvaluateJavaScript( jsErrCBack_ );
-			return QVariant();
-		} 			
+	if( !pl->load() ) {
+	    delete pl;
+		error( "Cannot load " + uri );
+		jsInterpreter_->EvaluateJavaScript( jsErrCBack_ );
+		return QVariant();
+	} 			
     Object* obj = qobject_cast< ::loco::Object* >( pl->instance() );
     if( !obj ) {
 			delete pl;
@@ -152,15 +156,24 @@ QByteArray Context::ReadUrl( const QString& url, QSet< QUrl > redirects ) {
 }
 
 QByteArray Context::ReadFile( const QString& f ) {
-    if( !fileAccessMgr_->CheckAccess( f ) ) {
-        error( "Not authorized to access file " + f );
-        return QByteArray();
-    }
-    if( !QFile::exists( f ) ) {
-        error( "File " + f + " does not exists" );
-        return QByteArray();
+    QString filePath = f;    
+    if( !QDir::isAbsolutePath( f ) ) {
+        QStringList::const_iterator i = includePath_.begin();
+        for( ; i != includePath_.end(); ++i ) {
+            if( !QFile::exists( *i + f ) ) continue;
+            else { filePath = *i + f; break; }
+        }
+        if( i == includePath_.end() ) {
+            error( "File " + f + " does not exists" );
+            return QByteArray();
+        }
     } 
-    QFile file( f );
+                
+    if( !fileAccessMgr_->CheckAccess( filePath ) ) {
+        error( "Not authorized to access file " + filePath );
+        return QByteArray();
+    }    
+    QFile file( filePath );
     if( !file.open( QIODevice::ReadOnly ) ) {
         error( "Cannot open file " + f );
         return QByteArray();
