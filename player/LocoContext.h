@@ -2,6 +2,7 @@
 //#SRCHEADER
 
 #include <cstdlib> //for dupenv (win), putenv, getenv
+#include <stdexcept>
 
 #ifdef LOCO_WKIT
 #include <QtWebKit/QWebFrame>
@@ -387,7 +388,8 @@ public slots:
 
 private slots:
     void OnSelfError( const QString& err ) {
-        jsInterpreter_->EvaluateJavaScript( jsErrCBack_ );
+        if( !jsInterpreter_.isNull() ) jsInterpreter_->EvaluateJavaScript( jsErrCBack_ );
+        else throw std::runtime_error( err.toStdString() );
     }
 
 private:

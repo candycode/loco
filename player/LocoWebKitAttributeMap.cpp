@@ -43,7 +43,9 @@ namespace loco {
     	LOCO_MAPATTR( TiledBackingStoreEnabled );
     	LOCO_MAPATTR( FrameFlatteningEnabled );
     	LOCO_MAPATTR( SiteSpecificQuirksEnabled );
-
+#ifdef LOCO_WEBGL
+   	    LOCO_MAPATTR( WebGLEnabled );
+#endif
     }
 #undef LOCO_MAPATTR
 }
