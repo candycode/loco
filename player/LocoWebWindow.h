@@ -228,7 +228,7 @@ public slots:
         return ctx_.Eval( code, filters );
     }  
     void addParentObjectsToJS() { 
-        ctx_. SetAddObjectsFromParentContext( true );
+        ctx_.SetAddObjectsFromParentContext( true );
     }
     QString toHtml() const { return wf_->toHtml(); }
     QString selectedText() const { return webView_->page()->selectedText(); }
@@ -281,7 +281,7 @@ public:
     }
 
 private:
-    WebView* webView_; //owned by main window
+    WebView* webView_; //owned by this object
     Context ctx_; // this is where objects are created
     QPointer< QWebFrame > wf_; //owned by webview
     QWebSettings* ws_; //owned by web frame; not a QObject: cannot wrap with a QPointer

@@ -438,12 +438,12 @@ public:
     }
 
 private:
-/*
+
     void AddToIncludePath( const QString& p ) { includePath_ << p; }
     
     void SetIncludePath( const QStringList& sl ) { includePath_ = sl; }
 
-    const QStringList& GetIncludePath() const { return includePath_; }*/
+    const QStringList& GetIncludePath() const { return includePath_; }
 
     QVariant LoadObject( const QString& uri,  //used as a regular file/resource path for now
                          bool persistent = false );
@@ -601,13 +601,11 @@ public:
 
 // invocable from javascript
 public slots: // js interface
-   /* 
+    
     void setIncludePath( const QString& ip ) { setIncludePath( ip.split( ":" ) ); }
     void setIncludePath( const QStringList& ip ) { ctx_->SetIncludePath( ip ); }
     void addToIncludePath( const QString& p ) { ctx_->AddToIncludePath( p ); }
     QStringList includePath() const { return ctx_->GetIncludePath(); }
-    */
-
 	void exit( int code ) { ctx_->Exit( code ); }
 	QVariant include( const QString& path, const QStringList& filters = QStringList() ) {
         return ctx_->Include( path, filters );
