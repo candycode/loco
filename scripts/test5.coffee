@@ -1,0 +1,1 @@
+Loco.console.println 'ciao'
