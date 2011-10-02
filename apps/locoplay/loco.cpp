@@ -5,22 +5,22 @@
 
 #include <LocoApp.h>
 
-#ifdef LOCO_CONSOLE
+#ifdef LOCOPLAY_CONSOLE
 #include <LocoConsole.h>
 #endif
-#ifdef LOCO_FSYSTEM
+#ifdef LOCOPLAY_FSYSTEM
 #include <LocoFileSystem.h>
 #endif
-#ifdef LOCO_SYSTEM
+#ifdef LOCOPLAY_SYSTEM
 #include <LocoSystem.h>
 #endif
 #include <LocoObjectInfo.h>
-#ifdef LOCO_WKIT
+#ifdef LOCOPLAY_WKIT
 #include <LocoWebKitJSCore.h>
 #else
 #include <LocoDefaultJS.h>
 #endif
-#ifdef LOCO_GUI
+#ifdef LOCOPLAY_GUI
 #include <LocoGUI.h>
 #endif
 
@@ -52,31 +52,31 @@ int main(int argc, char *argv[])
 		//a ERROR IS REPORTED (QWidgets must be created after QApplication
 		//and in the case of the QtWebKit jscore interpreter the interpreter
 		//is inside a class that has a dependency on QWidget.
-#ifdef LOCO_WKIT
+#ifdef LOCOPLAY_WKIT
 		app.SetInterpreter( new WebKitJSCore ); // app owns interpreter
 #else
 		app.SetInterpreter( new DefaultJS );
 #endif
 
-#ifdef LOCO_CONSOLE
+#ifdef LOCOPLAY_CONSOLE
 		app.AddModuleToJS( new Console );
 #endif
-#ifdef LOCO_FSYSTEM
+#ifdef LOCOPLAY_FSYSTEM
 		app.AddModuleToJS( new FileSystem );
 		app.SetAllowFileAccess( true );
 		app.SetFilterFileAccess( false );
 #endif
-#ifdef LOCO_SYSTEM
+#ifdef LOCOPLAY_SYSTEM
 		app.AddModuleToJS( new System );
 #endif
-#ifdef LOCO_GUI
+#ifdef LOCOPLAY_GUI
         app.AddModuleToJS( new GUI );
 #endif
-#ifdef LOCO_CONTEXT
+#ifdef LOCOPLAY_CONTEXT
 		app.AddContextToJS();
 #endif
 
-#ifdef LOCO_NETWORK
+#ifdef LOCOPLAY_NETWORK
 		app.SetAllowNetAccess( true );
 		app.SetFilterNetRequests( false );
 #endif

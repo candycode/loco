@@ -169,7 +169,9 @@ public:
             	QListIterator<QString> li( cmdLine_ );
             	QString v;
             	for( li.toBack(); li.hasPrevious(); v = li.previous() ) {
-            		if( v.endsWith( ".js" ) || v.endsWith( "loco" ) ) break;
+					if( v.toLower().endsWith( ".js" )  ||
+						v.toLower().endsWith( "loco" ) ||
+						v.toLower().endsWith( ".ljs" ) ) break;
             	}
             	if( li.hasPrevious() ) scriptFileName = v;
             }
