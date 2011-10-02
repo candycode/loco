@@ -73,7 +73,7 @@ if( "${LOCO_SYSTEM}" STREQUAL "ON" )
   set( LOCO_SYSTEM_SRCS ${LSRC}/LocoSystem.cpp ${LSRC}/LocoProcess.cpp )
 endif()
 if( "${LOCO_WKIT}" STREQUAL "ON" )
-  set( LOCO_WKIT_MOC_HEADERS L${LINC}/ocoWebMainWindow.h ${LINC}/LocoWebWindow.h 
+  set( LOCO_WKIT_MOC_HEADERS ${LINC}/LocoWebMainWindow.h ${LINC}/LocoWebWindow.h 
        ${LINC}/LocoWebKitJSCore.h ${LINC}/LocoWebKitJSCoreWrapper.h ${LINC}/LocoWebView.h
        ${LINC}/LocoDynamicWebPluginFactory.h )
   set( LOCO_WKIT_HEADERS ${LINC}/LocoWebKitAttributeMap.h ${LINC}/LocoStaticWebPluginFactory.h )
@@ -96,11 +96,6 @@ set( MOC_HEADERS
   ${LOCO_SCRIPT_MOC_HEADERS} ) 
 
 QT4_WRAP_CPP( MOC_SRCS ${MOC_HEADERS} ) 
-
-###RESOURCES
-set( RES res/loco.qrc )
-QT4_ADD_RESOURCES( RCC_SRCS ${RES} )
-SOURCE_GROUP( Resources REGULAR_EXPRESSION "res/.+" ) 
 
 # Lib 
 set( SRCS ${LSRC}/LocoObject.cpp  ${LOCO_FSYSTEM_SRCS} ${LOCO_WKIT_SRCS}

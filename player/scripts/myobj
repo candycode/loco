@@ -1,0 +1,1 @@
+(function() { return { field1: "field one" }; } )( );
