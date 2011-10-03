@@ -5,6 +5,10 @@ project("libloco")
 set( LINC include )
 set( LSRC src )
 
+if( CMAKE_COMPILER_IS_GNUCXX AND NOT APPLE )
+  set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC" )
+endif()
+
 ####  LIB CONFIGURATION
 option( LOCO_WKIT "Build with QtWebKit instead of QtScript, requires QtGUI and X(or xvfb) on Linux" ON )
 option( LOCO_GUI "GUI support, required by WKIT" ON )
