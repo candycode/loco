@@ -30,11 +30,12 @@ public:
 
         //url to filename OR url as filename
         //create plugin loader and set it as child of this
-        QPluginLoader* pluginLoader = new QPluginLoader( url.toString() );
+		const QString path = url.toString().remove( 0, QString( "file://" ).size() );
+        QPluginLoader* pluginLoader = new QPluginLoader( path );
         QObject* webObj = pluginLoader->instance();
         if( webObj == 0 ) {
             delete pluginLoader;
-            throw std::runtime_error( "Cannot load web plugin " + url.toString().toStdString() );
+            throw std::runtime_error( "Cannot load web plugin " + path.toStdString() );
             return 0;
         }
         connect( this, SIGNAL( destroyed( QObject* ) ), this, SLOT( OnDestroy( QObject* ) ) );

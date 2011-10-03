@@ -14,7 +14,7 @@
 #include "LocoNetworkAccessManager.h"
 #include "LocoFileAccessManager.h"     
 #include "LocoObjectInfo.h" //reusing this for app info
-#include "LocoQtApp.h"                                    
+#include "LocoQtApp.h"
 
 namespace loco {
 

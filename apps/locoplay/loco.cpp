@@ -23,7 +23,6 @@
 #ifdef LOCOPLAY_GUI
 #include <LocoGUI.h>
 #endif
-
 #include <LocoQtApp.h>
 
 #include <LocoAppConfig.h>

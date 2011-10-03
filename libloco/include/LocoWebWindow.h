@@ -19,6 +19,8 @@
 #include "LocoWebKitAttributeMap.h"
 #include "LocoWebKitJSCoreWrapper.h"
 #include "LocoWebMainWindow.h"
+#include "LocoDynamicWebPluginFactory.h"
+#include "LocoStaticWebPluginFactory.h"
 
 #include <iostream>
 
@@ -74,9 +76,9 @@ public:
 
     WebView* GetWebView() const { return webView_; }
 
-    void SetWebPluginFactory( QWebPluginFactory* wpf ) { webView_->SetWebPluginFactory( wpf ); }
+    void SetWebPluginFactory( ::QWebPluginFactory* wpf ) { webView_->page()->setPluginFactory( wpf ); }
 
-    QWebPluginFactory* GetWebPluginFactory() const { return webView_->GetWebPluginFactory(); }
+    ::QWebPluginFactory* GetWebPluginFactory() const { return webView_->page()->pluginFactory(); }
 
 private slots:
 
@@ -88,6 +90,14 @@ public slots:
     void setPreLoadCBack( const QString& cback ) { preLoadCBack_ = cback; }
 
 public slots:
+
+    void createWebPluginFactory( const QString& type = "dynamic" ) {
+    	if( type.toLower() == "dynamic" ) {
+    		webView_->page()->setPluginFactory( new DynamicWebPluginFactory );
+    	} else if( type.toLower() == "static" ) {
+    		webView_->page()->setPluginFactory( new StaticWebPluginFactory );
+    	}
+    }
 
     void setMouseCursor( const QString& shape ) {
         if( shape == "arrow" ) webView_->setCursor( Qt::ArrowCursor );

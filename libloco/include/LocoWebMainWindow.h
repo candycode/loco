@@ -23,8 +23,8 @@
 #include "LocoWebView.h"
 #include "LocoWebKitAttributeMap.h"
 #include "LocoWebKitJSCoreWrapper.h"
-
-class QWebPluginFactory;
+#include "LocoDynamicWebPluginFactory.h"
+#include "LocoStaticWebPluginFactory.h"
 
 namespace loco {
 
@@ -78,9 +78,9 @@ public:
 
     QMainWindow* GetMainWindow() { return &mw_; }
 
-    void SetWebPluginFactory( QWebPluginFactory* wpf ) { webView_->SetWebPluginFactory( wpf ); }
+    void SetWebPluginFactory( QWebPluginFactory* wpf ) { webView_->page()->setPluginFactory( wpf ); }
 
-    QWebPluginFactory* GetWebPluginFactory() const { return webView_->GetWebPluginFactory(); }
+    QWebPluginFactory* GetWebPluginFactory() const { return webView_->page()->pluginFactory(); }
 
 private slots:
 
@@ -89,6 +89,13 @@ private slots:
 
 public slots:
 
+    void createWebPluginFactory( const QString& type = "dynamic" ) {
+    	if( type.toLower() == "dynamic" ) {
+    		webView_->page()->setPluginFactory( new DynamicWebPluginFactory );
+    	} else if( type.toLower() == "static" ) {
+    		webView_->page()->setPluginFactory( new StaticWebPluginFactory );
+    	}
+    }
     void setWindowOpacity( double op ) { mw_.setWindowOpacity( op ); }
     double windowOpacity() const { return mw_.windowOpacity(); }
     void setMask( const QPixmap& p ) {

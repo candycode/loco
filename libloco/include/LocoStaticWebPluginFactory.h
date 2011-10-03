@@ -24,7 +24,7 @@ public:
 				  			  const QUrl& url, 
 							  const QStringList& argumentNames, 
 							  const QStringList& argumentValues ) const {
-        if( !objects_.contains( url.toString() ) {
+        if( !objects_.contains( url.toString() ) ) {
             throw std::runtime_error( url.toString().toStdString() + " not found" );
             return 0;
         }
@@ -77,10 +77,11 @@ public:
     ~StaticWebPluginFactory() {
         for( ObjectStore::iterator i = objects_.begin();
              i != objects_.end(); ++i ) {
-            if( i->parent() == 0 ) i.value()->deleteLater();
+            if( i.value()->parent() == 0 ) i.value()->deleteLater();
         }
     }
 private: 
     QString mimeType_;
     ObjectStore objects_;
 };
+}
