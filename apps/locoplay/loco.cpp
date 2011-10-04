@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
 		app.ParseCommandLine();
 		ret = app.Execute();
 	} catch( const std::exception& e ) {
-		std::cerr << e.what() << std::endl;
+		std::cerr << "locoplay: " << e.what() << std::endl;
 	}
 	return ret;
 }

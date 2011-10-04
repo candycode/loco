@@ -20,38 +20,48 @@
 #include <QtCore/QTimer>
 #include <QStringList>
 
+// example of unrelated plugin with no dependencies on LoCO
 
-struct IDummy : QWidget {
-    Q_OBJECT
-public:
-    IDummy( QWidget* parent ) : QWidget( parent ) {}
-signals:
-    void onError( const QString& );
-};
-
+// dummy interface required to derive from and to declare through Q_INTERFACES
+struct IDummy {};
 Q_DECLARE_INTERFACE(IDummy,"dummy")
 
-
-class OSGViewerPlugin : public IDummy  {
+class OSGViewerPlugin : public QWidget, public IDummy  {
     Q_OBJECT
+    Q_PROPERTY( QString name READ name )
+    Q_PROPERTY( QString version READ version )
+    Q_PROPERTY( QString author READ author )
     Q_INTERFACES( IDummy )
 public:
-    OSGViewerPlugin( QWidget* parent = 0 ) : IDummy( parent ) {
+    OSGViewerPlugin( QWidget* parent = 0 ) : QWidget( parent ),
+        name_( "OSG Viewer web plugin " ),
+        version_( "1.0" ),
+        author_( "UV" ) {
     	///@todo add additional models
     	viewer_.setThreadingModel( osgViewer::CompositeViewer::SingleThreaded );
-    	//1) setup layout
         QGridLayout* l = new QGridLayout;
         l->addWidget( AddViewWidget( CreateCamera( 0, 0, 100, 100  ) ), 0, 0 );
         setLayout( l );
         QWidget::connect( &timer_, SIGNAL( timeout() ), this, SLOT( update() ) );
         timer_.start( 20 );
-        emit onError( QString( "HEY" ) );
+
     }
+
+    const QString& name() const { return name_; }
+    const QString& version() const { return version_; }
+    const QString& author() const { return author_; }
+
 protected:
     void paintEvent( QPaintEvent* pe ) {
     	viewer_.frame();
+
     }
+
+signals:
+    void onError( const QString& );
+
 public slots:
+
     void loadScene( const QString& path ) {
        	osg::Node* scene = osgDB::readNodeFile( path.toStdString() );
     	if( !scene ) {
@@ -84,6 +94,7 @@ private:
     QWidget* AddViewWidget( osg::Camera* camera ) {
 
            osgViewer::View* view = new osgViewer::View;
+           view->requestContinuousUpdate( false );
            view->setCamera( camera );
            viewer_.addView( view );
 
@@ -120,9 +131,8 @@ private:
        }
 private:
     osgViewer::CompositeViewer viewer_;
-    //osg::ref_ptr< osgQt::GLWidget> osgWidget_;
-    osg::ref_ptr< osg::Node > scene_;
     QTimer timer_;
+    QString name_, version_, author_;
 };
 
 Q_EXPORT_PLUGIN2( osgviewer, OSGViewerPlugin )

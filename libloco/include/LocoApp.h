@@ -201,7 +201,7 @@ public:
 		    return execResult;
         } catch( const std::exception& e ) {
             emit OnException( e.what() );
-            std::cerr << e.what() << std::endl;
+            std::cerr << "loco::App: " << e.what() << std::endl;
             return -1;
         }
         return -1;

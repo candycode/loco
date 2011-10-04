@@ -93,9 +93,10 @@ public slots:
 
     void createWebPluginFactory( const QString& type = "dynamic" ) {
     	if( type.toLower() == "dynamic" ) {
-    		webView_->page()->setPluginFactory( new DynamicWebPluginFactory );
-    	} else if( type.toLower() == "static" ) {
-    		webView_->page()->setPluginFactory( new StaticWebPluginFactory );
+    		DynamicWebPluginFactory* pf = new DynamicWebPluginFactory;
+    		webView_->page()->setPluginFactory( pf );
+    	} else {
+    		error( "only 'dynamic' supported at this time" );
     	}
     }
 

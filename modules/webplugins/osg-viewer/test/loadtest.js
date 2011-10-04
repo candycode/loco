@@ -1,10 +1,12 @@
 try {
 
 var ww = Loco.gui.create( "WebWindow" );
-Loco.ctx.onError.connect( function(e) {Loco.console.println(e);});
+ww.setName( "webWindow" );
+ww.addSelfToJSContext();
 ww.addParentObjectsToJS();
 ww.createWebPluginFactory();
 ww.setAttributes( { DeveloperExtrasEnabled: true,
+                    JavascriptEnabled: true,
                     LocalContentCanAccessFileUrls: true } ); 
 ww.setEnableContextMenu( true );
 ww.load( "./loadtest.html" );

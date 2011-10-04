@@ -68,15 +68,12 @@ public:
            qobject_cast< Object* >( webObj )->Init( m );    
         } else {
             const QMetaObject* mo = webObj->metaObject();
-            for( int i = mo->methodOffset(); i != mo->methodCount(); ++i ) {
-            	const QString sig = QString::fromLatin1( mo->method( i ).signature() );
-            	if( sig == initMethodSignature_ ) {
-            		QMetaMethod method = mo->method( i );
-            		method.invoke( webObj, Qt::DirectConnection,
-            				       Q_ARG( QStringList, argumentNames ),
-            				       Q_ARG( QStringList, argumentValues) );
-            		break;
-            	}
+            if( mo->indexOfMethod( initMethodSignature_.toAscii().constData() ) >= 0 ) {
+                QMetaMethod method = mo->method( mo->indexOfMethod( initMethodSignature_.toAscii().constData() ) );
+            	method.invoke( webObj, Qt::DirectConnection,
+            			       Q_ARG( QStringList, argumentNames ),
+            			       Q_ARG( QStringList, argumentValues) );
+
             }
         }
         pluginLoaders_.push_back( pluginLoader );
