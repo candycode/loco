@@ -22,11 +22,15 @@
 <div id="osgviewer" style="border: .1em solid black; width: 100%; height: 70%;" class="ui-widget-content" > 
   <object type="application/x-qt-plugin" 
           data="/home/uvaretto/build/loco/modules/webplugins/osg-viewer/libosgviewer.so"
-          id="osg" style="width: 100%; height: 100%;" ></object>
+          id="osg" style="width: 100%; height: 100%;" >
+    <param name="bgcolor" value="0.3,0.8,0.8,1.0" />
+  </object>
 </div>
 <script type="text/javascript">
   osg.loadScene("cow.osg");
-  osg.onError.connect( function(msg){alert(msg);} );
+  osg.onError.connect( function(msg) {
+                         alert(msg);
+                       } );
 </script>
 <a href="javascript:loadScene();" >Load scene</a>
 </body>

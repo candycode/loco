@@ -57,7 +57,7 @@ public slots:
 signals:
     void onError( const QString& ) const;
     void onWarning( const QString& ) const;
-    void onLog( const QString& ) const;     
+    void onLog( const QString& ) const;
 private:
     typedef QStringList Errors;
 	typedef QStringList Warnings;

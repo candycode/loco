@@ -10,6 +10,8 @@
 #include <QWebPluginFactory>
 #include <QPluginLoader>
 #include <QUrl>
+#include <QMetaObject>
+#include <QMetaMethod>
 
 #include "LocoObject.h"
 
@@ -22,7 +24,8 @@ class DynamicWebPluginFactory : public QWebPluginFactory {
 public:
 	DynamicWebPluginFactory( QObject* parent = 0 ) : 
         QWebPluginFactory( parent ),
-        mimeType_( "application/x-qt-plugin" ) {}
+        mimeType_( "application/x-qt-plugin" ),
+        initMethodSignature_( "init(QStringList,QStringList)" ) {}
 	virtual QObject* create ( const QString& mimeType, 
 				  			  const QUrl& url, 
 							  const QStringList& argumentNames, 
@@ -63,8 +66,20 @@ public:
                 m[ key ] = val;
            }
            qobject_cast< Object* >( webObj )->Init( m );    
+        } else {
+            const QMetaObject* mo = webObj->metaObject();
+            for( int i = mo->methodOffset(); i != mo->methodCount(); ++i ) {
+            	const QString sig = QString::fromLatin1( mo->method( i ).signature() );
+            	if( sig == initMethodSignature_ ) {
+            		QMetaMethod method = mo->method( i );
+            		method.invoke( webObj, Qt::DirectConnection,
+            				       Q_ARG( QStringList, argumentNames ),
+            				       Q_ARG( QStringList, argumentValues) );
+            		break;
+            	}
+            }
         }
-        pluginLoaders_.push_back( pluginLoader );  
+        pluginLoaders_.push_back( pluginLoader );
         return webObj;
 	}
 
@@ -97,6 +112,7 @@ private slots:
 private: 
     mutable PluginLoaders pluginLoaders_;
     QString mimeType_;
+    QString initMethodSignature_;
 
 };
 
