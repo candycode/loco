@@ -12,6 +12,8 @@ include( ${QT_USE_FILE} )
 include_directories( ${QT_LIBRARY_DIR} ${OSG_INCLUDE_DIR} ) 
 link_directories( ${QT_LIBRARY_DIR} ${OSG_LIB_DIR} )
 
+set( OSG_LIBRARIES OpenThreads osgDB osgGA osgManipulator osgQt osg osgViewer )
+
 set( MOC_HEADERS OSGViewerPlugin.h )
 QT4_WRAP_CPP( MOC_SRCS ${MOC_HEADERS} ) 
 

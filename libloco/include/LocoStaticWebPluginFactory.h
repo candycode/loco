@@ -74,7 +74,7 @@ public:
     void InsertObject( const QString& key, QObject* value ) {
         objects_[ key ] = value;    
     }
-    ~StaticWebPluginFactory() {
+    virtual ~StaticWebPluginFactory() {
         for( ObjectStore::iterator i = objects_.begin();
              i != objects_.end(); ++i ) {
             if( i.value()->parent() == 0 ) i.value()->deleteLater();

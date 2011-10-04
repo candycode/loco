@@ -34,8 +34,11 @@ public:
         QPluginLoader* pluginLoader = new QPluginLoader( path );
         QObject* webObj = pluginLoader->instance();
         if( webObj == 0 ) {
+            const QString errorString = pluginLoader->errorString();
             delete pluginLoader;
-            throw std::runtime_error( "Cannot load web plugin " + path.toStdString() );
+            throw std::runtime_error( "Cannot load web plugin " +
+            		                  path.toStdString() + "\n" +
+            		                  errorString.toStdString() );
             return 0;
         }
         connect( this, SIGNAL( destroyed( QObject* ) ), this, SLOT( OnDestroy( QObject* ) ) );

@@ -17,6 +17,7 @@ public:
 public slots:
 	void hello() const { std::cout << "Hello from a loco Plugin :o" << std::endl; }
 };
+
 }
 
 Q_EXPORT_PLUGIN2( loco_SamplePlugin, loco::SamplePlugin )

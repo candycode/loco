@@ -80,7 +80,7 @@ QT4_ADD_RESOURCES( RCC_SRCS ${RES} )
 SOURCE_GROUP( Resources REGULAR_EXPRESSION "res/.+" ) 
 
 # App
-set( SRCS loco.cpp )
+set( SRCS loco.cpp ${RCC_SRCS} )
 
 ####CONFIGURE EXECUTABLE
 add_executable( locoplay ${SRCS} )

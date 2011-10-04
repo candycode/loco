@@ -231,7 +231,7 @@ public:
 
     int GetNetReadTimeout() const { return readNetworkTimeout_; }
 
-	void Exit( int r ) { app_->exit( r ); ::exit( r ); }
+	void Exit( int r ) { app_->exit( r ); exit( r ); }
 
 	void SetJSContextName( const QString& n ); 
 
