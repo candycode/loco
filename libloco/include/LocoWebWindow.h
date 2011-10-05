@@ -59,6 +59,7 @@ public:
         ctx_.Init( jsInterpreter_ );
         ctx_.SetJSContextName( "wctx" ); //web window context
         ctx_.AddContextToJS();
+        webView_->setAttribute( Qt::WA_DeleteOnClose );
         
     }
     void AddSelfToJSContext() {
@@ -281,15 +282,6 @@ signals:
     void closing();
     void keyPress( int key, int modifiers, int count );
     void keyRelease( int key, int modifiers, int count );
-
-public:
-    // required because:
-    // 1) a QWidget derived object (WebView in this case) cannot have a non-QWidget ('this') as parent
-    // 2) we cannot declare webView_ on the stack because it needs to be possible to set it 
-    //    as the child of another widget
-    ~WebWindow() {
-        if( webView_->parent() == 0 ) webView_->deleteLater(); //
-    }
 
 private:
     WebView* webView_; //owned by this object
