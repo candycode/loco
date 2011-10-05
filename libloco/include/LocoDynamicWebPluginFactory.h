@@ -31,10 +31,8 @@ public:
 							  const QStringList& argumentNames, 
 							  const QStringList& argumentValues ) const {
 
-        //url to filename OR url as filename
-        //create plugin loader and set it as child of this
-		const QString path = url.toString().remove( 0, QString( "file://" ).size() );
-        QPluginLoader* pluginLoader = new QPluginLoader( path );
+        QString path = url.toLocalFile();
+        QPluginLoader* pluginLoader = new QPluginLoader;( path );
         QObject* webObj = pluginLoader->instance();
         if( webObj == 0 ) {
             const QString errorString = pluginLoader->errorString();
