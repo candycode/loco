@@ -67,7 +67,7 @@ namespace osg
 		QTimer _timer;
 	};
 //==============================================================================
-	/** OSG and OpenGL staff.
+	/** OSG and OpenGL stuff.
 	 *	Draw OpenGL as background, all widgets or else are drawn on top (see widget opacity). */
 	class QOSGCompositeScene : public QAdapterScene, public osgViewer::CompositeViewer
 	{
