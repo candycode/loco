@@ -620,6 +620,7 @@ public slots: // js interface
     }    
 	QStringList pluginPath() const { return QCoreApplication::libraryPaths(); }
 	void setPluginPath( const QStringList& paths ) { QCoreApplication::setLibraryPaths( paths ); }
+    void addPluginPath( const QString& p ) { QCoreApplication::addLibraryPath( p ); }
 	QString appFilePath() const { return QCoreApplication::applicationFilePath(); }
 	QString appDirPath() const { return QCoreApplication::applicationDirPath(); }
 	QString appName() const { return QCoreApplication::applicationName(); }
