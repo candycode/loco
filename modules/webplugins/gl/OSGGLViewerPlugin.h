@@ -1,0 +1,110 @@
+#pragma once
+//#SRCHEADER
+
+#include <string>
+#include <stdexcept>
+
+#include <osg/Camera>
+#include <osgGA/TrackballManipulator>
+#include <osgDB/ReadFile>
+#include <osgViewer/GraphicsWindow>
+#include <osgViewer/Viewer>
+#include <osgViewer/ViewerEventHandlers>
+
+#include <QResizeEvent>
+#include <QObject>
+#include <QtPlugin>
+#include <QWidget>
+#include <QString>
+#include <QGridLayout>
+#include <QtCore/QTimer>
+#include <QStringList>
+#include <QtOpenGL/QGLWidget>
+
+// example of unrelated plugin with no dependencies on LoCO
+
+// dummy interface required to derive from and to declare through Q_INTERFACES
+struct IDummy {};
+Q_DECLARE_INTERFACE(IDummy,"dummy")
+
+class OSGViewerPlugin : public QGLWidget, public IDummy  {
+    Q_OBJECT
+    Q_PROPERTY( QString name READ name )
+    Q_PROPERTY( QString version READ version )
+    Q_PROPERTY( QString author READ author )
+    Q_INTERFACES( IDummy )
+public:
+    OSGViewerPlugin( QWidget* parent = 0 ) : QGLWidget( parent ),
+        name_( "OSG Viewer web plugin " ),
+        version_( "1.0" ),
+        author_( "UV" ) {
+
+    	gw_ = new osgViewer::GraphicsWindowEmbedded( 0, 0, width(), height() );
+    	setFocusPolicy( Qt::ClickFocus );
+        viewer_.getCamera()->setViewport( new osg::Viewport( 0, 0, width(), height() ) );
+        viewer_.getCamera()->setProjectionMatrixAsPerspective(
+        		30.0f, static_cast< double >( width() )/ static_cast< double >( height() ),
+        		                              1.0f, 10000.0f);
+        viewer_.getCamera()->setGraphicsContext( osg::get_pointer( gw_ ) );
+        viewer_.setThreadingModel( osgViewer::Viewer::SingleThreaded );
+        timer_.setInterval( 20 );
+        connect( &timer_, SIGNAL( timeout() ), this, SLOT( update() ) );
+        timer_.start();
+
+    }
+
+    const QString& name() const { return name_; }
+    const QString& version() const { return version_; }
+    const QString& author() const { return author_; }
+
+protected:
+    void resizeEvent( QResizeEvent* event )
+    {
+    	gw_->getEventQueue()->windowResize(0, 0, event->size().width(), event->size().height());
+        gw_->resized(0, 0, event->size().width(), event->size().height());
+    }
+    void paintGL() {
+    	viewer_.frame();
+    }
+
+signals:
+    void onError( const QString& );
+
+public slots:
+
+    void loadScene( const QString& path ) {
+       	osg::Node* scene = osgDB::readNodeFile( path.toStdString() );
+    	if( !scene ) {
+    		emit onError( "Cannot load " + path );
+    		return;
+    	}
+    	viewer_.setSceneData( scene );
+    }
+    void init( const QStringList& argNames, const QStringList& argValues ) {
+       for( int i = 0; i != argNames.size(); ++i ) {
+           if( argNames[ i ] == "bgcolor" ) {
+        		if( argValues.size() <= i ) {
+                    throw std::runtime_error( "Number of arguments different from number of values" );
+        	        return;
+        		}
+        	    QStringList rgba = argValues[ i ].split( "," );
+        		if( rgba.length() != 4 ) {
+        			throw std::runtime_error( "Wrong background color format" );
+        			return;
+        		}
+        		viewer_.getCamera()->setClearColor( osg::Vec4(
+        				                                          rgba[ 0 ].toFloat(),
+        				                                          rgba[ 1 ].toFloat(),
+        				                                          rgba[ 2 ].toFloat(),
+        				                                          rgba[ 3 ].toFloat() ) );
+        	}
+        }
+    }
+private:
+    osg::ref_ptr< osgViewer::GraphicsWindowEmbedded > gw_;
+    osgViewer::Viewer viewer_;
+    QTimer timer_;
+    QString name_, version_, author_;
+};
+
+Q_EXPORT_PLUGIN2( osgglviewer, OSGViewerPlugin )

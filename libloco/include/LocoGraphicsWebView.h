@@ -17,13 +17,13 @@ class GraphicsWebView : public QGraphicsView {
 	Q_OBJECT
 public:
 	GraphicsWebView() : gwebView_( new QGraphicsWebView ), 
-                        eatContextMenuEvent_( true ),
-                        eatKeyEvents_( true ),
+                        eatContextMenuEvent_( false ),
+                        eatKeyEvents_( false ),
                         eatMouseEvents_( false ) {
-        setViewport( new QGLWidget( QGLFormat(QGL::SampleBuffers | QGL::AccumBuffer | QGL::AlphaChannel) ) );
-	    setViewportUpdateMode( QGraphicsView::FullViewportUpdate );
-        QGraphicsScene* gs = new QGraphicsScene;
+        setFrameShape(QFrame::NoFrame);
+		QGraphicsScene* gs = new QGraphicsScene;
         gs->addItem( gwebView_.data() );
+        setScene( gs );
 
     }
 	void EatContextMenuEvent( bool yes ) { eatContextMenuEvent_ = yes; }
