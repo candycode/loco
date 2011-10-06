@@ -27,6 +27,7 @@ else()
 endif()    
 
 set( QT_USE_QTNETWORK ON )
+#set( QT_USE_QTOPENGL ON )
 
 if( LOCO_GUI )
   set( QT_DONT_USE_QTGUI "ON" )
@@ -84,7 +85,7 @@ if( LOCO_SYSTEM )
   set( LOCO_SYSTEM_SRCS ${LSRC}/LocoSystem.cpp ${LSRC}/LocoProcess.cpp )
 endif()
 if( LOCO_WKIT )
-  set( LOCO_WKIT_MOC_HEADERS ${LINC}/LocoWebMainWindow.h ${LINC}/LocoWebWindow.h 
+  set( LOCO_WKIT_MOC_HEADERS ${LINC}/LocoWebMainWindow.h ${LINC}/LocoWebWindow.h ${LINC}/LocoGraphicsWebView.h
        ${LINC}/LocoWebKitJSCore.h ${LINC}/LocoWebKitJSCoreWrapper.h ${LINC}/LocoWebView.h
        ${LINC}/LocoDynamicWebPluginFactory.h )
   set( LOCO_WKIT_HEADERS ${LINC}/LocoWebKitAttributeMap.h ${LINC}/LocoStaticWebPluginFactory.h )
