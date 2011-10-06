@@ -32,7 +32,7 @@ public:
 							  const QStringList& argumentValues ) const {
 
         QString path = url.toLocalFile();
-        QPluginLoader* pluginLoader = new QPluginLoader;( path );
+        QPluginLoader* pluginLoader = new QPluginLoader( path );
         QObject* webObj = pluginLoader->instance();
         if( webObj == 0 ) {
             const QString errorString = pluginLoader->errorString();
