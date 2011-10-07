@@ -41,12 +41,14 @@ public:
 
     	gw_ = new osgViewer::GraphicsWindowEmbedded( 0, 0, width(), height() );
     	setFocusPolicy( Qt::ClickFocus );
-        viewer_.getCamera()->setViewport( new osg::Viewport( 0, 0, width(), height() ) );
+        viewer_.getCamera()->setViewport( new osg::Viewport( 0, 0, 200, 200 ) );
         viewer_.getCamera()->setProjectionMatrixAsPerspective(
-        		30.0f, static_cast< double >( width() )/ static_cast< double >( height() ),
+        		30.0f, static_cast< double >( 200 )/ static_cast< double >( 200 ),
         		                              1.0f, 10000.0f);
         viewer_.getCamera()->setGraphicsContext( osg::get_pointer( gw_ ) );
         viewer_.setThreadingModel( osgViewer::Viewer::SingleThreaded );
+        viewer_.addEventHandler( new osgViewer::StatsHandler );
+        viewer_.setCameraManipulator( new osgGA::TrackballManipulator );
         timer_.setInterval( 20 );
         connect( &timer_, SIGNAL( timeout() ), this, SLOT( update() ) );
         timer_.start();
@@ -58,14 +60,58 @@ public:
     const QString& author() const { return author_; }
 
 protected:
-    void resizeEvent( QResizeEvent* event )
-    {
-    	gw_->getEventQueue()->windowResize(0, 0, event->size().width(), event->size().height());
-        gw_->resized(0, 0, event->size().width(), event->size().height());
+    void resizeEvent( QResizeEvent* event ) {
+    	viewer_.getCamera()->setViewport(new osg::Viewport(0,0,width(),height()));
+    	viewer_.getCamera()->setProjectionMatrixAsPerspective(30.0f,
+    			static_cast<double>(event->size().width())/static_cast<double>(event->size().height()),
+    			1.0f, 10000.0f);
+
     }
+
     void paintGL() {
     	viewer_.frame();
     }
+
+    void keyPressEvent( QKeyEvent* event ) {
+        gw_->getEventQueue()->keyPress( (osgGA::GUIEventAdapter::KeySymbol) *(event->text().toAscii().data() ) );
+
+    }
+
+    void keyReleaseEvent( QKeyEvent* event ) {
+        gw_->getEventQueue()->keyRelease( (osgGA::GUIEventAdapter::KeySymbol) *(event->text().toAscii().data() ) );
+    }
+
+    void mousePressEvent( QMouseEvent* event )  {
+        int button = 0;
+        switch(event->button())
+        {
+            case(Qt::LeftButton): button = 1; break;
+            case(Qt::MidButton): button = 2; break;
+            case(Qt::RightButton): button = 3; break;
+            case(Qt::NoButton): button = 0; break;
+            default: button = 0; break;
+        }
+        gw_->getEventQueue()->mouseButtonPress(event->x(), event->y(), button);
+    }
+
+    void mouseReleaseEvent( QMouseEvent* event ) {
+        int button = 0;
+        switch(event->button())
+        {
+            case(Qt::LeftButton): button = 1; break;
+            case(Qt::MidButton): button = 2; break;
+            case(Qt::RightButton): button = 3; break;
+            case(Qt::NoButton): button = 0; break;
+            default: button = 0; break;
+        }
+        gw_->getEventQueue()->mouseButtonRelease(event->x(), event->y(), button);
+    }
+
+    void mouseMoveEvent( QMouseEvent* event ) {
+        gw_->getEventQueue()->mouseMotion(event->x(), event->y());
+    }
+
+
 
 signals:
     void onError( const QString& );
