@@ -9,7 +9,12 @@ ww.setAttributes( { DeveloperExtrasEnabled: true,
                     JavascriptEnabled: true,
                     LocalContentCanAccessFileUrls: true } ); 
 ww.setEnableContextMenu( true );
-ww.load( "./loadtest.html" );
+
+if( !Loco.ctx.os() === "WINDOWS" )
+  ww.load( "./loadtest.html" );
+else
+  ww.load( "./loadtest-win.html" );
+
 ww.show();
 
 } catch(e) {
