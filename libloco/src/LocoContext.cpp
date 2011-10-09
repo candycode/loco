@@ -96,30 +96,40 @@ Object* Context::Find( const QString& jsInstanceName ) const {
     }
     QPluginLoader* pl = new QPluginLoader( uri );
 	if( !pl->load() ) {
-	    delete pl;
-		error( "Cannot load " + uri );
+		const QString err = pl->errorString();
+		delete pl;
+		error( "Cannot load " + uri + " - " + err );
 		jsInterpreter_->EvaluateJavaScript( jsErrCBack_ );
 		return QVariant();
-	} 			
+	}
+	QObject* qobj = pl->instance();
+	if( !qobj ) {
+	    delete pl;
+		error( "NULL instance - " + uri );
+		jsInterpreter_->EvaluateJavaScript( jsErrCBack_ );
+		return QVariant();
+	}
+	bool foreign = false;
     Object* obj = qobject_cast< ::loco::Object* >( pl->instance() );
-    if( !obj ) {
-			delete pl;
-			error( "Wrong object type " + uri );
-			jsInterpreter_->EvaluateJavaScript( jsErrCBack_ );
-			return QVariant();
-    }
+	if( !obj ) {
+		foreign = true;
+		obj = new Object;
+		obj->SetPluginLoader( pl );
+		connect( qobj, SIGNAL( destroyed() ), obj, SLOT( deleteLater() ) );
+	}
 	obj->SetContext( this );
     obj->SetPluginLoader( pl );
     connect( obj, SIGNAL( onError( const QString& ) ), this, SLOT( OnObjectError( const QString& ) ) );
-		if( persistent ) {
-			jscriptStdObjects_.push_back( obj );
-			stdPluginLoaders_.push_back( pl );
-		} else {
-			jscriptCtxInstances_.push_back( obj );
-			ctxPluginLoaders_.push_back( pl );
-		}
+	if( persistent ) {
+		jscriptStdObjects_.push_back( obj );
+		stdPluginLoaders_.push_back( pl );
+	} else {
+		jscriptCtxInstances_.push_back( obj );
+		ctxPluginLoaders_.push_back( pl );
+	}
     uriObjectMap_[ persistent ][ uri ] = obj;
-    jsInterpreter_->AddObjectToJS( obj->jsInstanceName(), obj );
+	if( foreign ) jsInterpreter_->AddObjectToJS( obj->jsInstanceName(), qobj );
+	else jsInterpreter_->AddObjectToJS( obj->jsInstanceName(), obj );
     return jsInterpreter_->EvaluateJavaScript( obj->jsInstanceName() );
 }
 

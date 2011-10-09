@@ -28,8 +28,8 @@ class Object : public EWL {
     Q_PROPERTY( QString type READ type )
     Q_PROPERTY( QString jsInstance READ jsInstanceName )
 public:    
-    Object( Context* c, 
-		    const QString& n,
+    Object( Context* c = 0, 
+		    const QString& n = "LocoObject",
 			const QString& type = "", 
 			const QString& module = "",
             bool destroyable = false,
