@@ -32,7 +32,7 @@ endif()
 if( MSVC )
   set( GL_LIBRARIES opengl32 glu32 )
 else()
-  set( GL_LIBRARIES opengl glu )
+  set( GL_LIBRARIES GL GLU )
 endif()    
 target_link_libraries( osgview ${OSG_LIBRARIES} ${QT_LIBRARIES} ${GL_LIBRARIES} )
 

@@ -90,7 +90,9 @@ void osg::QAdapterScene::mouseMoveEvent( QGraphicsSceneMouseEvent* event )
 {
 	QGraphicsScene::mouseMoveEvent(event);
 	if( event->isAccepted() ) return;
+	std::cout << "SCENE EVENT MOVE" << std::endl;
     _gw->getEventQueue()->mouseMotion(event->scenePos().x(), event->scenePos().y());
+    event->setAccepted(true);
 }
 
 /** Translate Qt key symbols (Qt::Key) to osg one.
@@ -208,8 +210,6 @@ void osg::QOSGScene::init(qreal x, qreal y, qreal w, qreal h)
 	firstFrame = true;
 	m_lastStateSet = new osg::StateSet;
 	setThreadingModel(osgViewer::Viewer::SingleThreaded);
-	connect( &_timer, SIGNAL( timeout() ), this, SLOT( update() ) );
-	_timer.start();
 }
 
 osg::QOSGScene::QOSGScene(QObject* parent)
@@ -316,9 +316,7 @@ void  osg::QOSGScene::drawBackground ( QPainter * painter, const QRectF & rect )
 void osg::QOSGCompositeScene::init()
 {
 	setThreadingModel(osgViewer::CompositeViewer::SingleThreaded);
-	connect(&_timer, SIGNAL(timeout()), this, SLOT(update()));
 	frameCount = 0;
-	_timer.start(20);
 }
 
 osg::QOSGCompositeScene::QOSGCompositeScene(QObject* parent)

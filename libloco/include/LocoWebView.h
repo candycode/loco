@@ -4,6 +4,10 @@
 #include <QtWebKit/QWebView>
 #include <QKeyEvent>
 #include <QMouseEvent>
+#include <QPixmap>
+#include <QPainter>
+#include <QPrinter>
+#include <QtWebKit/QWebFrame>
 
 class QWebPluginFactory;
 
@@ -24,10 +28,31 @@ public:
             wpf_->setParent( 0 );
             wpf_->deleteLater();
         }*/
-        page()->setPluginFactory( pf );       
+        page()->setPluginFactory( pf );
     }
     QWebPluginFactory* GetWebPluginFactory() const { return page()->pluginFactory(); } 
+    void SetPageSize( int w, int h ) { page()->setViewportSize( QSize( w, h ) ); }
+    QSize PageSize() const { return page()->viewportSize(); }
+    void SaveSnapshot( const QString& filePath, int quality = -1 ) const {
+        QPixmap p( page()->viewportSize() );
+       	QPainter painter( &p );
+        page()->mainFrame()->render( &painter, QWebFrame::ContentsLayer );
+        p.save( filePath, 0, quality );
+    }
+    QPixmap Snapshot() const {
+	    QPixmap p( page()->viewportSize() );
+	    QPainter painter( &p );
+	    page()->mainFrame()->render( &painter, QWebFrame::ContentsLayer );
+	    return p;
+    }
+    void SavePDF( const QString& filePath ) const {
+        QPrinter p;
+        p.setOutputFileName( filePath );
+        p.setOutputFormat( QPrinter::PdfFormat );
+        page()->mainFrame()->print( &p );
+    }
 protected:
+
 	void closeEvent( QCloseEvent* e ) {
 		emit closing();
 		QWebView::closeEvent( e );

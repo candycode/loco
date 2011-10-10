@@ -92,6 +92,24 @@ public slots:
 
 public slots:
 
+    void setPageSize( int w, int h ) { webView_->SetPageSize( w, h ); }
+
+    QVariantMap pageSize() const {
+    	QSize sz = webView_->PageSize();
+    	QVariantMap m;
+    	m[ "width"  ] = sz.width();
+    	m[ "height" ] = sz.height();
+    	return m;
+    }
+    void saveSnapshot( const QString& filePath, int quality = -1 ) const {
+    	webView_->SaveSnapshot( filePath );
+    }
+    QPixmap snapshot() const {
+    	return webView_->Snapshot();
+    }
+    void saveToPDF( const QString& fname ) const {
+    	webView_->SavePDF( fname );
+    }
     void createWebPluginFactory( const QString& type = "dynamic" ) {
     	if( type.toLower() == "dynamic" ) {
     		DynamicWebPluginFactory* pf = new DynamicWebPluginFactory;

@@ -26,22 +26,28 @@ public:
 		osgscene_( new osg::QOSGScene ),
                       webView_( new QGraphicsWebView ) {
 
-        setViewport( new QGLWidget( QGLFormat(QGL::SampleBuffers | QGL::AccumBuffer | QGL::AlphaChannel) ) );
+    	//QGLWidget* glWidget =
+        setViewport( new QGLWidget( QGLFormat(QGL::SampleBuffers | QGL::AccumBuffer | QGL::AlphaChannel), this, 0,
+        		     Qt::FramelessWindowHint | Qt::SubWindow ) );
         setViewportUpdateMode( QGraphicsView::FullViewportUpdate );
         setScene( osgscene_ );
-        osgscene_->setContinuousUpdate( 50 );
+        //osgscene_->setContinuousUpdate( 50 );
         osgscene_->setCameraManipulator( new osgGA::TrackballManipulator );
         webView_->setCacheMode( QGraphicsItem::DeviceCoordinateCache ); //without this transparency doensn't work
 		//wv->setAcceptedMouseButtons(0);
-		webView_->resize( 1024, 768 );
+		//webView_->resize( 1024, 768 );
 		webView_->settings()->setAttribute( QWebSettings::PluginsEnabled, true );
 		webView_->settings()->setAttribute( QWebSettings::AcceleratedCompositingEnabled, true );
 		webView_->settings()->setAttribute( QWebSettings::DeveloperExtrasEnabled, true );
 		webView_->settings()->setAttribute( QWebSettings::JavascriptCanOpenWindows, true );
 		webView_->settings()->setAttribute( QWebSettings::SpatialNavigationEnabled, true );
 		webView_->settings()->setAttribute( QWebSettings::LocalContentCanAccessFileUrls, true );
+		webView_->settings()->setAttribute( QWebSettings::LocalContentCanAccessRemoteUrls, true );
+		webView_->settings()->setAttribute( QWebSettings::SiteSpecificQuirksEnabled, true );
+
+#if QT_VERSION >= (4 << 16 | 8 << 8)
 		webView_->settings()->setAttribute( QWebSettings::WebGLEnabled, true );
-	
+#endif
 		webView_->setAcceptHoverEvents(true);
 		osgscene_->addItem( webView_ );
     }
@@ -54,8 +60,7 @@ protected:
 		}
 		webView_->resize( event->size().width(), event->size().height() );
 		osgscene_->Resize( event->size().width(), event->size().height() );
-		
-        //QGraphicsView::resizeEvent( event );
+        QGraphicsView::resizeEvent( event );
 	}
 public slots:
 	void setOpacity( double opacity ) { webView_->setOpacity( opacity ); }
