@@ -22,8 +22,6 @@
 #include "LocoDynamicWebPluginFactory.h"
 #include "LocoStaticWebPluginFactory.h"
 
-#include <iostream>
-
 
 class QWebPluginFactory;
 
@@ -85,15 +83,18 @@ private slots:
 
     void PreLoadCBack() { ctx_.Eval( preLoadCBack_ ); }
     void OnClose() { emit closing(); }
-
 public slots:
 
     void setPreLoadCBack( const QString& cback ) { preLoadCBack_ = cback; }
 
 public slots:
 
+    bool syncLoad( const QString& url, int timeout ) { return webView_->SyncLoad( QUrl( url ), timeout ); }
+    bool syncLoad( const QString& urlString, const QVariantMap& opt, int timeout ) {
+        return webView_->SyncLoad( urlString, opt, timeout );
+    }
+    void load( const QString& urlString, const QVariantMap& opt ) { return webView_->Load( urlString, opt ); }
     void setPageSize( int w, int h ) { webView_->SetPageSize( w, h ); }
-
     QVariantMap pageSize() const {
     	QSize sz = webView_->PageSize();
     	QVariantMap m;
@@ -118,7 +119,6 @@ public slots:
     		error( "only 'dynamic' supported at this time" );
     	}
     }
-
     void setMouseCursor( const QString& shape ) {
         if( shape == "arrow" ) webView_->setCursor( Qt::ArrowCursor );
         else if( shape == "upArrow" ) webView_->setCursor( Qt::UpArrowCursor );

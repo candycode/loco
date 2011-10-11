@@ -7,6 +7,7 @@
 #include <QColorDialog>
 #include <QColor>
 #include <QMessageBox>
+#include <QApplication>
 
 #include "LocoObject.h"
 
@@ -91,6 +92,11 @@ public slots:
 		QMessageBox::warning( 0, caption, msg );
 	}
 
+	QVariantMap dpi() const {
+		QVariantMap m;
+		m[ "x" ] = QApplication::desktop()->physicalDpiX();
+		m[ "y" ] = QApplication::desktop()->physicalDpiY();
+	}
 
 };
 

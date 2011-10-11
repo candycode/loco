@@ -89,6 +89,29 @@ private slots:
 
 public slots:
 
+   bool syncLoad( const QString& url, int timeout ) { return webView_->SyncLoad( QUrl( url ), timeout ); }
+   bool syncLoad( const QString& urlString, const QVariantMap& opt, int timeout ) {
+       return syncLoad( urlString, opt, timeout );
+   }
+   void load( const QString& urlString, const QVariantMap& opt ) { return webView_->Load( urlString, opt ); }
+   void setPageSize( int w, int h ) { webView_->SetPageSize( w, h ); }
+    QVariantMap pageSize() const {
+    	QSize sz = webView_->PageSize();
+    	QVariantMap m;
+    	m[ "width"  ] = sz.width();
+    	m[ "height" ] = sz.height();
+    	return m;
+    }
+    void saveSnapshot( const QString& filePath, int quality = -1 ) const {
+    	webView_->SaveSnapshot( filePath );
+    }
+    QPixmap snapshot() const {
+    	return webView_->Snapshot();
+    }
+    void saveToPDF( const QString& fname ) const {
+    	webView_->SavePDF( fname );
+    }
+
     void createWebPluginFactory( const QString& type = "dynamic" ) {
     	if( type.toLower() == "dynamic" ) {
     		webView_->page()->setPluginFactory( new DynamicWebPluginFactory );

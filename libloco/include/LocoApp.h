@@ -170,7 +170,7 @@ public:
             	QString v;
             	for( li.toBack(); li.hasPrevious(); v = li.previous() ) {
 					if( v.toLower().endsWith( ".js" )  ||
-						v.toLower().endsWith( "loco" ) ||
+						v.toLower().endsWith( ".loco" ) ||
 						v.toLower().endsWith( ".ljs" ) ) break;
             	}
             	if( li.hasPrevious() ) scriptFileName = v;
@@ -178,17 +178,22 @@ public:
             QFile scriptFile( scriptFileName );
             if( !scriptFile.exists() ) {
 			    throw std::runtime_error( "file " + scriptFileName.toStdString() + " does not exist" );
-        	    return 1;
+        	    return -1;
             }
             if( !scriptFile.open( QIODevice::ReadOnly ) ) {
                 throw std::runtime_error( "Cannot open file: " + scriptFileName.toStdString() );
+                return -1;
             }
             QString jscriptCode = scriptFile.readAll();
             if( scriptFile.error() != QFile::NoError ) {
         	    throw std::runtime_error( scriptFile.errorString().toStdString() );
+        	    return -1;
             }
             scriptFile.close();
-            if( jscriptCode.isEmpty() ) throw std::logic_error( "Empty javascript source file" );
+            if( jscriptCode.isEmpty() ) {
+            	throw std::logic_error( "Empty source file" );
+            	return -1;
+            }
                                                 
             // 2 - Create run-time environment                             
 	        ctx_.Init( jsInterpreter_, &app_, cmdLine_ );
