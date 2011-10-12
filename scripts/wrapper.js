@@ -37,6 +37,7 @@ try {
                      AcceleratedCompositingEnabled: true } );
   ww.setEnableContextMenu( true );
   ww.loadProgress.connect( function( i ) { ww.setStatusBarText( i + "%" ); } );
+  ww.setForwardKeyEvents( true );
   ww.keyPress.connect( function( k, m, c ) { 
                          if( k === LocoKey.F11 ) ww.showNormal();
                        } );

@@ -10,18 +10,63 @@
 #include <QTimer>
 #include <QEventLoop>
 #include <QVariantMap>
+#include <QList>
+#include <QPair>
+#include <QWebPage>
+#include <QRegExp>
 
-//@todo remove
-#include <iostream>
 
 class QWebPluginFactory;
 
 namespace loco {
+
+typedef QList< QPair< QRegExp, QString > > UrlAgentMap;
+
+class WebPage : public QWebPage {
+	Q_OBJECT
+public:
+	WebPage( QWidget* parent = 0 ) : QWebPage( parent ), allowInterrupt_( true ) {}
+    void SetUserAgentForUrl( const QRegExp& url, const QString& userAgent ) {
+    	urlAgents_.push_back( qMakePair( url, userAgent ) );
+    }
+    void SetAllowInterruptJavaScript( bool yes ) {
+    	allowInterrupt_ = yes;
+    }
+protected:
+    QString userAgentForUrl( const QUrl& url ) const {
+    	const QString s = url.toString();
+    	for( UrlAgentMap::const_iterator i = urlAgents_.begin();
+    		 i != urlAgents_.end(); ++i ) {
+    		if( i->first.exactMatch( s ) ) return i->second;
+    	}
+        return QWebPage::userAgentForUrl( url );
+    }
+public slots:
+    bool shouldInterruptJavaScript() {
+    	if( !allowInterrupt_ ) return false;
+    	return QWebPage::shouldInterruptJavaScript();
+    }
+private:
+    bool allowInterrupt_;
+    UrlAgentMap urlAgents_;
+};
+
+
 class WebView : public QWebView {
 	Q_OBJECT
 public:
 	WebView() : eatContextMenuEvent_( true ), eatKeyEvents_( true ),
-	            eatMouseEvents_( false ), syncLoadOK_( false ) {}
+	            eatMouseEvents_( false ), syncLoadOK_( false ) {
+		WebPage* wp = new WebPage;
+		wp->setParent( this );
+		setPage( wp );
+	}
+	void SetUserAgentForUrl( const QRegExp& url, const QString& userAgent ) {
+	    qobject_cast< WebPage* >( page() )->SetUserAgentForUrl( url, userAgent );
+	}
+	void SetAllowInterruptJavaScript( bool yes ) {
+		qobject_cast< WebPage* >( page() )->SetAllowInterruptJavaScript( yes );
+	}
 	void EatContextMenuEvent( bool yes ) { eatContextMenuEvent_ = yes; }
 	bool EatingContextMenuEvent() const { return eatContextMenuEvent_; }
 	void EatKeyEvents( bool yes ) { eatKeyEvents_ = yes; }

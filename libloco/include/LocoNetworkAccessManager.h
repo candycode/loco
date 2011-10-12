@@ -8,6 +8,9 @@
 #include <QStringList>
 #include <QRegExp>
 
+///@todo remove
+#include <iostream>
+
 namespace loco {
 
 typedef QList< QRegExp > RegExps; 
@@ -53,7 +56,24 @@ protected:
     virtual QNetworkReply* createRequest( Operation op,
                                           const QNetworkRequest& req,
                                           QIODevice* outgoingData = 0 ) {
-	
+
+#ifdef LOCO_LOG_WEB_REQUEST
+    	typedef QList< QPair< QString, QString > > QI;
+    	QI qi = req.url().queryItems();
+    	std::cout << "\n=======================================\n";
+    	std::cout << "Authority:" << req.url().authority().toStdString() << std::endl;
+    	std::cout << "Host:     " << req.url().host().toStdString() << std::endl;
+    	std::cout << "Port:     " << ( req.url().port() < 0 ? 80 : req.url().port() ) << std::endl;
+    	std::cout << "Path:     " << req.url().path().toStdString() << std::endl;
+    	std::cout << "Scheme:   " << req.url().scheme().toStdString() << std::endl;
+    	for( QI::const_iterator i = qi.begin(); i != qi.end(); ++i ) {
+    		std::cout << "\t" << i->first.toStdString() << " = " << i->second.toStdString() << std::endl;
+    	}
+    	if( outgoingData != 0 ) {
+    		QString data = outgoingData->peek( outgoingData->bytesAvailable() );
+    		std::cout << data.toStdString() << std::endl;
+    	}
+#endif
         if( !allowNetAccess_ ) {
             emit UnauthorizedNetworkAccessAttempt();
 			QNetworkRequest nr;

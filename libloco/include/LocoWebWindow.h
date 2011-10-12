@@ -57,9 +57,10 @@ public:
         ctx_.Init( jsInterpreter_ );
         ctx_.SetJSContextName( "wctx" ); //web window context
         ctx_.AddContextToJS();
-        webView_->setAttribute( Qt::WA_DeleteOnClose );
-        
+        //@todo who owns webView_ ?
     }
+    ~WebWindow() { if( webView_ && webView_->parent() != 0 ) webView_->deleteLater(); }
+
     void AddSelfToJSContext() {
         ctx_.AddJSStdObject( this );
     }
@@ -89,6 +90,12 @@ public slots:
 
 public slots:
 
+    void setUserAgentForUrl( const QRegExp& url, const QString& userAgent ) {
+	    webView_->SetUserAgentForUrl( url, userAgent );
+	}
+	void SetAllowInterruptJavaScript( bool yes ) {
+		webView_->SetAllowInterruptJavaScript( yes );
+	}
     bool syncLoad( const QString& url, int timeout ) { return webView_->SyncLoad( QUrl( url ), timeout ); }
     bool syncLoad( const QString& urlString, const QVariantMap& opt, int timeout ) {
         return webView_->SyncLoad( urlString, opt, timeout );
