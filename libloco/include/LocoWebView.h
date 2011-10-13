@@ -12,8 +12,11 @@
 #include <QVariantMap>
 #include <QList>
 #include <QPair>
-#include <QWebPage>
+#include <QtWebKit/QWebPage>
 #include <QRegExp>
+#include <QtWebKit/QWebElement>
+#include <QtWebKit/QWebElementCollection>
+
 
 
 class QWebPluginFactory;
@@ -74,12 +77,6 @@ public:
     void EatMouseEvents( bool yes ) { eatMouseEvents_ = yes; }
     bool EatingMouseEvents() const { return eatMouseEvents_; }
     void SetWebPluginFactory( QWebPluginFactory* pf ) {
-        /*QWebPluginFactory* wpf = page()->pluginFactory(); // is plugin factory owned by Page() ?
-        if( wpf != 0 && pf == wpf ) return;
-        if( wpf != 0 ) {
-            wpf_->setParent( 0 );
-            wpf_->deleteLater();
-        }*/
         page()->setPluginFactory( pf );
     }
     QWebPluginFactory* GetWebPluginFactory() const { return page()->pluginFactory(); } 
@@ -116,6 +113,15 @@ public:
     }
     void Load( const QString& urlString, const QVariantMap& opt ) {
         load( ConfigureURL( urlString, opt ) );
+    }
+    QWebElement FindFirstElement( const QString& selector )  {
+    	return page()->mainFrame()->findFirstElement( selector );
+    }
+    QWebElementCollection FindElements( const QString& selector ) {
+    	return page()->mainFrame()->findAllElements( selector );
+    }
+    void HighlightText( const QString& substring ) {
+    	page()->findText( substring, QWebPage::HighlightAllOccurrences );
     }
 private slots:
     void OnLoadFinished( bool ok ) { syncLoadOK_ = ok; }

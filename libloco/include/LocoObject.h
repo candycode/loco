@@ -66,11 +66,12 @@ public:
     virtual void warning( const QString& em ) const { EWL::warn( FormatEWLMsg( em ) ); }
     virtual void log( const QString& em ) const { EWL::log( FormatEWLMsg( em ) ); }
     virtual bool error() const { return EWL::error(); }  
-private:
+
     static int IncInstanceCount()  { 
 	    const int c = instanceCount_.fetchAndAddAcquire( 1 );
 	    return c + 1; 
 	}
+public:
     static void DecInstanceCount()  { 
 	    const int c = instanceCount_.fetchAndAddAcquire( -1 );
 	}

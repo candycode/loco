@@ -10,6 +10,8 @@
 #include <QtWebKit/QWebPage>
 #include <QtWebKit/QWebFrame>
 #include <QtWebKit/QWebSettings>
+#include <QtWebKit/QWebElementCollection>
+#include <QtWebKit/QWebElement>
 #include <QCursor>
 
 
@@ -21,6 +23,8 @@
 #include "LocoWebMainWindow.h"
 #include "LocoDynamicWebPluginFactory.h"
 #include "LocoStaticWebPluginFactory.h"
+#include "LocoNetworkAccessManager.h"
+#include "LocoWebElement.h"
 
 
 class QWebPluginFactory;
@@ -66,6 +70,12 @@ public:
     }
     
     void SetNetworkAccessManager( QNetworkAccessManager* nam ) {
+    	NetworkAccessManager* na = qobject_cast< NetworkAccessManager* >(
+    	     	       webView_->page()->networkAccessManager() );
+    	if( na != 0 ) {
+    		connect( na, SIGNAL( OnRequest( const QVariant& ) ),
+    				 this, SIGNAL( onRequest( const QVariant& ) ) );
+    	}
         webView_->page()->setNetworkAccessManager( nam );
     }
 
@@ -79,7 +89,8 @@ public:
     void SetWebPluginFactory( ::QWebPluginFactory* wpf ) { webView_->page()->setPluginFactory( wpf ); }
 
     ::QWebPluginFactory* GetWebPluginFactory() const { return webView_->page()->pluginFactory(); }
-
+signals:
+    void onRequest( const QVariant& );
 private slots:
 
     void PreLoadCBack() { ctx_.Eval( preLoadCBack_ ); }
@@ -90,6 +101,59 @@ public slots:
 
 public slots:
 
+    void highLightText( const QString& substring ) { webView_->HighlightText( substring ); }
+
+    QList< QVariant > forEachElement( const QString& selectorQuery,
+    		                          const QString& cond,
+    		                          int maxNum = std::numeric_limits< int >::max() ) {
+    	QWebElementCollection wec = webView_->FindElements( selectorQuery );
+    	if( wec.count() < 1 ) return QList< QVariant >();
+    	QList< QVariant > we;
+    	int n = 0;
+    	for( QWebElementCollection::iterator i = wec.begin();
+    	     i != wec.end() && n < maxNum; ++i, ++n ) {
+    		  if( ( *i ).evaluateJavaScript( cond ).toBool() ) {
+    	   	      we.push_back( GetContext()->AddObjToJSContext( new WebElement( *i ) ) );
+    	    }
+        }
+        return we;
+    }
+    QVariant findFirstElement( const QString& selectorQuery ) {
+    	QWebElement we = webView_->FindFirstElement( selectorQuery );
+    	if( we.isNull() ) return QVariant();
+    	return GetContext()->AddObjToJSContext( new WebElement( we ) ) ;
+    }
+    QList< QVariant > findElements( const QString& selectorQuery ) const {
+    	QWebElementCollection wec = webView_->FindElements( selectorQuery );
+    	if( wec.count() < 1 ) return QList< QVariant >();
+    	QList< QVariant > we;
+    	for(QWebElementCollection::const_iterator i = wec.constBegin();
+    	    i != wec.constEnd(); ++i ) {
+    		we.push_back( GetContext()->AddObjToJSContext( new WebElement( *i ) ) );
+    	}
+    	return we;
+    }
+
+    bool canLogRequests() const {
+    	return qobject_cast< NetworkAccessManager* >(
+    		   webView_->page()->networkAccessManager() ) != 0;
+    }
+    bool canEmitRequestSignal() const {
+    	return qobject_cast< NetworkAccessManager* >(
+    	       webView_->page()->networkAccessManager() ) != 0;
+    }
+    void logRequests( bool yes ) {
+    	NetworkAccessManager* nam = qobject_cast< NetworkAccessManager* >(
+     	       webView_->page()->networkAccessManager() );
+    	if( !nam ) return;
+    	nam->SetLogRequestsEnabled( yes );
+    }
+    void emitRequestSignal( bool yes ) {
+    	NetworkAccessManager* nam = qobject_cast< NetworkAccessManager* >(
+         	       webView_->page()->networkAccessManager() );
+      	if( !nam ) return;
+    	nam->EmitRequestSignal( yes );
+    }
     void setUserAgentForUrl( const QRegExp& url, const QString& userAgent ) {
 	    webView_->SetUserAgentForUrl( url, userAgent );
 	}

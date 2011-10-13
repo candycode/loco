@@ -5,8 +5,10 @@
 #include <QtNetwork/QNetworkRequest>
 #include <QString>
 #include <QList>
+#include <QVariantMap>
 #include <QStringList>
 #include <QRegExp>
+#include <QDate>
 
 ///@todo remove
 #include <iostream>
@@ -34,7 +36,9 @@ public:
         filterRequests_( true ),
         allowNetAccess_( false ),
         enableUrlMapping_( false ),
-        signalAccessDenied_( true ) {}
+        signalAccessDenied_( true ),
+        logRequests_( false ),
+        emitRequestSignal_( false ){}
     QRegExp::PatternSyntax GetRxPatternSyntax() const { return rxPattern_; }
     void SetRxPatternSyntax( QRegExp::PatternSyntax ps ) { rxPattern_ = ps; }
     bool GetFilterRequests() const { return filterRequests_; }
@@ -52,28 +56,38 @@ public:
     bool GetSignalAccessDenied() const { return signalAccessDenied_; }
     void SetDefaultUrl( const QString& durl ) { defaultUrl_ = durl; }
     const QString& GetDefaultUrl() const { return defaultUrl_; }
+    void ResetRequests() { requests_.clear(); }
+    const QList< QVariantMap >& Requests() const { return requests_; }
+    bool SetLogRequestsEnabled( bool yes ) { logRequests_ = yes; }
+    bool EmitRequestSignal( bool yes ) { emitRequestSignal_ = yes; }
 protected:
     virtual QNetworkReply* createRequest( Operation op,
                                           const QNetworkRequest& req,
                                           QIODevice* outgoingData = 0 ) {
-
-#ifdef LOCO_LOG_WEB_REQUEST
-    	typedef QList< QPair< QString, QString > > QI;
-    	QI qi = req.url().queryItems();
-    	std::cout << "\n=======================================\n";
-    	std::cout << "Authority:" << req.url().authority().toStdString() << std::endl;
-    	std::cout << "Host:     " << req.url().host().toStdString() << std::endl;
-    	std::cout << "Port:     " << ( req.url().port() < 0 ? 80 : req.url().port() ) << std::endl;
-    	std::cout << "Path:     " << req.url().path().toStdString() << std::endl;
-    	std::cout << "Scheme:   " << req.url().scheme().toStdString() << std::endl;
-    	for( QI::const_iterator i = qi.begin(); i != qi.end(); ++i ) {
-    		std::cout << "\t" << i->first.toStdString() << " = " << i->second.toStdString() << std::endl;
+    	if( logRequests_ || emitRequestSignal_ ) {
+			typedef QList< QPair< QString, QString > > QI;
+			QI qi = req.url().queryItems();
+			QVariantMap requestLog;
+			requestLog[ "url"       ] = req.url().toEncoded();
+			requestLog[ "authority" ] = req.url().authority();
+			requestLog[ "host"      ] = req.url().host();
+			requestLog[ "port"      ] = req.url().port();
+			requestLog[ "path"      ] = req.url().path();
+			requestLog[ "scheme"    ] = req.url().scheme();
+			requestLog[ "username"  ] = req.url().userName();
+			requestLog[ "password"  ] = req.url().password();
+			requestLog[ "date"      ] = QDate::currentDate();
+			QVariantMap m;
+			for( QI::const_iterator i = qi.begin(); i != qi.end(); ++i ) {
+				m[ i->first ]  = i->second;
+			}
+			requestLog[ "query" ] = m;
+			if( outgoingData != 0 ) {
+				requestLog[ "data" ] = outgoingData->peek( outgoingData->bytesAvailable() );
+			}
+			if( logRequests_ ) requests_.push_back( requestLog );
+			if( emitRequestSignal_ ) emit OnRequest( requestLog );
     	}
-    	if( outgoingData != 0 ) {
-    		QString data = outgoingData->peek( outgoingData->bytesAvailable() );
-    		std::cout << data.toStdString() << std::endl;
-    	}
-#endif
         if( !allowNetAccess_ ) {
             emit UnauthorizedNetworkAccessAttempt();
 			QNetworkRequest nr;
@@ -120,7 +134,7 @@ protected:
 signals:
     void UrlAccessDenied( QString );
     void UnauthorizedNetworkAccessAttempt();
-
+    void OnRequest( const QVariantMap& );
 private:
     QNetworkAccessManager nam_;
     QRegExp::PatternSyntax rxPattern_;
@@ -132,6 +146,9 @@ private:
     RedirMap redirMap_;
     bool signalAccessDenied_;
     QString defaultUrl_;
+    bool logRequests_;
+    QList< QVariantMap > requests_;
+    bool emitRequestSignal_;
 
 };
 
