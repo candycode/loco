@@ -147,10 +147,11 @@ public:
     // the current context and have the object's lifetime managed by javascript
     // NEVER add root objects from plugins because such objects must be deleted
     // through the plusgin loader's unload method
-    QVariant AddObjToJSContext( Object* obj ) {
+    QVariant AddObjToJSContext( Object* obj, bool ownedByJavascript = true ) {
         jsInterpreter_->AddObjectToJS( obj->jsInstanceName(),
                                        obj,
-                                       QScriptEngine::ScriptOwnership );
+                                       ownedByJavascript ? QScriptEngine::ScriptOwnership :
+                                         QScriptEngine::QtOwnership );
         obj->SetContext( this );
         ConnectErrCBack( obj );
         connect( obj, SIGNAL( destroyed( QObject* ) ), this, SLOT( RemoveScopeObject( QObject* ) ) );
@@ -603,7 +604,7 @@ public:
 
 // invocable from javascript
 public slots: // js interface
-    
+
     void setIncludePath( const QString& ip ) { setIncludePath( ip.split( ":" ) ); }
     void setIncludePath( const QStringList& ip ) { ctx_->SetIncludePath( ip ); }
     void addToIncludePath( const QString& p ) { ctx_->AddToIncludePath( p ); }

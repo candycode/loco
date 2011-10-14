@@ -90,9 +90,12 @@ void osg::QAdapterScene::mouseMoveEvent( QGraphicsSceneMouseEvent* event )
 {
 	QGraphicsScene::mouseMoveEvent(event);
 	if( event->isAccepted() ) return;
-	std::cout << "SCENE EVENT MOVE" << std::endl;
+	std::cout << "SCENE EVENT MOVE " << event->scenePos().x() << " " <<
+        event->scenePos().y() << std::endl;
+   
     _gw->getEventQueue()->mouseMotion(event->scenePos().x(), event->scenePos().y());
     event->setAccepted(true);
+    //update();
 }
 
 /** Translate Qt key symbols (Qt::Key) to osg one.

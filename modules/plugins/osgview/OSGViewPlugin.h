@@ -5,7 +5,10 @@
 #include <QtPlugin>
 #include <QGraphicsView>
 #include <QtWebKit/QGraphicsWebView>
+#include <QtWebKit/QWebHitTestResult>
+#include <QtWebKit/QWebElement>
 #include <QtOpenGL/QGLWidget>
+#include <QGraphicsSceneMouseEvent>
 
 #include <QApplication>
 #include <QDir>
@@ -15,6 +18,47 @@
 #include "QOSGGraphicsScene.h"
 
 #include <LocoObject.h>
+
+
+class TransparentGraphicsWebView : public QGraphicsWebView {
+private:
+	bool HandleEvent( QGraphicsSceneMouseEvent* ev ) const {
+		QWebHitTestResult tr = this->page()->currentFrame()
+			->hitTestContent( ev->scenePos().toPoint() );
+		
+        return false;
+		if( tr.element().tagName() == "HTML" ) {
+			
+			return false; 
+		}
+		return true;	
+	}
+protected:
+	void mousePressEvent( QGraphicsSceneMouseEvent * ev ) {
+	    if( HandleEvent( ev ) )	QGraphicsWebView::mousePressEvent( ev );
+		else ev->setAccepted( false );
+	}
+	void mouseReleaseEvent( QGraphicsSceneMouseEvent * ev ) {
+		if( HandleEvent( ev ) )	{
+			QGraphicsWebView::mouseReleaseEvent( ev );
+		}
+		else ev->setAccepted( false );
+		
+	}
+	void mouseMoveEvent( QGraphicsSceneMouseEvent * ev ) {
+        QPointF p = mapFromScene( ev->scenePos().x(), ev->scenePos().y() );
+        std::cout << "VIEW EVENT MOVE " << p.x() << " " << p.y() << std::endl;
+		if( HandleEvent( ev ) )	QGraphicsWebView::mouseMoveEvent( ev );
+		else ev->setAccepted( false );
+	}
+	void mouseDoubleClickEvent( QGraphicsSceneMouseEvent * ev ) {
+		if( HandleEvent( ev ) )	QGraphicsWebView::mouseDoubleClickEvent( ev );
+		else ev->setAccepted( false );
+	}
+
+};
+
+
 struct IDummy {};
 Q_DECLARE_INTERFACE(IDummy,"dummy")
 
@@ -24,11 +68,9 @@ class OSGViewPlugin : public QGraphicsView, public IDummy {
 public:
     OSGViewPlugin() :
 		osgscene_( new osg::QOSGScene ),
-                      webView_( new QGraphicsWebView ) {
+                      webView_( new TransparentGraphicsWebView ) {
 
-    	//QGLWidget* glWidget =
-        setViewport( new QGLWidget( QGLFormat(QGL::SampleBuffers | QGL::AccumBuffer | QGL::AlphaChannel), this, 0,
-        		     Qt::FramelessWindowHint | Qt::SubWindow ) );
+        setViewport( new QGLWidget( QGLFormat(QGL::SampleBuffers | QGL::AccumBuffer | QGL::AlphaChannel), this, 0 ) );
         setViewportUpdateMode( QGraphicsView::FullViewportUpdate );
         setScene( osgscene_ );
         //osgscene_->setContinuousUpdate( 50 );
@@ -44,10 +86,7 @@ public:
 		webView_->settings()->setAttribute( QWebSettings::LocalContentCanAccessFileUrls, true );
 		webView_->settings()->setAttribute( QWebSettings::LocalContentCanAccessRemoteUrls, true );
 		webView_->settings()->setAttribute( QWebSettings::SiteSpecificQuirksEnabled, true );
-
-#if QT_VERSION >= (4 << 16 | 8 << 8)
-		webView_->settings()->setAttribute( QWebSettings::WebGLEnabled, true );
-#endif
+//		webView_->settings()->setAttribute( QWebSettings::WebGLEnabled, true );
 		webView_->setAcceptHoverEvents(true);
 		osgscene_->addItem( webView_ );
     }
@@ -83,13 +122,15 @@ public slots:
 		}
 		webView_->load( QUrl( url ) );
 	}
+    void setContinuousUpdate( int ms ) { osgscene_->setContinuousUpdate( ms ); }
 	void show( int width = 0, int height = 0 ) { 
 		if( width > 0 && height > 0 ) resize( width, height );
 		QGraphicsView::show();
 	}
+
 private:
 	osg::QOSGScene* osgscene_;
-    QGraphicsWebView* webView_;
+    TransparentGraphicsWebView* webView_;
 
 };
 

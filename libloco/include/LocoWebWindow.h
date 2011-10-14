@@ -101,8 +101,9 @@ public slots:
 
 public slots:
 
+    QString webKitVersion() const { return QTWEBKIT_VERSION_STR; }
+    void close() { webView_->close(); }
     void highLightText( const QString& substring ) { webView_->HighlightText( substring ); }
-
     QList< QVariant > forEachElement( const QString& selectorQuery,
     		                          const QString& cond,
     		                          int maxNum = std::numeric_limits< int >::max() ) {

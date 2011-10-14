@@ -28,7 +28,8 @@ QVariant GUI::create( const QString& name, const QVariantMap& params ) const {
         WebMainWindow* wv = new WebMainWindow();
 		if( !GetContext()->GetNetworkAccessManager() ) throw std::runtime_error( "NULL Network Access Manager" );
 		wv->SetNetworkAccessManager( GetContext()->GetNetworkAccessManager() );
-        QVariant obj = GetContext()->AddObjToJSContext( wv );
+        const bool NOT_OWNED_BY_JAVASCRIPT = false;
+        QVariant obj = GetContext()->AddObjToJSContext( wv, NOT_OWNED_BY_JAVASCRIPT );
         return obj;
     } else {
         error( "GUI object \"" + name + "\" not recognized" );

@@ -46,7 +46,10 @@ public:
         app_.setOrganizationName( info_->vendor() );
         app_.setOrganizationDomain( info_->url() );
         app_.setApplicationVersion( info_->version().join( "," ) );
-        app_.setApplicationName( info_->name() ); 
+        app_.setApplicationName( info_->name() );
+#ifdef LOCO_GUI
+        connect( &app_, SIGNAL( lastWindowClosed() ), &app_, SLOT( quit() ) );
+#endif         
         ctx_.SetAppInfo( info_ );
         cmdLine_ = QCoreApplication::arguments();
 		

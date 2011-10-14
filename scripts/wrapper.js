@@ -11,7 +11,7 @@ try {
   var menu = {
      "Exit": {
       "Quit": {
-          "cback"  : "Loco.ctx.quit()",
+          "cback"  : "Loco.webWindow.close()",
           "tooltip": "Quit",
           "status" : "Exit from application",
           "icon"   : ""
@@ -31,9 +31,12 @@ try {
   ww.addParentObjectsToJS();  
  // setup main window 
   ww.setMenu( menu );
-  ww.setAttributes( {DeveloperExtrasEnabled: true,
+  ww.setAttributes( {JavascriptEnabled: true,
+                     PluginsEnabled: true, 
+                     DeveloperExtrasEnabled: true,
                      LocalContentCanAccessFileUrls: true,
                      LocalContentCanAccessRemoteUrls: true,
+                     WebGLEnabled: true,
                      AcceleratedCompositingEnabled: true } );
   ww.setEnableContextMenu( true );
   ww.loadProgress.connect( function( i ) { ww.setStatusBarText( i + "%" ); } );
@@ -53,6 +56,6 @@ try {
   
 } catch(e) {
   Loco.console.printerrln(e);
-  Loco.ctx.exit( -1 );
+  Loco.ctx.quit( -1 );
 }
 

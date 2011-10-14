@@ -19,7 +19,6 @@
 #include <QToolBar>
 #include <QVariantList>
 
-
 #include "LocoObject.h"
 #include "LocoContext.h"
 #include "LocoWebView.h"
@@ -58,7 +57,7 @@ public:
         connect( wf_, SIGNAL( titleChanged( const QString& ) ), this, SIGNAL( titleChanged( const QString& ) ) );
         connect( webView_->page(), SIGNAL( selectionChanged() ), this, SIGNAL( selectionChanged() ) );
         connect( &ctx_, SIGNAL( JSContextCleared() ), this, SLOT( PreLoadCBack() ) );
-
+        
         jsInterpreter_->setParent( this );
         jsInterpreter_->SetWebPage( webView_->page() );   
         ctx_.Init( jsInterpreter_ );
@@ -91,9 +90,9 @@ private slots:
     void OnClose() { emit closing(); }
 
 public slots:
-
+    QString webKitVersion() const { return QTWEBKIT_VERSION_STR; }
+    void close() { mw_.close(); }
     void highLightText( const QString& substring ) { webView_->HighlightText( substring ); }
-
     QList< QVariant > forEachElement( const QString& selectorQuery,
 		                          const QString& cond,
 		                          int maxNum = std::numeric_limits< int >::max() ) {
