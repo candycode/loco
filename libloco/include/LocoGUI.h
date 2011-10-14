@@ -96,6 +96,7 @@ public slots:
 		QVariantMap m;
 		m[ "x" ] = QApplication::desktop()->physicalDpiX();
 		m[ "y" ] = QApplication::desktop()->physicalDpiY();
+        return m;
 	}
 
 };

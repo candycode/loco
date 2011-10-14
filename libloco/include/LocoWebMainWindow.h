@@ -152,7 +152,7 @@ public slots:
 	}
     bool syncLoad( const QString& url, int timeout ) { return webView_->SyncLoad( QUrl( url ), timeout ); }
     bool syncLoad( const QString& urlString, const QVariantMap& opt, int timeout ) {
-        return syncLoad( urlString, opt, timeout );
+        return webView_->SyncLoad( urlString, opt, timeout );
     }
     void load( const QString& urlString, const QVariantMap& opt ) { return webView_->Load( urlString, opt ); }
     void setPageSize( int w, int h ) { webView_->SetPageSize( w, h ); }

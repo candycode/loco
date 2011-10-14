@@ -58,8 +58,8 @@ public:
     const QString& GetDefaultUrl() const { return defaultUrl_; }
     void ResetRequests() { requests_.clear(); }
     const QList< QVariantMap >& Requests() const { return requests_; }
-    bool SetLogRequestsEnabled( bool yes ) { logRequests_ = yes; }
-    bool EmitRequestSignal( bool yes ) { emitRequestSignal_ = yes; }
+    void SetLogRequestsEnabled( bool yes ) { logRequests_ = yes; }
+    void EmitRequestSignal( bool yes ) { emitRequestSignal_ = yes; }
 protected:
     virtual QNetworkReply* createRequest( Operation op,
                                           const QNetworkRequest& req,
