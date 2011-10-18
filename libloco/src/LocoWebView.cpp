@@ -1,5 +1,8 @@
 //#SRCHEADER
 #include <QPrinter>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QFile>
 
 #include "LocoWebView.h"
 
@@ -85,6 +88,33 @@ QString WebView::SavePDF( const QString& filePath, const QVariantMap& options ) 
 	page()->mainFrame()->print( &p );
 	return "";
 }
+
+bool WebView::SaveUrl( const QString& url, const QString& filename, int timeout ) {
+      QNetworkAccessManager* nam = this->page()->networkAccessManager();
+      QFile out( filename );
+      if( !out.open( QFile::WriteOnly )  ) {
+    	  return false;
+      }
+      QNetworkReply* reply = nam->get( QNetworkRequest( QUrl( url ) ) );
+      QEventLoop loop;
+      QObject::connect( nam, SIGNAL( finished( QNetworkReply* ) ), &loop, SLOT( quit() ) );
+      // soft real-time guarantee: kill network request if the total time is >= timeout
+      QTimer::singleShot( timeout, &loop, SLOT( quit() ) );
+      // Execute the event loop here, now we will wait here until readyRead() signal is emitted
+      // which in turn will trigger event loop quit.
+      loop.exec();
+      if( reply->isRunning() ) {
+          reply->close();
+          return false;
+      }
+      else {
+    	  while( reply->bytesAvailable() > 0 ) out.write( reply->read( reply->bytesAvailable() ) );
+    	  out.close();
+    	  reply->close();
+    	  return true;
+      }
+  }
+
 
 }
 

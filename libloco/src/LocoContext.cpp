@@ -15,8 +15,8 @@ namespace loco {
 Context::Context( Context* parent ) : jsContext_( new JSContext( this ) ),
                      jsInterpreter_( 0 ), jsInitGenerator_( 0 ),
                      app_( 0 ), parent_( 0 ), globalContextJSName_( "Loco" ), netAccessMgr_( 0 ),
-                     readNetworkTimeout_( 10000 ), maxNetRedirections_( 0 ),
-                     autoMapFilters_( false ), addParentObjs_( false ), appInfo_( 0 )  {
+                     readNetworkTimeout_( 10000 ), maxNetRedirections_( 2 ),
+                     autoMapFilters_( false ), addParentObjs_( false ), appInfo_( 0 ) {
     connect( this, SIGNAL( onError( const QString& ) ), 
              this, SLOT( OnSelfError( const QString& ) ) );
     jsContext_->setParent( this );
@@ -30,7 +30,7 @@ Context::Context( IJSInterpreter* jsi, LocoQtApp* app, const QStringList& cmdLin
 :   jsContext_( new JSContext( this ) ), jsInitGenerator_( 0 ),
     jsInterpreter_( jsi ), app_( app ), parent_( parent ), cmdLine_( cmdLine ),
     globalContextJSName_( "Loco" ), netAccessMgr_( 0 ),
-    readNetworkTimeout_( 10000 ), maxNetRedirections_( 0 ),
+    readNetworkTimeout_( 10000 ), maxNetRedirections_( 2 ),
     autoMapFilters_( false ), addParentObjs_( false ), appInfo_( 0 )  {
     connect( this, SIGNAL( onError( const QString& ) ), 
              this, SLOT( OnSelfError( const QString& ) ) );
@@ -146,23 +146,25 @@ QByteArray Context::ReadUrl( const QString& url, QSet< QUrl > redirects ) {
     }
     QNetworkReply* reply = netAccessMgr_->get( QNetworkRequest( QUrl( url ) ) );
     QEventLoop loop;
-    QObject::connect( reply, SIGNAL( readyRead() ), &loop, SLOT( quit() ) );
-    // soft real-time guarantee: kill network request if the total time is >= timeout
-    QTimer::singleShot( readNetworkTimeout_, &loop, SLOT( quit() ) );
-    // Execute the event loop here, now we will wait here until readyRead() signal is emitted
-    // which in turn will trigger event loop quit.
-    loop.exec();
-    if( reply->isRunning() ) {
-        reply->close();
-        error( "Network request is taking too long to complete" );
-        return QByteArray();
+    QObject::connect( netAccessMgr_, SIGNAL( finished( QNetworkReply* ) ), &loop, SLOT( quit() ) );
+    if( !reply->isFinished() ) {
+        // soft real-time guarantee: kill network request if the total time is >= timeout
+        QTimer::singleShot( readNetworkTimeout_, &loop, SLOT( quit() ) );
+        // Execute the event loop here, now we will wait here until readyRead() signal is emitted
+        // which in turn will trigger event loop quit.
+        loop.exec();
+        if( reply->isRunning() ) {
+            reply->close();
+            error( "Network request is taking too long to complete" );
+            return QByteArray();
+        }
     }
     QVariant possibleRedirectUrl =  reply->attribute( QNetworkRequest::RedirectionTargetAttribute );
     if( !possibleRedirectUrl.toUrl().isEmpty()  ) {
         redirects.insert( QUrl( url ) );
         return ReadUrl( possibleRedirectUrl.toString(), redirects );
     }
-    else return reply->readAll(); 
+    else return reply->readAll();
 }
 
 QByteArray Context::ReadFile( const QString& f ) {

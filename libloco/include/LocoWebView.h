@@ -16,6 +16,7 @@
 #include <QRegExp>
 #include <QtWebKit/QWebElement>
 #include <QtWebKit/QWebElementCollection>
+#include <QNetworkRequest>
 
 
 
@@ -63,6 +64,8 @@ public:
 		WebPage* wp = new WebPage;
 		wp->setParent( this );
 		setPage( wp );
+		connect( wp, SIGNAL( downloadRequested( const QNetworkRequest& ) ),
+				 this, SLOT( OnDownloadRequested( const QNetworkRequest& ) ) );
 	}
 	void SetUserAgentForUrl( const QRegExp& url, const QString& userAgent ) {
 	    qobject_cast< WebPage* >( page() )->SetUserAgentForUrl( url, userAgent );
@@ -123,9 +126,14 @@ public:
     void HighlightText( const QString& substring ) {
     	page()->findText( substring, QWebPage::HighlightAllOccurrences );
     }
+
+    bool SaveUrl( const QString& url, const QString& filename, int timeout );
+
 private slots:
     void OnLoadFinished( bool ok ) { syncLoadOK_ = ok; }
-
+    void OnDownloadRequested( const QNetworkRequest& nr ) {
+    	emit downloadRequested( nr.url().toLocalFile() );
+    }
 private:
     void AddToUrlQuery( QUrl& url, const QVariantMap& q ) {
         for( QVariantMap::const_iterator i = q.begin(); i != q.end(); ++i ) {
@@ -149,6 +157,8 @@ private:
 		AddToUrlQuery( url, q );
 		return url;
     }
+
+
 protected:
 
 	void closeEvent( QCloseEvent* e ) {
@@ -215,6 +225,7 @@ signals:
     void mouseMove( int, int, int, int, bool, bool, bool );
     void mouseDoubleClick( int, int, int, int, bool, bool, bool );
     void closing();
+    void downloadRequested( const QString& );
 private:
 	bool eatContextMenuEvent_;
 	bool eatKeyEvents_;

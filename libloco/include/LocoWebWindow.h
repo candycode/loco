@@ -100,7 +100,7 @@ public slots:
     void setPreLoadCBack( const QString& cback ) { preLoadCBack_ = cback; }
 
 public slots:
-
+    bool saveUrl( const QString& url, const QString& filename, int timeout ) { return webView_->SaveUrl( url, filename, timeout ); }
     QString webKitVersion() const { return QTWEBKIT_VERSION_STR; }
     void close() { webView_->close(); }
     void highLightText( const QString& substring ) { webView_->HighlightText( substring ); }

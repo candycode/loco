@@ -57,6 +57,14 @@ public:
         connect( wf_, SIGNAL( titleChanged( const QString& ) ), this, SIGNAL( titleChanged( const QString& ) ) );
         connect( webView_->page(), SIGNAL( selectionChanged() ), this, SIGNAL( selectionChanged() ) );
         connect( &ctx_, SIGNAL( JSContextCleared() ), this, SLOT( PreLoadCBack() ) );
+        connect( webView_->page(), SIGNAL( statusBarMessage( const QString& ) ), this, SIGNAL( statusBarMessage( const QString& ) ) );
+        connect( webView_->page(), SIGNAL( statusBarVisibilityChangeRequested( bool ) ),
+        		 this, SIGNAL( statusBarVisibilityChangeRequested( bool ) ) );
+        connect( webView_->page(), SIGNAL( toolBarVisibilityChangeRequested( bool ) ),
+                		 this, SIGNAL( toolBarVisibilityChangeRequested( bool ) ) );
+        connect( webView_, SIGNAL( downloadRequested( const QString& ) ),
+                        		 this, SIGNAL( downloadRequested( const QString& ) ) );
+
         
         jsInterpreter_->setParent( this );
         jsInterpreter_->SetWebPage( webView_->page() );   
@@ -454,6 +462,10 @@ signals:
     void closing();
     void keyPress( int key, int modifiers, int count );
     void keyRelease( int key, int modifiers, int count );
+    void statusBarMessage( const QString& );
+    void statusBarVisibilityChangeRequested( bool );
+    void toolBarVisibilityChangeRequested( bool );
+    void downloadRequested( const QString& );
 private:
     QPointer< WebView > webView_; //owned by main window
     Context ctx_; // this is where objects are created

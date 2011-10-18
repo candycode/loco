@@ -49,13 +49,15 @@ public slots:
     
     
     QString os() const {
-        #if defined( Q_OS_AIX ) || defined( Q_OS_BSD4 ) || defined( Q_OS_FREEBSD ) || \
-            defined( Q_OS_SOLARIS ) || defined( Q_OS_LINUX ) || defined( Q_OS_UNIX )  
+        #if defined( Q_OS_LINUX )
+    	    return "LINUX";
+        #elif defined( Q_OS_MAC )
+            return "MAC"
+        #elif defined( Q_OS_AIX ) || defined( Q_OS_BSD4 ) || defined( Q_OS_FREEBSD ) || \
+            defined( Q_OS_SOLARIS ) || defined( Q_OS_UNIX )
             return "UNIX";
         #elif defined( Q_OS_WIN )
             return "WINDOWS";
-        #elif defined( Q_OS_MAC )
-            return "MAC"
         #elif defined( Q_OS_SYMBIAN ) 
             return "SYMBIAN"
         #else

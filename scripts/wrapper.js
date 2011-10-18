@@ -39,15 +39,15 @@ try {
                      WebGLEnabled: true,
                      AcceleratedCompositingEnabled: true } );
   ww.setEnableContextMenu( true );
-  ww.loadProgress.connect( function( i ) { ww.setStatusBarText( i + "%" ); } );
+//  ww.loadProgress.connect( function( i ) { ww.setStatusBarText( i + "%" ); } );
   ww.setForwardKeyEvents( true );
-  ww.keyPress.connect( function( k, m, c ) { 
-                         if( k === LocoKey.F11 ) ww.showNormal();
-                       } );
-  ww.loadFinished.connect( function( ok ) { 
-    if( ok ) ww.eval("Loco.webWindow.setStatusBarText('DONE');");
-    else Loco.gui.errorDialog( "Error loading page" );
-  });
+//  ww.keyPress.connect( function( k, m, c ) { 
+//                         if( k === LocoKey.F11 ) ww.showNormal();
+//                       } );
+//  ww.loadFinished.connect( function( ok ) { 
+//    if( ok ) ww.eval("Loco.webWindow.setStatusBarText('DONE');");
+//    else Loco.gui.errorDialog( "Error loading page" );
+//  });
   ww.setStatusBarText( "Loading..." );
   ww.setWindowTitle( ctx.appName() ); 
   ctx.onError.connect( function( err ) { Loco.gui.criticalDialog( "Error", err ); ctx.exit( -1 ); } ); 
