@@ -64,6 +64,8 @@ public:
                 		 this, SIGNAL( toolBarVisibilityChangeRequested( bool ) ) );
         connect( webView_, SIGNAL( downloadRequested( const QString& ) ),
                         		 this, SIGNAL( downloadRequested( const QString& ) ) );
+        connect( webView_, SIGNAL( unsupportedContent( const QString& )  ),
+                		 this, SIGNAL( unsupportedContent( const QString& ) ) );
 
         
         jsInterpreter_->setParent( this );
@@ -98,6 +100,7 @@ private slots:
     void OnClose() { emit closing(); }
 
 public slots:
+    bool saveUrl( const QString& url, const QString& filename, int timeout ) { return webView_->SaveUrl( url, filename, timeout ); }
     QString webKitVersion() const { return QTWEBKIT_VERSION_STR; }
     void close() { mw_.close(); }
     void highLightText( const QString& substring ) { webView_->HighlightText( substring ); }
@@ -466,6 +469,7 @@ signals:
     void statusBarVisibilityChangeRequested( bool );
     void toolBarVisibilityChangeRequested( bool );
     void downloadRequested( const QString& );
+    void unsupportedContent( const QString& );
 private:
     QPointer< WebView > webView_; //owned by main window
     Context ctx_; // this is where objects are created

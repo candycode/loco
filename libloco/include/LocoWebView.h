@@ -17,6 +17,7 @@
 #include <QtWebKit/QWebElement>
 #include <QtWebKit/QWebElementCollection>
 #include <QNetworkRequest>
+#include <QNetworkReply>
 
 
 
@@ -66,6 +67,9 @@ public:
 		setPage( wp );
 		connect( wp, SIGNAL( downloadRequested( const QNetworkRequest& ) ),
 				 this, SLOT( OnDownloadRequested( const QNetworkRequest& ) ) );
+		connect( wp, SIGNAL( unsupportedContent( QNetworkReply* ) ), this,
+				 SLOT( OnUnsupportedContent( QNetworkReply* ) ) );
+		wp->setForwardUnsupportedContent( true );
 	}
 	void SetUserAgentForUrl( const QRegExp& url, const QString& userAgent ) {
 	    qobject_cast< WebPage* >( page() )->SetUserAgentForUrl( url, userAgent );
@@ -133,6 +137,9 @@ private slots:
     void OnLoadFinished( bool ok ) { syncLoadOK_ = ok; }
     void OnDownloadRequested( const QNetworkRequest& nr ) {
     	emit downloadRequested( nr.url().toLocalFile() );
+    }
+    void OnUnsupportedContent( QNetworkReply* nr ) {
+    	emit unsupportedContent( nr->url().toString() );
     }
 private:
     void AddToUrlQuery( QUrl& url, const QVariantMap& q ) {
@@ -226,6 +233,7 @@ signals:
     void mouseDoubleClick( int, int, int, int, bool, bool, bool );
     void closing();
     void downloadRequested( const QString& );
+    void unsupportedContent( const QString& );
 private:
 	bool eatContextMenuEvent_;
 	bool eatKeyEvents_;

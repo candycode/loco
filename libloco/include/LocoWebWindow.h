@@ -55,15 +55,18 @@ public:
         connect( wf_, SIGNAL( titleChanged( const QString& ) ), this, SIGNAL( titleChanged( const QString& ) ) );
         connect( webView_->page(), SIGNAL( selectionChanged() ), this, SIGNAL( selectionChanged() ) );
         connect( &ctx_, SIGNAL( JSContextCleared() ), this, SLOT( PreLoadCBack() ) );
+        connect( webView_, SIGNAL( unsupportedContent( const QString& )  ),
+        		 this, SIGNAL( unsupportedContent( const QString& ) ) );
+        connect( webView_, SIGNAL( downloadRequested( const QString& ) ),
+                 this, SIGNAL( downloadRequested( const QString& ) ) );
 
         jsInterpreter_->setParent( this );
         jsInterpreter_->SetWebPage( webView_->page() );   
         ctx_.Init( jsInterpreter_ );
         ctx_.SetJSContextName( "wctx" ); //web window context
         ctx_.AddContextToJS();
-        //@todo who owns webView_ ?
     }
-    ~WebWindow() { if( webView_ && webView_->parent() != 0 ) webView_->deleteLater(); }
+    ~WebWindow() { if( webView_ && webView_->parent() == 0 ) webView_->deleteLater(); }
 
     void AddSelfToJSContext() {
         ctx_.AddJSStdObject( this );
@@ -372,7 +375,8 @@ signals:
     void closing();
     void keyPress( int key, int modifiers, int count );
     void keyRelease( int key, int modifiers, int count );
-
+    void downloadRequested( const QString& );
+    void unsupportedContent( const QString& );
 private:
     WebView* webView_; //owned by this object
     Context ctx_; // this is where objects are created
