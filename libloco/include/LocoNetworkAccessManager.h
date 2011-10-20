@@ -68,7 +68,7 @@ protected:
 			typedef QList< QPair< QString, QString > > QI;
 			QI qi = req.url().queryItems();
 			QVariantMap requestLog;
-			requestLog[ "url"       ] = req.url().toEncoded();
+			requestLog[ "url"       ] = QString( req.url().toEncoded() );
 			requestLog[ "authority" ] = req.url().authority();
 			requestLog[ "host"      ] = req.url().host();
 			requestLog[ "port"      ] = req.url().port();

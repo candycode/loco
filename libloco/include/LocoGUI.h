@@ -37,22 +37,22 @@ public slots:
     }
 
     QString saveFileDialog( const QString& caption = QString(),
-    		                const QString& dir = QString(),
+    		                const QString& filePath = QString(),
     		                const QString& filter = QString() ) {
 
-        return QFileDialog::getSaveFileName ( 0,  caption, dir, filter );
+        return QFileDialog::getSaveFileName ( 0,  caption, filePath, filter );
     }
 
     QString	openFileDialog( const QString& caption = QString(),
-    		                const QString& dir = QString(),
+    		                const QString& filePath = QString(),
     		                const QString& filter = QString() ) {
-    	return QFileDialog::getOpenFileName( 0, caption, dir, filter );
+    	return QFileDialog::getOpenFileName( 0, caption, filePath, filter );
     }
     
     QStringList	openFilesDialog( const QString& caption = QString(),
-    		                     const QString& dir = QString(),
+    		                     const QString& filePath = QString(),
     		                     const QString& filter = QString() ) {
-    	return QFileDialog::getOpenFileNames( 0, caption, dir, filter );
+    	return QFileDialog::getOpenFileNames( 0, caption, filePath, filter );
     }
 
 	QString selectDirDialog ( const QString& caption = QString(),

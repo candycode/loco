@@ -73,14 +73,13 @@ public:
     }
     
     void SetNetworkAccessManager( QNetworkAccessManager* nam ) {
-    	NetworkAccessManager* na = qobject_cast< NetworkAccessManager* >(
-    	     	       webView_->page()->networkAccessManager() );
-    	if( na != 0 ) {
-    		connect( na, SIGNAL( OnRequest( const QVariant& ) ),
-    				 this, SIGNAL( onRequest( const QVariant& ) ) );
-    	}
-        webView_->page()->setNetworkAccessManager( nam );
-    }
+		NetworkAccessManager* na = qobject_cast< NetworkAccessManager* >( nam );
+		if( na != 0 ) {
+			connect( na, SIGNAL( OnRequest( const QVariant& ) ),
+					 this, SIGNAL( onRequest( const QVariant& ) ) );
+		}
+		webView_->page()->setNetworkAccessManager( nam );
+	}
 
     void SetContext( Context* ctx ) {
         Object::SetContext( ctx );
@@ -92,8 +91,7 @@ public:
     void SetWebPluginFactory( ::QWebPluginFactory* wpf ) { webView_->page()->setPluginFactory( wpf ); }
 
     ::QWebPluginFactory* GetWebPluginFactory() const { return webView_->page()->pluginFactory(); }
-signals:
-    void onRequest( const QVariant& );
+
 private slots:
 
     void PreLoadCBack() { ctx_.Eval( preLoadCBack_ ); }
@@ -373,6 +371,7 @@ signals:
     void titleChanged( const QString& );
     void urlChanged( const QUrl& );
     void closing();
+    void onRequest( const QVariant& );
     void keyPress( int key, int modifiers, int count );
     void keyRelease( int key, int modifiers, int count );
     void downloadRequested( const QString& );

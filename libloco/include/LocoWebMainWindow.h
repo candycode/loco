@@ -18,6 +18,7 @@
 #include <QtWebKit/QWebSettings>
 #include <QToolBar>
 #include <QVariantList>
+#include <QAbstractNetworkCache>
 
 #include "LocoObject.h"
 #include "LocoContext.h"
@@ -66,7 +67,8 @@ public:
                         		 this, SIGNAL( downloadRequested( const QString& ) ) );
         connect( webView_, SIGNAL( unsupportedContent( const QString& )  ),
                 		 this, SIGNAL( unsupportedContent( const QString& ) ) );
-
+        connect( webView_, SIGNAL( actionTriggered( QWebPage::WebAction, bool ) ), this, SIGNAL( actionTriggered( QWebPage::WebAction, bool ) ) );
+        connect( webView_, SIGNAL( FileDownloadProgress( qint64, qint64 ) ), this, SIGNAL( fileDownloadProgress( qint64, qint64 ) ) );
         
         jsInterpreter_->setParent( this );
         jsInterpreter_->SetWebPage( webView_->page() );   
@@ -80,6 +82,11 @@ public:
     }
     
     void SetNetworkAccessManager( QNetworkAccessManager* nam ) {
+      	NetworkAccessManager* na = qobject_cast< NetworkAccessManager* >( nam );
+      	if( na != 0 ) {
+      		connect( na, SIGNAL( OnRequest( const QVariantMap& ) ),
+      				 this, SIGNAL( onRequest( const QVariantMap& ) ) );
+      	}
         webView_->page()->setNetworkAccessManager( nam );
     }
 
@@ -100,6 +107,16 @@ private slots:
     void OnClose() { emit closing(); }
 
 public slots:
+    bool clearCache() {
+    	if( webView_->page()->networkAccessManager()->cache() == 0 ) return false;
+    	webView_->page()->networkAccessManager()->cache()->clear();
+    	return true;
+    }
+    bool fullScreen() const { return mw_.isFullScreen(); }
+    void toggleFullScreen() {
+    	if( mw_.isFullScreen() ) mw_.showNormal();
+    	else mw_.showFullScreen();
+    }
     bool saveUrl( const QString& url, const QString& filename, int timeout ) { return webView_->SaveUrl( url, filename, timeout ); }
     QString webKitVersion() const { return QTWEBKIT_VERSION_STR; }
     void close() { mw_.close(); }
@@ -463,6 +480,7 @@ signals:
     void titleChanged( const QString& );
     void urlChanged( const QUrl& );
     void closing();
+    void onRequest( const QVariantMap& );
     void keyPress( int key, int modifiers, int count );
     void keyRelease( int key, int modifiers, int count );
     void statusBarMessage( const QString& );
@@ -470,6 +488,8 @@ signals:
     void toolBarVisibilityChangeRequested( bool );
     void downloadRequested( const QString& );
     void unsupportedContent( const QString& );
+    void actionTriggered( QWebPage::WebAction, bool );
+    void fileDownloadProgress( qint64, qint64 );
 private:
     QPointer< WebView > webView_; //owned by main window
     Context ctx_; // this is where objects are created

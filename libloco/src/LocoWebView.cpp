@@ -98,11 +98,15 @@ bool WebView::SaveUrl( const QString& url, const QString& filename, int timeout 
       QNetworkReply* reply = nam->get( QNetworkRequest( QUrl( url ) ) );
       QEventLoop loop;
       QObject::connect( nam, SIGNAL( finished( QNetworkReply* ) ), &loop, SLOT( quit() ) );
+      QObject::connect( reply, SIGNAL( downloadProgress( qint64, qint64 ) ),
+    		            this,  SIGNAL( FileDownloadProgress( qint64, qint64 ) ) );
       // soft real-time guarantee: kill network request if the total time is >= timeout
       QTimer::singleShot( timeout, &loop, SLOT( quit() ) );
       // Execute the event loop here, now we will wait here until readyRead() signal is emitted
       // which in turn will trigger event loop quit.
       loop.exec();
+      QObject::disconnect( reply, SIGNAL( downloadProgress( qint64, qint64 ) ),
+	                       this,  SIGNAL( FileDownloadProgress( qint64, qint64 ) ) );
       if( reply->isRunning() ) {
           reply->close();
           return false;

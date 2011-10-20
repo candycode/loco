@@ -46,6 +46,12 @@ protected:
     	}
         return QWebPage::userAgentForUrl( url );
     }
+    void triggerAction( WebAction action, bool checked = false ) {
+    	emit ActionTriggered( action, checked );
+    	QWebPage::triggerAction( action, checked );
+    }
+signals:
+    void ActionTriggered( QWebPage::WebAction, bool );
 public slots:
     bool shouldInterruptJavaScript() {
     	if( !allowInterrupt_ ) return false;
@@ -69,6 +75,8 @@ public:
 				 this, SLOT( OnDownloadRequested( const QNetworkRequest& ) ) );
 		connect( wp, SIGNAL( unsupportedContent( QNetworkReply* ) ), this,
 				 SLOT( OnUnsupportedContent( QNetworkReply* ) ) );
+		connect( wp, SIGNAL( ActionTriggered( QWebPage::WebAction, bool ) ),
+				 this, SIGNAL( actionTriggered( QWebPage::WebAction, bool ) ) );
 		wp->setForwardUnsupportedContent( true );
 	}
 	void SetUserAgentForUrl( const QRegExp& url, const QString& userAgent ) {
@@ -136,7 +144,7 @@ public:
 private slots:
     void OnLoadFinished( bool ok ) { syncLoadOK_ = ok; }
     void OnDownloadRequested( const QNetworkRequest& nr ) {
-    	emit downloadRequested( nr.url().toLocalFile() );
+    	emit downloadRequested( nr.url().toString() );
     }
     void OnUnsupportedContent( QNetworkReply* nr ) {
     	emit unsupportedContent( nr->url().toString() );
@@ -234,6 +242,8 @@ signals:
     void closing();
     void downloadRequested( const QString& );
     void unsupportedContent( const QString& );
+    void actionTriggered( QWebPage::WebAction , bool );
+    void FileDownloadProgress( qint64, qint64 );
 private:
 	bool eatContextMenuEvent_;
 	bool eatKeyEvents_;
