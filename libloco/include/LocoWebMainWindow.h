@@ -333,7 +333,7 @@ public slots:
     void onParentError( const QString& err ) {
         ctx_.Eval( "throw " + err + ";\n" );
     }  
-    void load( const QString& url ) { webView_->load( url ); }
+    void load( const QString& url ) { webView_->Load( url ); }
     bool isModified() { return webView_->isModified(); }
     //QList< QWebHistoryItem > history();
     void setHtml( const QString& html, const QString& baseUrl = "" ) { webView_->setHtml( html, QUrl( baseUrl ) ); }

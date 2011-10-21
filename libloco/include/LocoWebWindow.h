@@ -75,8 +75,8 @@ public:
     void SetNetworkAccessManager( QNetworkAccessManager* nam ) {
 		NetworkAccessManager* na = qobject_cast< NetworkAccessManager* >( nam );
 		if( na != 0 ) {
-			connect( na, SIGNAL( OnRequest( const QVariant& ) ),
-					 this, SIGNAL( onRequest( const QVariant& ) ) );
+			connect( na, SIGNAL( OnRequest( const QVariantMap& ) ),
+					 this, SIGNAL( onRequest( const QVariantMap& ) ) );
 		}
 		webView_->page()->setNetworkAccessManager( nam );
 	}
@@ -279,7 +279,7 @@ public slots:
     void onParentError( const QString& err ) {
         ctx_.Eval( "throw " + err + ";\n" );
     }  
-    void load( const QString& url ) { webView_->load( url ); }
+    void load( const QString& url ) { webView_->Load( url ); }
     bool isModified() { return webView_->isModified(); }
     //QList< QWebHistoryItem > history();
     void setHtml( const QString& html, const QString& baseUrl = "" ) { webView_->setHtml( html, QUrl( baseUrl ) ); }
@@ -371,7 +371,7 @@ signals:
     void titleChanged( const QString& );
     void urlChanged( const QUrl& );
     void closing();
-    void onRequest( const QVariant& );
+    void onRequest( const QVariantMap& );
     void keyPress( int key, int modifiers, int count );
     void keyRelease( int key, int modifiers, int count );
     void downloadRequested( const QString& );

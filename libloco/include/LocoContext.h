@@ -540,11 +540,12 @@ private:
     }
 
     QVariant Include( QString uri, const QStringList& filters = QStringList() ) {
-        if( !uri.startsWith( ":" ) && !uri.contains( "://" ) ) {
+        /*if( !uri.startsWith( ":" ) && !uri.contains( "://" ) ) {
             QDir d;
             uri = d.absoluteFilePath( uri );    
-        } 
-        if( includeSet_.find( uri ) != includeSet_.end() ) return QVariant(); 
+        }*/
+        if( includeSet_.find( uri ) != includeSet_.end() ) return QVariant();
+        includeSet_.insert( uri );
         return Insert( uri, filters );
     } 
 

@@ -5,6 +5,7 @@
 #include <QPointer>
 #include <QtWebKit/QWebPage>
 #include <QtWebKit/QWebFrame>
+#include <QtWebKit/QWebSettings>
 
 #include "LocoIJSInterpreter.h"
 
@@ -18,6 +19,9 @@ public:
 		connect( wf_, SIGNAL( javaScriptWindowObjectCleared() ),
 			     this, SIGNAL( JavaScriptContextCleared() ) );
         wp_->setParent( this );
+        wp_->settings()->setAttribute( QWebSettings::LocalContentCanAccessFileUrls, true );
+        wp_->settings()->setAttribute( QWebSettings::XSSAuditingEnabled, false );
+        wp_->settings()->setAttribute( QWebSettings::LocalContentCanAccessRemoteUrls, true );
 	}
 	QVariant EvaluateJavaScript( const QString& code ) {
 		return wf_->evaluateJavaScript( code );

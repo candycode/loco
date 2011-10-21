@@ -10,9 +10,6 @@
 #include <QRegExp>
 #include <QDate>
 
-///@todo remove
-#include <iostream>
-
 namespace loco {
 
 typedef QList< QRegExp > RegExps; 

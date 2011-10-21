@@ -3,9 +3,11 @@ try {
   var $include = Loco.ctx.include;
   var print = Loco.console.println;
   var ctx = Loco.ctx;
+  var logRequests = false;
 
   $include( 'keys.js' ); 
 
+  ctx.onError.connect( function( err ) { Loco.gui.criticalDialog( "Error", err ); ctx.exit( -1 ); } ); 
 
 // main window menu
   var menu = {
@@ -29,14 +31,16 @@ try {
   ww.setName( "webWindow" ); 
   ww.addSelfToJSContext();
   ww.addParentObjectsToJS();
-  ww.emitRequestSignal( true );
-  ww.onRequest.connect( function(r) {
-                          var i;
-                          print( "===================================\n" );
-                          for( i in r ) {
-                            if( r[ i ] && typeof r[ i ] !== 'object' ) print( i + ': ' + r[ i ] );
-                          } 
-                        } );
+  if( logRequests ) {
+    ww.emitRequestSignal( true );
+    ww.onRequest.connect( function(r) {
+                            var i;
+                            print( "===================================\n" );
+                            for( i in r ) {
+                              if( r[ i ] && typeof r[ i ] !== 'object' ) print( i + ': ' + r[ i ] );
+                            } 
+                          } );
+  }
   ww.statusBarMessage.connect( function( msg ) { ww.setStatusBarText( msg ); } );
   ww.downloadRequested.connect( function( f ) {
                                   var filename = f.slice( f.lastIndexOf( '/' ) + 1 );
@@ -48,7 +52,7 @@ try {
                                   if( !ww.saveUrl( f, fname, 20000 ) ) throw "Cannot save file";
                                   ww.reload();
                                 } );
-  //ww.unsupportedContent.connect( function( c ) { Loco.console.println( c ); } );
+//ww.unsupportedContent.connect( function( c ) { Loco.console.println( c ); } );
   ww.unsupportedContent.connect( ww.downloadRequested );
   ww.fileDownloadProgress.connect( function( b, t ) {
                                      ww.setStatusBarText( b  + ( t > 0 ? ' of ' + t : "" ) );
@@ -77,7 +81,7 @@ try {
   });
   ww.setStatusBarText( "Loading..." );
   ww.setWindowTitle( ctx.appName() ); 
-  ctx.onError.connect( function( err ) { Loco.gui.criticalDialog( "Error", err ); ctx.exit( -1 ); } ); 
+ 
   ww.show(); 
   ww.load(WEBSITE);
   

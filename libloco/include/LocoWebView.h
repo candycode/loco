@@ -18,8 +18,7 @@
 #include <QtWebKit/QWebElementCollection>
 #include <QNetworkRequest>
 #include <QNetworkReply>
-
-
+#include <QDir>
 
 class QWebPluginFactory;
 
@@ -129,6 +128,9 @@ public:
     void Load( const QString& urlString, const QVariantMap& opt ) {
         load( ConfigureURL( urlString, opt ) );
     }
+    void Load( const QString& urlString ) {
+    	load( TranslateUrl( urlString ) );
+    }
     QWebElement FindFirstElement( const QString& selector )  {
     	return page()->mainFrame()->findFirstElement( selector );
     }
@@ -150,6 +152,11 @@ private slots:
     	emit unsupportedContent( nr->url().toString() );
     }
 private:
+    QUrl TranslateUrl( const QString& urlString ) {
+    	if( urlString.contains( "://" ) ) return QUrl( urlString );
+    	else if( urlString.startsWith( '/' ) ) return QUrl( "file://" + urlString );
+    	else return QUrl( "file://" + QDir::currentPath() + "/" + urlString );
+    }
     void AddToUrlQuery( QUrl& url, const QVariantMap& q ) {
         for( QVariantMap::const_iterator i = q.begin(); i != q.end(); ++i ) {
         	if( i.value().type() != QVariant::List ) {
@@ -163,7 +170,7 @@ private:
     	}
     }
     QUrl ConfigureURL( const QString& urlString, const QVariantMap& opt ) {
-    	QUrl url( urlString );
+    	QUrl url( TranslateUrl( urlString ) );
 		if( opt.contains( "username" ) ) url.setUserName( opt[ "username" ].toString() );
 		if( opt.contains( "password" ) ) url.setPassword( opt[ "password" ].toString() );
 		if( opt.contains( "port" ) ) url.setPort( opt[ "port" ].toInt() );

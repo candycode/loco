@@ -8,7 +8,6 @@
 
 #include "LocoDefaultJSInit.h"
 
-
 namespace loco {
 
 
@@ -172,8 +171,8 @@ QByteArray Context::ReadFile( const QString& f ) {
     if( !QDir::isAbsolutePath( f ) ) {
         QStringList::const_iterator i = includePath_.begin();
         for( ; i != includePath_.end(); ++i ) {
-            if( !QFile::exists( *i + f ) ) continue;
-            else { filePath = *i + f; break; }
+            if( !QFile::exists( *i + "/" + f ) ) continue;
+            else { filePath = *i + "/" + f; break; }
         }
         if( i == includePath_.end() ) {
             error( "File " + f + " does not exists" );
