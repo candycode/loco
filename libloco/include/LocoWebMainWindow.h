@@ -68,7 +68,7 @@ public:
         connect( webView_, SIGNAL( unsupportedContent( const QString& )  ),
                 		 this, SIGNAL( unsupportedContent( const QString& ) ) );
         connect( webView_, SIGNAL( actionTriggered( QWebPage::WebAction, bool ) ), this, SIGNAL( actionTriggered( QWebPage::WebAction, bool ) ) );
-        connect( webView_, SIGNAL( FileDownloadProgress( qint64, qint64 ) ), this, SIGNAL( fileDownloadProgress( qint64, qint64 ) ) );
+        connect( webView_, SIGNAL( fileDownloadProgress( qint64, qint64 ) ), this, SIGNAL( fileDownloadProgress( qint64, qint64 ) ) );
         
         jsInterpreter_->setParent( this );
         jsInterpreter_->SetWebPage( webView_->page() );   
@@ -82,12 +82,18 @@ public:
     }
     
     void SetNetworkAccessManager( QNetworkAccessManager* nam ) {
-      	NetworkAccessManager* na = qobject_cast< NetworkAccessManager* >( nam );
+		NetworkAccessManager* na = qobject_cast< NetworkAccessManager* >( nam );
       	if( na != 0 ) {
       		connect( na, SIGNAL( OnRequest( const QVariantMap& ) ),
       				 this, SIGNAL( onRequest( const QVariantMap& ) ) );
       	}
+		if( webView_->page()->networkAccessManager() &&
+			qobject_cast< NetworkAccessManager* >( webView_->page()->networkAccessManager() ) ) {
+		    NetworkAccessManager* n = qobject_cast< NetworkAccessManager* >( webView_->page()->networkAccessManager() );
+			disconnect( n, SIGNAL( OnError( const QString& ) ), this, SIGNAL( onError( const QString& ) ) );
+		}
         webView_->page()->setNetworkAccessManager( nam );
+		connect( na, SIGNAL( OnError( const QString& ) ), this, SIGNAL( onError( const QString& ) ) );
     }
 
     void SetContext( Context* ctx ) {

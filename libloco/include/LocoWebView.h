@@ -49,8 +49,12 @@ protected:
     	emit ActionTriggered( action, checked );
     	QWebPage::triggerAction( action, checked );
     }
+	void javaScriptConsoleMessage(const QString& message, int lineNumber, const QString& sourceID ) {
+	    emit JavaScriptConsoleMessage( message, lineNumber, sourceID );
+	}
 signals:
     void ActionTriggered( QWebPage::WebAction, bool );
+	void JavaScriptConsoleMessage( const QString& message, int lineNumber, const QString& sourceID );
 public slots:
     bool shouldInterruptJavaScript() {
     	if( !allowInterrupt_ ) return false;
@@ -76,6 +80,8 @@ public:
 				 SLOT( OnUnsupportedContent( QNetworkReply* ) ) );
 		connect( wp, SIGNAL( ActionTriggered( QWebPage::WebAction, bool ) ),
 				 this, SIGNAL( actionTriggered( QWebPage::WebAction, bool ) ) );
+		connect( wp, SIGNAL( JavaScriptConsoleMessage( const QString&, int, const QString& ) ),
+			     this, SIGNAL( javaScriptConsoleMessage( const QString&, int, const QString& ) ) );
 		wp->setForwardUnsupportedContent( true );
 	}
 	void SetUserAgentForUrl( const QRegExp& url, const QString& userAgent ) {
@@ -250,7 +256,8 @@ signals:
     void downloadRequested( const QString& );
     void unsupportedContent( const QString& );
     void actionTriggered( QWebPage::WebAction , bool );
-    void FileDownloadProgress( qint64, qint64 );
+    void fileDownloadProgress( qint64, qint64 );
+	void javaScriptConsoleMessage( const QString&, int, const QString& );
 private:
 	bool eatContextMenuEvent_;
 	bool eatKeyEvents_;

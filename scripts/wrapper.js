@@ -3,7 +3,7 @@ try {
   var $include = Loco.ctx.include;
   var print = Loco.console.println;
   var ctx = Loco.ctx;
-  var logRequests = false;
+  var logRequests = true;
 
   $include( 'keys.js' ); 
 
@@ -28,6 +28,7 @@ try {
 
 // create main window  
   var ww = Loco.gui.create( "WebMainWindow" );
+  ww.onError.connect( function( err ) { throw err; } ); 
   ww.setName( "webWindow" ); 
   ww.addSelfToJSContext();
   ww.addParentObjectsToJS();
@@ -62,11 +63,15 @@ try {
   ww.setMenu( menu );
   ww.setAttributes( {JavascriptEnabled: true,
                      PluginsEnabled: true, 
+                     AutoLoadImages: true, 
                      DeveloperExtrasEnabled: true,
                      LocalContentCanAccessFileUrls: true,
                      LocalContentCanAccessRemoteUrls: true,
+                     OfflineWebApplicationCacheEnabled: true,
                      WebGLEnabled: true,
+                     XSSAuditingEnabled: false,
                      AcceleratedCompositingEnabled: true} );
+
   ww.setEnableContextMenu( true );
   ww.loadProgress.connect( function( i ) { ww.setStatusBarText( i + "%" ); } );
   ww.setForwardKeyEvents( true );

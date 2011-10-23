@@ -8,12 +8,13 @@
 #include <QVariantMap>
 #include <QStringList>
 #include <QRegExp>
-#include <QDate>
+#include <QNetworkReply>
+
+class QNetworkDiskCache;
 
 namespace loco {
 
 typedef QList< QRegExp > RegExps; 
-
 
 struct RedirEntry {
     QRegExp rx;
@@ -27,15 +28,7 @@ typedef QList< RedirEntry > RedirMap;
 class NetworkAccessManager : public QNetworkAccessManager {
     Q_OBJECT
 public:
-    NetworkAccessManager( QObject* p = 0 ) 
-      : QNetworkAccessManager( p ), 
-        rxPattern_( QRegExp::RegExp2 ),
-        filterRequests_( true ),
-        allowNetAccess_( false ),
-        enableUrlMapping_( false ),
-        signalAccessDenied_( true ),
-        logRequests_( false ),
-        emitRequestSignal_( false ){}
+    NetworkAccessManager( QObject* p = 0 );
     QRegExp::PatternSyntax GetRxPatternSyntax() const { return rxPattern_; }
     void SetRxPatternSyntax( QRegExp::PatternSyntax ps ) { rxPattern_ = ps; }
     bool GetFilterRequests() const { return filterRequests_; }
@@ -57,81 +50,19 @@ public:
     const QList< QVariantMap >& Requests() const { return requests_; }
     void SetLogRequestsEnabled( bool yes ) { logRequests_ = yes; }
     void EmitRequestSignal( bool yes ) { emitRequestSignal_ = yes; }
+	void SetIgnoreSSLErrors( bool yes ) { ignoreSSLErrors_ = yes; }
 protected:
     virtual QNetworkReply* createRequest( Operation op,
                                           const QNetworkRequest& req,
-                                          QIODevice* outgoingData = 0 ) {
-    	if( logRequests_ || emitRequestSignal_ ) {
-			typedef QList< QPair< QString, QString > > QI;
-			QI qi = req.url().queryItems();
-			QVariantMap requestLog;
-			requestLog[ "url"       ] = QString( req.url().toEncoded() );
-			requestLog[ "authority" ] = req.url().authority();
-			requestLog[ "host"      ] = req.url().host();
-			requestLog[ "port"      ] = req.url().port();
-			requestLog[ "path"      ] = req.url().path();
-			requestLog[ "scheme"    ] = req.url().scheme();
-			requestLog[ "username"  ] = req.url().userName();
-			requestLog[ "password"  ] = req.url().password();
-			requestLog[ "date"      ] = QDate::currentDate();
-			QVariantMap m;
-			for( QI::const_iterator i = qi.begin(); i != qi.end(); ++i ) {
-				m[ i->first ]  = i->second;
-			}
-			requestLog[ "query" ] = m;
-			if( outgoingData != 0 ) {
-				requestLog[ "data" ] = outgoingData->peek( outgoingData->bytesAvailable() );
-			}
-			if( logRequests_ ) requests_.push_back( requestLog );
-			if( emitRequestSignal_ ) emit OnRequest( requestLog );
-    	}
-        if( !allowNetAccess_ ) {
-            emit UnauthorizedNetworkAccessAttempt();
-			QNetworkRequest nr;
-		    nr.setUrl( defaultUrl_ );
-            return QNetworkAccessManager::createRequest( op, nr, outgoingData );
-        }        
-        
-        if( !filterRequests_ )
-            return QNetworkAccessManager::createRequest( op, req, outgoingData );
-
-		QString url = req.url().toString( QUrl::RemoveUserInfo | QUrl::StripTrailingSlash );  
-        if( enableUrlMapping_ ) {
-            for( RedirMap::const_iterator i = redirMap_.begin(); i != redirMap_.end(); ++i ) {
-                if( i->rx.indexIn( url ) > -1 ) {
-                    QString u = i->url;
-                    for( int c = 0; c != i->rx.captureCount(); ++c ) {
-                        u = u.replace( QString( "$%1" ).arg( c ), i->rx.cap( c ) );
-                    }
-                    url = u;
-                    break;    
-                }
-            } 
-        }            
-    
-        for( RegExps::const_iterator i = deny_.begin(); i != deny_.end(); ++i ) {
-            if( i->exactMatch( url ) ) {
-                if( signalAccessDenied_ ) emit UrlAccessDenied( url );
-                QNetworkRequest nr;
-		        nr.setUrl( defaultUrl_ );
-                return QNetworkAccessManager::createRequest( op, nr, outgoingData );
-            }
-        }
-        for( RegExps::const_iterator i = allow_.begin(); i != allow_.end(); ++i ) {
-            if( i->exactMatch( url ) ) {
-                return QNetworkAccessManager::createRequest( op, req, outgoingData );
-            }
-        }
-
-        if( signalAccessDenied_ ) emit UrlAccessDenied( url );
-        QNetworkRequest nr;
-		nr.setUrl( defaultUrl_ );
-        return QNetworkAccessManager::createRequest( op, nr, outgoingData );   
-    }
+                                          QIODevice* outgoingData = 0 );
 signals:
     void UrlAccessDenied( QString );
     void UnauthorizedNetworkAccessAttempt();
     void OnRequest( const QVariantMap& );
+	void OnError( const QString& ); 
+private slots:
+    void OnReplyError( QNetworkReply::NetworkError );
+	void OnAuthenticateRequest( QNetworkReply*, QAuthenticator* );
 private:
     QNetworkAccessManager nam_;
     QRegExp::PatternSyntax rxPattern_;
@@ -146,6 +77,8 @@ private:
     bool logRequests_;
     QList< QVariantMap > requests_;
     bool emitRequestSignal_;
+	QNetworkDiskCache* networkDiskCache_;
+	bool ignoreSSLErrors_;
 
 };
 

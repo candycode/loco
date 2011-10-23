@@ -59,6 +59,7 @@ public:
         		 this, SIGNAL( unsupportedContent( const QString& ) ) );
         connect( webView_, SIGNAL( downloadRequested( const QString& ) ),
                  this, SIGNAL( downloadRequested( const QString& ) ) );
+		connect( webView_, SIGNAL( fileDownloadProgress( qint64, qint64 ) ), this, SIGNAL( fileDownloadProgress( qint64, qint64 ) ) );
 
         jsInterpreter_->setParent( this );
         jsInterpreter_->SetWebPage( webView_->page() );   
