@@ -10,6 +10,10 @@
 #include <QRegExp>
 #include <QNetworkReply>
 
+#ifndef QT_NO_OPENSSL
+#include <QSslError>
+#endif
+
 class QNetworkDiskCache;
 
 namespace loco {
@@ -63,6 +67,9 @@ signals:
 private slots:
     void OnReplyError( QNetworkReply::NetworkError );
 	void OnAuthenticateRequest( QNetworkReply*, QAuthenticator* );
+#ifndef QT_NO_OPENSSL
+	void OnSSLErrors( QNetworkReply*, const QList< QSslError >& errors );
+#endif
 private:
     QNetworkAccessManager nam_;
     QRegExp::PatternSyntax rxPattern_;

@@ -8,6 +8,9 @@
 #include <QSettings>
 #include <QNetworkDiskCache>
 #include <QDesktopServices>
+#include <QSslConfiguration>
+
+#include <stdexcept>
 
 ///@todo remove
 #include <iostream>
@@ -88,8 +91,8 @@ NetworkAccessManager::NetworkAccessManager( QObject* p )
       ignoreSSLErrors_( true ) {
         setCookieJar( new NetworkCookieJar );  
         networkDiskCache_ = new QNetworkDiskCache( this );
-        networkDiskCache_->setCacheDirectory( "./" );//
-		//networkDiskCache_->setCacheDirectory(QDesktopServices::storageLocation(QDesktopServices::CacheLocation));
+        //networkDiskCache_->setCacheDirectory( "./" );//
+		networkDiskCache_->setCacheDirectory(QDesktopServices::storageLocation(QDesktopServices::CacheLocation));
 		setCache( networkDiskCache_ );
 		connect( this, SIGNAL( authenticationRequired( QNetworkReply*, QAuthenticator* ) ),
 			     SLOT( OnAuthenticateRequest( QNetworkReply*,QAuthenticator* ) ) );
@@ -99,7 +102,6 @@ NetworkAccessManager::NetworkAccessManager( QObject* p )
 QNetworkReply* NetworkAccessManager::createRequest( Operation op,
                                                     const QNetworkRequest& req,
                                                     QIODevice* outgoingData  ) {
-											   
 	if( logRequests_ || emitRequestSignal_ ) {
 		typedef QList< QPair< QString, QString > > QI;
 		QI qi = req.url().queryItems();
@@ -145,7 +147,7 @@ QNetworkReply* NetworkAccessManager::createRequest( Operation op,
 		connect( nr, SIGNAL( error( QNetworkReply::NetworkError ) ), 
 			this, SLOT( OnReplyError( QNetworkReply::NetworkError ) ) ); 
 		if( ignoreSSLErrors_ ) nr->ignoreSslErrors();
-        return nr;
+		return nr;
 	}
 
 	QString url = req.url().toString( QUrl::RemoveUserInfo | QUrl::StripTrailingSlash );  
@@ -197,5 +199,17 @@ void NetworkAccessManager::OnAuthenticateRequest( QNetworkReply*, QAuthenticator
 	std::cout << "Authentication requested" << std::endl;
 
 }
+
+#ifndef QT_NO_OPENSSL
+void NetworkAccessManager::OnSSLErrors( QNetworkReply*, const QList< QSslError >& errors ) {
+	QStringList sl;
+	for( QList< QSslError >::const_iterator err = errors.begin();
+		 err != errors.end(); ++err	 ) {
+		sl.append( err->errorString() );
+	}
+	emit OnError( sl.join( "\n" ) );
+}
+#endif
+
 
 }

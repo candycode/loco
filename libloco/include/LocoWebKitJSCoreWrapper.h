@@ -14,7 +14,7 @@ class WebKitJSCoreWrapper : public IJSInterpreter {
 	Q_OBJECT
 public:
 	WebKitJSCoreWrapper( QWebPage* wp = 0 ) : wp_( wp ), wf_( 0 ) {
-	    if( wp ) wf_ = wp->mainFrame();
+	    if( wp ) SetWebPage( wp );
 	}
 	QVariant EvaluateJavaScript( const QString& code ) {
 		return wf_->evaluateJavaScript( code );

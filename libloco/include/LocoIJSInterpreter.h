@@ -7,6 +7,8 @@
 
 namespace loco {
 
+//derivation from QObject required to store pointers into QPointers
+
 class IJSInterpreter : public QObject {
     Q_OBJECT
 public:

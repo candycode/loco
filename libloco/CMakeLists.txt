@@ -27,7 +27,6 @@ else()
 endif()    
 
 set( QT_USE_QTNETWORK ON )
-#set( QT_USE_QTOPENGL ON )
 
 if( LOCO_GUI )
   set( QT_DONT_USE_QTGUI "ON" )
