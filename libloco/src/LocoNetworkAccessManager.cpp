@@ -102,6 +102,8 @@ NetworkAccessManager::NetworkAccessManager( QObject* p )
 QNetworkReply* NetworkAccessManager::createRequest( Operation op,
                                                     const QNetworkRequest& req,
                                                     QIODevice* outgoingData  ) {
+	QNetworkRequest request = req;
+	request.setSslConfiguration( QSslConfiguration::defaultConfiguration() );
 	if( logRequests_ || emitRequestSignal_ ) {
 		typedef QList< QPair< QString, QString > > QI;
 		QI qi = req.url().queryItems();
@@ -143,7 +145,7 @@ QNetworkReply* NetworkAccessManager::createRequest( Operation op,
     }        
     
 	if( !filterRequests_ ) {
-		QNetworkReply* nr = QNetworkAccessManager::createRequest( op, req, outgoingData );
+		QNetworkReply* nr = QNetworkAccessManager::createRequest( op, request, outgoingData );
 		connect( nr, SIGNAL( error( QNetworkReply::NetworkError ) ), 
 			this, SLOT( OnReplyError( QNetworkReply::NetworkError ) ) ); 
 		if( ignoreSSLErrors_ ) nr->ignoreSslErrors();
@@ -174,9 +176,9 @@ QNetworkReply* NetworkAccessManager::createRequest( Operation op,
     }
     for( RegExps::const_iterator i = allow_.begin(); i != allow_.end(); ++i ) {
         if( i->exactMatch( url ) ) {
-			QNetworkReply* nr = QNetworkAccessManager::createRequest( op, req, outgoingData );
+			QNetworkReply* nr = QNetworkAccessManager::createRequest( op, request, outgoingData );
 		    connect( nr, SIGNAL( error( QNetworkReply::NetworkError ) ), 
-			    this, SLOT( OnReplyError( QNetworkReply::NetworkError ) ) ); 
+			    this, SLOT( OnReplyError( QNetworkReply::NetworkError ) ) );
 		    if( ignoreSSLErrors_ ) nr->ignoreSslErrors();
             return nr;
         }

@@ -32,6 +32,7 @@ try {
   ww.setName( "webWindow" ); 
   ww.addSelfToJSContext();
   ww.addParentObjectsToJS();
+  ww.frameCreated.connect( function( f ) { print( "Frame created" ); } );
   if( logRequests ) {
     ww.emitRequestSignal( true );
     ww.onRequest.connect( function(r) {
