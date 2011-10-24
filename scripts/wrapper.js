@@ -3,7 +3,7 @@ try {
   var $include = Loco.ctx.include;
   var print = Loco.console.println;
   var ctx = Loco.ctx;
-  var logRequests = true;
+  var logRequests = false;
 
   $include( 'keys.js' ); 
 

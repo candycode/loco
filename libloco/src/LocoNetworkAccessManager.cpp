@@ -50,24 +50,24 @@ public:
 	void SetCookieFile( const QString& cf ) { cookieFile_ = cf; }
 	const QString& CookieFile() const { return cookieFile_; }
     bool setCookiesFromUrl ( const QList<QNetworkCookie>& cookieList, const QUrl & url ) {
-        std::cout << "setCookiesFromUrl: " << url.host().toStdString() << "\n";
+        //std::cout << "setCookiesFromUrl: " << url.host().toStdString() << "\n";
 	    QSettings settings(cookieFile_, QSettings::IniFormat);
         settings.beginGroup(url.host());      
         for ( QList<QNetworkCookie>::const_iterator i = cookieList.begin() ; i != cookieList.end() ; i++ ) {
             settings.setValue((*i).name(), QString((*i).value()));
-            std::cout << "  [*] Saving cookie: " << QString((*i).name()).toStdString() << "\n";
+            //std::cout << "  [*] Saving cookie: " << QString((*i).name()).toStdString() << "\n";
         }
         settings.sync();
         return true;
    } 
    QList<QNetworkCookie> cookiesForUrl ( const QUrl & url ) const {
-       std::cout << "cookiesFromUrl: " << url.host().toStdString() << "\n";
+       //std::cout << "cookiesFromUrl: " << url.host().toStdString() << "\n";
        QSettings settings(cookieFile_, QSettings::IniFormat);
        QList<QNetworkCookie> cookieList;
        settings.beginGroup(url.host());
        QStringList keys = settings.childKeys();
        for ( QStringList::iterator i = keys.begin() ; i != keys.end() ; i++ ) {
-           std::cout << "  Loading cookie: " << QString((*i)).toStdString() << "\n";
+           //std::cout << "  Loading cookie: " << QString((*i)).toStdString() << "\n";
            cookieList.push_back(QNetworkCookie((*i).toLocal8Bit(), settings.value(*i).toByteArray()));
        }
        return cookieList;
@@ -88,8 +88,8 @@ NetworkAccessManager::NetworkAccessManager( QObject* p )
       ignoreSSLErrors_( true ) {
         setCookieJar( new NetworkCookieJar );  
         networkDiskCache_ = new QNetworkDiskCache( this );
-        //networkDiskCache_->setCacheDirectory( "./" );//
-		networkDiskCache_->setCacheDirectory(QDesktopServices::storageLocation(QDesktopServices::CacheLocation));
+        networkDiskCache_->setCacheDirectory( "./" );//
+		//networkDiskCache_->setCacheDirectory(QDesktopServices::storageLocation(QDesktopServices::CacheLocation));
 		setCache( networkDiskCache_ );
 		connect( this, SIGNAL( authenticationRequired( QNetworkReply*, QAuthenticator* ) ),
 			     SLOT( OnAuthenticateRequest( QNetworkReply*,QAuthenticator* ) ) );
