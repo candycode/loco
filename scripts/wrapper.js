@@ -3,7 +3,7 @@ try {
   var $include = Loco.ctx.include;
   var print = Loco.console.println;
   var ctx = Loco.ctx;
-  var logRequests = false;
+  var logRequests = true;
 
   $include( 'keys.js' ); 
 
@@ -61,34 +61,44 @@ try {
   ww.closing.connect( function() { Loco.ctx.quit(); } );       
 // setup main window 
   ww.setMenu( menu );
+  ww.javaScriptConsoleMessage.connect( function( msg, lineno, srcid ) {
+                                         print( lineno + ': ' + msg + '\n' + srcid ); } ); 
   ww.setAttributes( {JavascriptEnabled: true,
+                     JavaEnabled: true,
+                     JavascriptCanOpenWindows: true, 
                      PluginsEnabled: true, 
                      AutoLoadImages: true, 
                      DeveloperExtrasEnabled: true,
+                     SpatialNavigationEnabled: true,
                      LocalContentCanAccessFileUrls: true,
                      LocalContentCanAccessRemoteUrls: true,
                      OfflineWebApplicationCacheEnabled: true,
+                     SiteSpecificQuirksEnabled: true,
+                     OfflineStorageDatabaseEnabled: true,
+                     LocalStorageEnabled: true,
+                     SiteSpecificQuirksEnabled: true,
                      WebGLEnabled: true,
                      XSSAuditingEnabled: false,
+                     FrameFlatteningEnabled: true, 
                      AcceleratedCompositingEnabled: true} );
 
   ww.setEnableContextMenu( true );
-  ww.loadProgress.connect( function( i ) { ww.setStatusBarText( i + "%" ); } );
+  //ww.loadProgress.connect( function( i ) { ww.setStatusBarText( i + "%" ); } );
   ww.setForwardKeyEvents( true );
   ww.keyPress.connect( function( k, m, c ) { 
                            if( k === LocoKey.F11 ) ww.toggleFullScreen();
                        } );
-  ww.loadFinished.connect( function( ok ) { 
+  /*ww.loadFinished.connect( function( ok ) { 
     var c = "Loco.webWindow.setStatusBarText('DONE: ' + \
              Loco.webWindow.totalBytes() + ' bytes loaded');";
     if( ok ) ww.eval( c );
     else Loco.gui.errorDialog( "Error loading page" );
-  });
-  ww.setStatusBarText( "Loading..." );
+  });*/
+  //ww.setStatusBarText( "Loading..." );
   ww.setWindowTitle( ctx.appName() ); 
- 
+  ww.load(WEBSITE, 5000); 
   ww.show(); 
-  ww.load(WEBSITE);
+  
   
 } catch(e) {
   Loco.console.printerrln(e);

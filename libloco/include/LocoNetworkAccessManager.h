@@ -9,6 +9,7 @@
 #include <QStringList>
 #include <QRegExp>
 #include <QNetworkReply>
+#include <QPointer>
 
 #ifndef QT_NO_OPENSSL
 #include <QSslError>
@@ -17,6 +18,9 @@
 class QNetworkDiskCache;
 
 namespace loco {
+
+struct IAuthenticator;
+struct ISSLExceptionHandler;
 
 typedef QList< QRegExp > RegExps; 
 
@@ -32,7 +36,8 @@ typedef QList< RedirEntry > RedirMap;
 class NetworkAccessManager : public QNetworkAccessManager {
     Q_OBJECT
 public:
-    NetworkAccessManager( QObject* p = 0 );
+    NetworkAccessManager( QObject* p = 0 bool cache = true,
+                          const QString cacheDir = QString() );
     QRegExp::PatternSyntax GetRxPatternSyntax() const { return rxPattern_; }
     void SetRxPatternSyntax( QRegExp::PatternSyntax ps ) { rxPattern_ = ps; }
     bool GetFilterRequests() const { return filterRequests_; }
@@ -59,6 +64,8 @@ protected:
     virtual QNetworkReply* createRequest( Operation op,
                                           const QNetworkRequest& req,
                                           QIODevice* outgoingData = 0 );
+private:
+    void LoadSettings();
 signals:
     void UrlAccessDenied( QString );
     void UnauthorizedNetworkAccessAttempt();
@@ -85,8 +92,8 @@ private:
     QList< QVariantMap > requests_;
     bool emitRequestSignal_;
 	QNetworkDiskCache* networkDiskCache_;
-	bool ignoreSSLErrors_;
-
+    QPointer< IAuthenticator > authenticator_;
+    QPointer< ISSLExceptionHandler  > sslHandler_;
 };
 
 }

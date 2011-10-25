@@ -69,7 +69,11 @@ public:
                 		 this, SIGNAL( unsupportedContent( const QString& ) ) );
         connect( webView_, SIGNAL( actionTriggered( QWebPage::WebAction, bool ) ), this, SIGNAL( actionTriggered( QWebPage::WebAction, bool ) ) );
         connect( webView_, SIGNAL( fileDownloadProgress( qint64, qint64 ) ), this, SIGNAL( fileDownloadProgress( qint64, qint64 ) ) );
+        connect( webView_, SIGNAL( JavaScriptConsoleMessage( const QString&, int, const QString& ) ),
+        		 this, SIGNAL( javaScriptConsoleMessage( const QString&, int, const QString& ) ) );
         
+        webView_->settings()->setAttribute( QWebSettings::JavascriptCanOpenWindows, true );
+
         jsInterpreter_->setParent( this );
         jsInterpreter_->SetWebPage( webView_->page() );   
         ctx_.Init( jsInterpreter_ );
@@ -496,6 +500,7 @@ signals:
     void unsupportedContent( const QString& );
     void actionTriggered( QWebPage::WebAction, bool );
     void fileDownloadProgress( qint64, qint64 );
+    void javaScriptConsoleMessage( const QString&, int, const QString& );
 private:
     QPointer< WebView > webView_; //owned by main window
     Context ctx_; // this is where objects are created

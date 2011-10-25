@@ -46,10 +46,12 @@ protected:
         return QWebPage::userAgentForUrl( url );
     }
     void triggerAction( WebAction action, bool checked = false ) {
-    	emit ActionTriggered( action, checked );
     	QWebPage::triggerAction( action, checked );
+    	emit ActionTriggered( action, checked );
+
     }
 	void javaScriptConsoleMessage(const QString& message, int lineNumber, const QString& sourceID ) {
+		QWebPage::javaScriptConsoleMessage( message, lineNumber, sourceID );
 	    emit JavaScriptConsoleMessage( message, lineNumber, sourceID );
 	}
 signals:
@@ -80,8 +82,7 @@ public:
 				 SLOT( OnUnsupportedContent( QNetworkReply* ) ) );
 		connect( wp, SIGNAL( ActionTriggered( QWebPage::WebAction, bool ) ),
 				 this, SIGNAL( actionTriggered( QWebPage::WebAction, bool ) ) );
-		connect( wp, SIGNAL( JavaScriptConsoleMessage( const QString&, int, const QString& ) ),
-			     this, SIGNAL( javaScriptConsoleMessage( const QString&, int, const QString& ) ) );
+		connect( wp, SIGNAL( frameCreated( QWebFrame* ) ), this, SLOT( OnFrameCreated( QWebFrame* ) ) );
 		wp->setForwardUnsupportedContent( true );
 	}
 	void SetUserAgentForUrl( const QRegExp& url, const QString& userAgent ) {
@@ -157,6 +158,9 @@ private slots:
     void OnUnsupportedContent( QNetworkReply* nr ) {
     	emit unsupportedContent( nr->url().toString() );
     }
+    void OnFrameCreated( QWebFrame* wf ) {
+    	emit onFrameCreated( wf );
+    }
 private:
     QUrl TranslateUrl( const QString& urlString ) {
     	if( urlString.contains( "://" ) ) return QUrl( urlString );
@@ -190,21 +194,24 @@ private:
 protected:
 
 	void closeEvent( QCloseEvent* e ) {
-		emit closing();
 		QWebView::closeEvent( e );
+		emit closing();
 	}
 	void contextMenuEvent( QContextMenuEvent* e ) {
 		if( !eatContextMenuEvent_ ) QWebView::contextMenuEvent( e );
 	}
 	void keyPressEvent( QKeyEvent* ke ) {
-		emit keyPress( ke->key(), ke->modifiers(), ke->count() );
 		if( !eatKeyEvents_ ) QWebView::keyPressEvent( ke );
+		emit keyPress( ke->key(), ke->modifiers(), ke->count() );
+
 	}
 	void keyReleaseEvent( QKeyEvent* ke ) {
-		emit keyPress( ke->key(), ke->modifiers(), ke->count() );
 		if( !eatKeyEvents_ ) QWebView::keyReleaseEvent( ke );
+		emit keyPress( ke->key(), ke->modifiers(), ke->count() );
+
 	}
     void mouseMoveEvent( QMouseEvent* me ) {
+    	if( !eatMouseEvents_ ) QWebView::mouseMoveEvent( me );
         emit mouseMove( me->globalX(),
                         me->globalY(),
                         me->x(),
@@ -212,9 +219,10 @@ protected:
                         bool( me->buttons() & Qt::LeftButton ),
                         bool( me->buttons() & Qt::MiddleButton ),
                         bool( me->buttons() & Qt::RightButton ) );
-       if( !eatMouseEvents_ ) QWebView::mouseMoveEvent( me );  
+
     }
     void mousePressEvent( QMouseEvent* me ) {
+    	if( !eatMouseEvents_ ) QWebView::mousePressEvent( me );
         emit mousePress( me->globalX(),
                          me->globalY(),
                          me->x(),
@@ -222,9 +230,10 @@ protected:
                          bool( me->buttons() & Qt::LeftButton ),
                          bool( me->buttons() & Qt::MiddleButton ),
                          bool( me->buttons() & Qt::RightButton ) );
-        if( !eatMouseEvents_ ) QWebView::mousePressEvent( me );  
+
     }
     void mouseReleaseEvent( QMouseEvent* me ) {
+    	if( !eatMouseEvents_ ) QWebView::mouseReleaseEvent( me );
         emit mouseRelease( me->globalX(),
                            me->globalY(),
                            me->x(),
@@ -232,9 +241,10 @@ protected:
                            bool( me->buttons() & Qt::LeftButton ),
                            bool( me->buttons() & Qt::MiddleButton ),
                            bool( me->buttons() & Qt::RightButton ) );
-       if( !eatMouseEvents_ ) QWebView::mouseReleaseEvent( me );  
+
     }
     void mouseDoubleClickEvent( QMouseEvent* me ) {
+    	if( !eatMouseEvents_ ) QWebView::mouseDoubleClickEvent( me );
         emit mouseDoubleClick( me->globalX(),
                                me->globalY(),
                                me->x(),
@@ -242,8 +252,11 @@ protected:
                                bool( me->buttons() & Qt::LeftButton ),
                                bool( me->buttons() & Qt::MiddleButton ),
                                bool( me->buttons() & Qt::RightButton ) );
-        if( !eatMouseEvents_ ) QWebView::mouseDoubleClickEvent( me );  
-    }      
+
+    }
+	void javaScriptConsoleMessage( const QString & message, int lineNumber, const QString & sourceID ) {
+		emit JavaScriptConsoleMessage( message, lineNumber, sourceID );
+	}
 
 signals:
 	void keyPress( int, int, int );
@@ -257,7 +270,8 @@ signals:
     void unsupportedContent( const QString& );
     void actionTriggered( QWebPage::WebAction , bool );
     void fileDownloadProgress( qint64, qint64 );
-	void javaScriptConsoleMessage( const QString&, int, const QString& );
+    void onFrameCreated( QWebFrame* );
+	void JavaScriptConsoleMessage( const QString&, int, const QString& );
 private:
 	bool eatContextMenuEvent_;
 	bool eatKeyEvents_;
