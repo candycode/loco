@@ -10,13 +10,8 @@
 #include <QDesktopServices>
 #include <QSslConfiguration>
 #include <QAuthenticator>
-#include "IAuthenticator
-#include "ISSLExceptionHandler"
 
 #include <stdexcept>
-
-///@todo remove
-#include <iostream>
 
 namespace loco {
 
@@ -46,7 +41,6 @@ QString OpToString( QNetworkAccessManager::Operation op ) {
     return "";
 }
 }
-
 
 
 
@@ -94,8 +88,7 @@ NetworkAccessManager::NetworkAccessManager( QObject* p,
       enableUrlMapping_( false ),
       signalAccessDenied_( true ),
       logRequests_( false ),
-      emitRequestSignal_( false ),
-      ignoreSSLErrors_( false ) {
+      emitRequestSignal_( false )  {
 	//setCookieJar( new NetworkCookieJar ); // with this gmail doesn't work
 	if( cache ) {
 		networkDiskCache_ = new QNetworkDiskCache( this );
@@ -226,6 +219,7 @@ void NetworkAccessManager::OnReplyError( QNetworkReply::NetworkError ) {
 }
 
 void NetworkAccessManager::OnAuthenticateRequest( QNetworkReply* reply, QAuthenticator* a ) {
+	if( authenticator_.isNull()  ) return;
     QVariantMap credentials = authenticator_->Credentials( reply->url().toString() );
     if( !credentials.isEmpty() ) {
 	    a->setUser( credentials[ "user" ].toString() );
@@ -273,12 +267,13 @@ void NetworkAccessManager::OnSSLErrors( QNetworkReply* reply, const QList< QSslE
 	    reply->ignoreSslErrors();
 	    return;
 	}
-  	bool ret = sslHandler_->Check( reply->url()->toString(), errorStrings );
+	if( sslHandler_.isNull()  ) return;
+  	bool ret = sslHandler_->Check( reply->url().toString(), errorStrings );
 	if( ret ) {
 	    if( ca_new.count() > 0 ) {
 		    QStringList certinfos;
-		    for (int i = 0; i < ca_new.count(); ++i) certinfos += CertToFormattedString(ca_new.at(i));
-		    ret = sslHandler_->AcceptCertificates( certinfos.join( QString() );
+		    for ( int i = 0; i < ca_new.count(); ++i ) certinfos += CertToFormattedString( ca_new.at( i ) );
+		    ret = sslHandler_->AcceptCertificates( certinfos );
 		    if( ret  ) {
 			    ca_merge += ca_new;
 			    QSslConfiguration sslCfg = QSslConfiguration::defaultConfiguration();
