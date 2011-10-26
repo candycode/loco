@@ -181,6 +181,10 @@ private:
     }
     QUrl ConfigureURL( const QString& urlString, const QVariantMap& opt ) {
     	QUrl url( TranslateUrl( urlString ) );
+    	if( opt.contains( "query_delimiters" ) ) {
+    		url.setQueryDelimiters( opt[ "query_delimiters" ].toList().at( 0 ).toChar().toAscii(),
+    				                opt[ "query_delimiters" ].toList().at( 1 ).toChar().toAscii() );
+    	}
 		if( opt.contains( "username" ) ) url.setUserName( opt[ "username" ].toString() );
 		if( opt.contains( "password" ) ) url.setPassword( opt[ "password" ].toString() );
 		if( opt.contains( "port" ) ) url.setPort( opt[ "port" ].toInt() );

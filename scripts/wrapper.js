@@ -1,34 +1,48 @@
+// try e.g.  https://mail.google.com/mail/feed/atom -u <username> -p <password>
+
 try {
 // prelude
   var $include = Loco.ctx.include;
   var print = Loco.console.println;
   var ctx = Loco.ctx;
-  var logRequests = true;
+  var logRequests = false;
 
   $include( 'keys.js' ); 
 
-  ctx.onError.connect( function( err ) { Loco.gui.criticalDialog( "Error", err ); ctx.exit( -1 ); } ); 
+  //ctx.onError.connect( function( err ) { Loco.gui.criticalDialog( "Error", err ); ctx.exit( -1 ); } ); 
+
 
 // main window menu
   var menu = {
      "Exit": {
       "Quit": {
-          "cback"  : "Loco.webWindow.close(); Loco.ctx.exit( 0 );",
+          "cback"  : "Loco.webWindow.close();",
           "tooltip": "Quit",
           "status" : "Exit from application",
           "icon"   : ""
        }
      }
     };
- 
-// command line
-  var cmdParam = ctx.cmdLine()[ctx.cmdLine().length - 1];
-  var WEBSITE = cmdParam.lastIndexOf( ".js" ) < 0 ? 
-                cmdParam : "http://www.nyt.com";  
+  var userName, pwd, URL;
+  var atom = false;
+  for( var i = 0; i != ctx.cmdLine().length; ++i ) {
+    if( ctx.cmdLine()[ i ] === "-u" && i < ctx.cmdLine().length - 1 ) {
+      userName = ctx.cmdLine()[ i + 1 ];
+    }
+    if( ctx.cmdLine()[ i ] === "-p" && i < ctx.cmdLine().length - 1 ) {
+      pwd = ctx.cmdLine()[ i + 1 ];
+    }
+    if( ctx.cmdLine()[ i ].match( /(^.+:\/\/.+)|(\S+\.htm.*$)/ ) ) {
+      URL = ctx.cmdLine()[ i ];
+    }
+    if( ctx.cmdLine()[ i ] === "-atom" ) atom = true; 
+  }
+
+  if( !URL ) URL = "http://www.nyt.com";  
 
 // create main window  
   var ww = Loco.gui.create( "WebMainWindow" );
-  ww.onError.connect( function( err ) { throw err; } ); 
+  ww.onError.connect( function( err ) { print( err ); } ); 
   ww.setName( "webWindow" ); 
   ww.addSelfToJSContext();
   ww.addParentObjectsToJS();
@@ -42,6 +56,8 @@ try {
                             } 
                           } );
   }
+  
+  ctx.setDefaultSSLExceptionHandler();
   ww.statusBarMessage.connect( function( msg ) { ww.setStatusBarText( msg ); } );
   ww.downloadRequested.connect( function( f ) {
                                   var filename = f.slice( f.lastIndexOf( '/' ) + 1 );
@@ -88,15 +104,24 @@ try {
   ww.keyPress.connect( function( k, m, c ) { 
                            if( k === LocoKey.F11 ) ww.toggleFullScreen();
                        } );
-  /*ww.loadFinished.connect( function( ok ) { 
-    var c = "Loco.webWindow.setStatusBarText('DONE: ' + \
-             Loco.webWindow.totalBytes() + ' bytes loaded');";
-    if( ok ) ww.eval( c );
+  ww.loadFinished.connect( function( ok ) { 
+    if( ok ) {
+      var c = "Loco.webWindow.setStatusBarText('DONE: ' + \
+               Loco.webWindow.totalBytes() + ' bytes loaded');";
+      ww.eval( c );
+      print( ww.toHtml
+      if( atom ) {
+        var elements = ww.findElements( "entry" );
+        for( var e in elements ) {
+          print( elements[ e ].toPlainText() );
+        } 
+      }
+    }
     else Loco.gui.errorDialog( "Error loading page" );
-  });*/
-  //ww.setStatusBarText( "Loading..." );
+  });
+  ww.setStatusBarText( "Loading..." );
   ww.setWindowTitle( ctx.appName() ); 
-  ww.load(WEBSITE, 5000); 
+  ww.load( URL, {username: userName, password: pwd} ); 
   ww.show(); 
   
   

@@ -606,7 +606,7 @@ public:
 
 // invocable from javascript
 public slots: // js interface
-    bool setNetowrkAuthentication( const QString& user, const QString& pwd ) {
+    bool setNetworkAuthentication( const QString& user, const QString& pwd ) {
     	NetworkAccessManager* nam = qobject_cast< NetworkAccessManager* >( ctx_->GetNetworkAccessManager() );
     	if( !nam ) return false;
     	nam->SetDefaultAuthenticator( user, pwd );
