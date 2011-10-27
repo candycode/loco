@@ -60,8 +60,12 @@ public:
         connect( webView_, SIGNAL( downloadRequested( const QString& ) ),
                  this, SIGNAL( downloadRequested( const QString& ) ) );
 		connect( webView_, SIGNAL( fileDownloadProgress( qint64, qint64 ) ), this, SIGNAL( fileDownloadProgress( qint64, qint64 ) ) );
+		connect( webView_, SIGNAL( actionTriggered( QWebPage::WebAction, bool ) ), this, SIGNAL( actionTriggered( QWebPage::WebAction, bool ) ) );
+		connect( webView_, SIGNAL( fileDownloadProgress( qint64, qint64 ) ), this, SIGNAL( fileDownloadProgress( qint64, qint64 ) ) );
+		connect( webView_, SIGNAL( JavaScriptConsoleMessage( const QString&, int, const QString& ) ),
+		   		 this, SIGNAL( javaScriptConsoleMessage( const QString&, int, const QString& ) ) );
 
-        jsInterpreter_->setParent( this );
+		jsInterpreter_->setParent( this );
         jsInterpreter_->SetWebPage( webView_->page() );   
         ctx_.Init( jsInterpreter_ );
         ctx_.SetJSContextName( "wctx" ); //web window context
@@ -102,6 +106,14 @@ public slots:
     void setPreLoadCBack( const QString& cback ) { preLoadCBack_ = cback; }
 
 public slots:
+    void syncLoad( const QUrl& url, int timeout ) { webView_->SyncLoad( url, timeout ); }
+    void load( const QUrl& url ) { webView_->load( url ); }
+    void setLinkDelegationPolicy( const QString& p ) {
+    	if( p == "all" ) webView_->page()->setLinkDelegationPolicy( QWebPage::DelegateAllLinks );
+    	else if( p == "external" ) webView_->page()->setLinkDelegationPolicy( QWebPage::DelegateExternalLinks );
+    	else if( p == "none ") webView_->page()->setLinkDelegationPolicy( QWebPage::DontDelegateLinks );
+    	else error( "Wrong link delegation policy '" + p +"'" );
+    }
     bool saveUrl( const QString& url, const QString& filename, int timeout ) { return webView_->SaveUrl( url, filename, timeout ); }
     QString webKitVersion() const { return QTWEBKIT_VERSION_STR; }
     void close() { webView_->close(); }
@@ -377,6 +389,9 @@ signals:
     void keyRelease( int key, int modifiers, int count );
     void downloadRequested( const QString& );
     void unsupportedContent( const QString& );
+    void actionTriggered( QWebPage::WebAction, bool );
+    void fileDownloadProgress( qint64, qint64 );
+    void javaScriptConsoleMessage( const QString&, int, const QString& );
 private:
     WebView* webView_; //owned by this object
     Context ctx_; // this is where objects are created

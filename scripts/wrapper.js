@@ -1,5 +1,5 @@
-// try e.g.  https://mail.google.com/mail/feed/atom -u <username> -p <password>
-
+// try e.g. (ATOM) https://mail.google.com/mail/feed/atom -u <username> -p <password> -feed 
+//          (RSS)  http://feeds.bbci.co.uk/news/world/rss.xml -feed
 try {
 // prelude
   var $include = Loco.ctx.include;
@@ -9,22 +9,29 @@ try {
 
   $include( 'keys.js' ); 
 
-  //ctx.onError.connect( function( err ) { Loco.gui.criticalDialog( "Error", err ); ctx.exit( -1 ); } ); 
+  ctx.onError.connect( function( err ) { Loco.gui.criticalDialog( "Error", err ); ctx.exit( -1 ); } ); 
 
 
 // main window menu
   var menu = {
-     "Exit": {
-      "Quit": {
-          "cback"  : "Loco.webWindow.close();",
-          "tooltip": "Quit",
-          "status" : "Exit from application",
-          "icon"   : ""
-       }
-     }
+     "_1_Actions": {
+       "_1_Toggle fullscreen": {
+        cback: "Loco.webWindow.toggleFullScreen()",
+        tooltip: "Toggle fullscreen",
+        status: "Show fullscreen/normal",
+        icon: ""
+       },
+       "_2_Quit": {
+        cback  : "Loco.webWindow.close();",
+        tooltip: "Quit",
+        status : "Exit from application",
+        icon   : ""
+       }      
+     }   
     };
   var userName, pwd, URL;
-  var atom = false;
+  var feed = false;
+  var handleFeed = false;
   for( var i = 0; i != ctx.cmdLine().length; ++i ) {
     if( ctx.cmdLine()[ i ] === "-u" && i < ctx.cmdLine().length - 1 ) {
       userName = ctx.cmdLine()[ i + 1 ];
@@ -35,7 +42,10 @@ try {
     if( ctx.cmdLine()[ i ].match( /(^.+:\/\/.+)|(\S+\.htm.*$)/ ) ) {
       URL = ctx.cmdLine()[ i ];
     }
-    if( ctx.cmdLine()[ i ] === "-atom" ) atom = true; 
+    if( ctx.cmdLine()[ i ] === "-feed" ) { 
+      feed = true;
+      handleFeed = true;
+    } 
   }
 
   if( !URL ) URL = "http://www.nyt.com";  
@@ -99,43 +109,52 @@ try {
                      AcceleratedCompositingEnabled: true} );
 
   ww.setEnableContextMenu( true );
-  //ww.loadProgress.connect( function( i ) { ww.setStatusBarText( i + "%" ); } );
+  ww.loadProgress.connect( function( i ) { ww.setStatusBarText( i + "%" ); } );
   ww.setForwardKeyEvents( true );
   ww.keyPress.connect( function( k, m, c ) { 
                            if( k === LocoKey.F11 ) ww.toggleFullScreen();
                        } );
+  ww.setLinkDelegationPolicy( "all" );
+  ww.linkClicked.connect( function( url ) { if( feed ) handleFeed = true; ww.load( url ); } ); 
+  ww.actionTriggered.connect( function() { print( "ACTION TRIGGERED" ); } );
   ww.loadFinished.connect( function( ok ) { 
     if( ok ) {
       var c = "Loco.webWindow.setStatusBarText('DONE: ' + \
                Loco.webWindow.totalBytes() + ' bytes loaded');";
+      
       ww.eval( c );
-      if( atom ) {
-        var doc = "<html><head>"
+      if( handleFeed ) {
+        var doc = "<html><head>";
         doc += "<style type=\"text/css\">\n"
-        doc += "ul li {\nlist-style-image: none;\n list-style-type: none;\n }\n</style></head><body>";
-        var elements = ww.findElements( 'entry' );
+        doc += "ul li {\nlist-style-image: none;\nlist-style-type: none;\n }\n</style></head><body>";
+        var entryTag, titleTag, textTag, linkTag, hrefEval;
+        if( ww.eval( "document.getElementsByTagName('rss')" ).length > 0 ) { //RSS
+          entryTag  = 'item';
+          titleTag  = 'title';
+          textTag   = 'description';
+          linkTag   = 'link';
+          hrefEval  = 'this.textContent';
+        } else if( ww.eval( "document.getElementsByTagName('feed')" ).length > 0  ) { //ATOM
+          entryTag  = 'entry';
+          titleTag  = 'title';
+          textTag   = 'summary';
+          linkTag   = 'link';
+          hrefEval  = 'this.getAttribute( "href" )';
+        } else return;
+        
+        var elements = ww.findElements( entryTag );
         for( var e = 0; e != elements.length; ++e ) {
-          var title = elements[ e ].findFirstElement( 'title' ).eval( "this.textContent" );
-          var summary = elements[ e ].findFirstElement( 'summary' ).eval( "this.textContent" );
+          var title = elements[ e ].findFirstElement( titleTag ).eval( "this.textContent" );
+          var summary = elements[ e ].findFirstElement( textTag ).eval( "this.textContent" );
+          var link = elements[ e ].findFirstElement( linkTag ).eval( hrefEval );
           doc += '<br/><ul><li><h3>Title</h3> ' + title   + '</li>';
-          doc += '<li><h4>Summary</h4> '   + summary + '</li></ul>'; 
+          doc += '<li><a href="' + link + '">'  + 'LINK</a></li>';
+          doc += '<li><h4>Summary</h4> '        + summary + '</li></ul>'; 
         }
         doc += "</body></html>";
-        atom = false;
+        handleFeed = false;
         ww.setHtml( doc );
-       
-        //var parser = new DOMParser();
-        //var xmlDoc = parser.parseFromString( ww.toHtml(), "text/xml" );
-        //Loco.ctx.include( 'xmlToJSON.js' );
-        //var json = xmlToJson( xmlDoc );
-        //print( jsonToString( json ) );
-        
-        /*var html = xmlTraverse( xmlDoc, function( n ) {
-                                           var doc = this.doc | "";
-                                           if( n.nodeName === "entry" ) {
-                                             doc += "<p>\n"
-                                             doc += "<ul>\n";
-                                             var title  n.getElementsByTagName( "title" )  */   
+        ww.show();
       }
     }
     else Loco.gui.errorDialog( "Error loading page" );
@@ -143,9 +162,7 @@ try {
   ww.setStatusBarText( "Loading..." );
   ww.setWindowTitle( ctx.appName() ); 
   ww.load( URL, {username: userName, password: pwd} ); 
-  ww.show(); 
-  
-  
+  if( !feed ) ww.show();   
 } catch(e) {
   Loco.console.printerrln(e);
   Loco.ctx.quit( -1 );

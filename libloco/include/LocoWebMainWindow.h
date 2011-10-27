@@ -117,6 +117,13 @@ private slots:
     void OnClose() { emit closing(); }
 
 public slots:
+     void syncLoad( const QUrl& url, int timeout ) { webView_->SyncLoad( url, timeout ); }
+    void setLinkDelegationPolicy( const QString& p ) {
+    	if( p == "all" ) webView_->page()->setLinkDelegationPolicy( QWebPage::DelegateAllLinks );
+    	else if( p == "external" ) webView_->page()->setLinkDelegationPolicy( QWebPage::DelegateExternalLinks );
+    	else if( p == "none ") webView_->page()->setLinkDelegationPolicy( QWebPage::DontDelegateLinks );
+    	else error( "Wrong link delegation policy '" + p +"'" );
+    }
     bool clearCache() {
     	if( webView_->page()->networkAccessManager()->cache() == 0 ) return false;
     	webView_->page()->networkAccessManager()->cache()->clear();
@@ -344,6 +351,7 @@ public slots:
         ctx_.Eval( "throw " + err + ";\n" );
     }  
     void load( const QString& url ) { webView_->Load( url ); }
+    void load( const QUrl& url ) { webView_->load( url ); }
     bool isModified() { return webView_->isModified(); }
     //QList< QWebHistoryItem > history();
     void setHtml( const QString& html, const QString& baseUrl = "" ) { webView_->setHtml( html, QUrl( baseUrl ) ); }
@@ -433,7 +441,9 @@ private:
              const bool leaf = i.value().type() == QVariant::Map &&
                                (i.value().toMap().begin()).value().type() == QVariant::String;
              if( leaf ) {
-                 QAction* a = new QAction( i.key(), &mw_ );
+                 QString key =  i.key();
+                 key.remove( 0, key.indexOf(  QRegExp("[^0-9_]") ) ); //prepend with _<number>_ to force ordering
+                 QAction* a = new QAction( key, &mw_ );
                  mapper_->setMapping( a, a );
                  connect( a, SIGNAL( triggered() ), mapper_, SLOT( map() ) );
                  parent->addAction( a );
@@ -457,7 +467,9 @@ private:
                        continue;
                    }                   
                  } else {
-                     m = mw_.menuBar()->addMenu( i.key() );
+                	 QString key =  i.key();
+                	 key.remove( 0, key.indexOf(  QRegExp("[^0-9_]") ) ); //prepend with _<number>_ to force ordering
+                     m = mw_.menuBar()->addMenu( key );
                  }
                  const QString menuPath = path + "/" + i.key();
                  menuItems_[ menuPath ] = m;
