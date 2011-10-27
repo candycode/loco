@@ -37,6 +37,18 @@ function jsonToString( obj, indent ) {
   return s + "\n";
 };
 
+
+function jsonTraverse( obj, visitor ) {
+  visitor( obj );
+  if( typeof obj === 'object' ) { 
+    for( var i in obj ) {
+      if( obj[ i ] ) jsonTraverse( obj[ i ], visitor );
+    }
+  }
+  return visitor;
+};
+
+
 // Changes XML to JSON
 function xmlToJson(xml) {
 
