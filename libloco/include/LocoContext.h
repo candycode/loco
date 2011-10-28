@@ -43,6 +43,7 @@
 #include "LocoObjectInfo.h"
 #include "LocoIJSInterpreter.h"
 #include "LocoQtApp.h"
+#include "LocoNetworkAccessManager.h"
 
 
 namespace loco {
@@ -605,7 +606,18 @@ public:
 
 // invocable from javascript
 public slots: // js interface
-
+    bool setNetworkAuthentication( const QString& user, const QString& pwd ) {
+    	NetworkAccessManager* nam = qobject_cast< NetworkAccessManager* >( ctx_->GetNetworkAccessManager() );
+    	if( !nam ) return false;
+    	nam->SetDefaultAuthenticator( user, pwd );
+    	return true;
+    }
+    bool setDefaultSSLExceptionHandler() {
+    	NetworkAccessManager* nam = qobject_cast< NetworkAccessManager* >( ctx_->GetNetworkAccessManager() );
+    	if( !nam ) return false;
+    	nam->SetDefaultSSLExceptionHandler();
+    	return true;
+    }
     void setIncludePath( const QString& ip ) { setIncludePath( ip.split( ":" ) ); }
     void setIncludePath( const QStringList& ip ) { ctx_->SetIncludePath( ip ); }
     void addToIncludePath( const QString& p ) { ctx_->AddToIncludePath( p ); }

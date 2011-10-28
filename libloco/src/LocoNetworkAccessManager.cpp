@@ -9,11 +9,9 @@
 #include <QNetworkDiskCache>
 #include <QDesktopServices>
 #include <QSslConfiguration>
+#include <QAuthenticator>
 
 #include <stdexcept>
-
-///@todo remove
-#include <iostream>
 
 namespace loco {
 
@@ -46,7 +44,6 @@ QString OpToString( QNetworkAccessManager::Operation op ) {
 
 
 
-
 class NetworkCookieJar : public QNetworkCookieJar {
 public:
 	NetworkCookieJar( QObject* parent = 0 ) : QNetworkCookieJar( parent ), cookieFile_( "loco-cookies.ini" ) {}
@@ -60,7 +57,8 @@ public:
             settings.setValue((*i).name(), QString((*i).value()));
             //std::cout << "  [*] Saving cookie: " << QString((*i).name()).toStdString() << "\n";
         }
-        settings.sync();
+        settings.endGroup();
+        //settings.sync();
         return true;
    } 
    QList<QNetworkCookie> cookiesForUrl ( const QUrl & url ) const {
@@ -73,13 +71,16 @@ public:
            //std::cout << "  Loading cookie: " << QString((*i)).toStdString() << "\n";
            cookieList.push_back(QNetworkCookie((*i).toLocal8Bit(), settings.value(*i).toByteArray()));
        }
+       settings.endGroup();
        return cookieList;
    }
 private:
 	QString cookieFile_;
 };
 
-NetworkAccessManager::NetworkAccessManager( QObject* p ) 
+NetworkAccessManager::NetworkAccessManager( QObject* p,
+		                                    bool cache,
+		                                    const QString cacheDir )
     : QNetworkAccessManager( p ), 
       rxPattern_( QRegExp::RegExp2 ),
       filterRequests_( true ),
@@ -87,23 +88,29 @@ NetworkAccessManager::NetworkAccessManager( QObject* p )
       enableUrlMapping_( false ),
       signalAccessDenied_( true ),
       logRequests_( false ),
-      emitRequestSignal_( false ),
-      ignoreSSLErrors_( true ) {
-        setCookieJar( new NetworkCookieJar );  
-        networkDiskCache_ = new QNetworkDiskCache( this );
-        //networkDiskCache_->setCacheDirectory( "./" );//
-		networkDiskCache_->setCacheDirectory(QDesktopServices::storageLocation(QDesktopServices::CacheLocation));
+      emitRequestSignal_( false )  {
+	//setCookieJar( new NetworkCookieJar ); // with this gmail doesn't work
+	if( cache ) {
+		networkDiskCache_ = new QNetworkDiskCache( this );
+		if( !cacheDir.isEmpty() ) {
+			networkDiskCache_->setCacheDirectory( cacheDir );
+		} else {
+			networkDiskCache_->setCacheDirectory(
+					QDesktopServices::storageLocation(QDesktopServices::CacheLocation));
+		}
 		setCache( networkDiskCache_ );
-		connect( this, SIGNAL( authenticationRequired( QNetworkReply*, QAuthenticator* ) ),
-			     SLOT( OnAuthenticateRequest( QNetworkReply*,QAuthenticator* ) ) );
+	}
+	connect( this, SIGNAL( authenticationRequired( QNetworkReply*, QAuthenticator* ) ),
+		     SLOT( OnAuthenticateRequest( QNetworkReply*,QAuthenticator* ) ) );
+	connect( this, SIGNAL( sslErrors( QNetworkReply*, const QList< QSslError >& ) ),
+			 this, SLOT( OnSSLErrors( QNetworkReply*, const QList< QSslError >& ) ) );
+	LoadSettings();
 		
 }
 
 QNetworkReply* NetworkAccessManager::createRequest( Operation op,
                                                     const QNetworkRequest& req,
                                                     QIODevice* outgoingData  ) {
-	QNetworkRequest request = req;
-	request.setSslConfiguration( QSslConfiguration::defaultConfiguration() );
 	if( logRequests_ || emitRequestSignal_ ) {
 		typedef QList< QPair< QString, QString > > QI;
 		QI qi = req.url().queryItems();
@@ -137,7 +144,7 @@ QNetworkReply* NetworkAccessManager::createRequest( Operation op,
 		if( logRequests_ ) requests_.push_back( requestLog );
 		if( emitRequestSignal_ ) emit OnRequest( requestLog );
 	}
-    if( !allowNetAccess_ ) {
+	if( !allowNetAccess_ ) {
         emit UnauthorizedNetworkAccessAttempt();
 		QNetworkRequest nr;
 	    nr.setUrl( defaultUrl_ );
@@ -145,10 +152,9 @@ QNetworkReply* NetworkAccessManager::createRequest( Operation op,
     }        
     
 	if( !filterRequests_ ) {
-		QNetworkReply* nr = QNetworkAccessManager::createRequest( op, request, outgoingData );
-		connect( nr, SIGNAL( error( QNetworkReply::NetworkError ) ), 
-			this, SLOT( OnReplyError( QNetworkReply::NetworkError ) ) ); 
-		if( ignoreSSLErrors_ ) nr->ignoreSslErrors();
+		QNetworkReply* nr = QNetworkAccessManager::createRequest( op, req, outgoingData );
+		connect( nr, SIGNAL( error( QNetworkReply::NetworkError ) ),
+			     this, SLOT( OnReplyError( QNetworkReply::NetworkError ) ) );
 		return nr;
 	}
 
@@ -165,7 +171,6 @@ QNetworkReply* NetworkAccessManager::createRequest( Operation op,
             }
         } 
     }            
-
     for( RegExps::const_iterator i = deny_.begin(); i != deny_.end(); ++i ) {
         if( i->exactMatch( url ) ) {
             if( signalAccessDenied_ ) emit UrlAccessDenied( url );
@@ -176,10 +181,9 @@ QNetworkReply* NetworkAccessManager::createRequest( Operation op,
     }
     for( RegExps::const_iterator i = allow_.begin(); i != allow_.end(); ++i ) {
         if( i->exactMatch( url ) ) {
-			QNetworkReply* nr = QNetworkAccessManager::createRequest( op, request, outgoingData );
-		    connect( nr, SIGNAL( error( QNetworkReply::NetworkError ) ), 
-			    this, SLOT( OnReplyError( QNetworkReply::NetworkError ) ) );
-		    if( ignoreSSLErrors_ ) nr->ignoreSslErrors();
+			QNetworkReply* nr = QNetworkAccessManager::createRequest( op, req, outgoingData );
+		    //connect( nr, SIGNAL( error( QNetworkReply::NetworkError ) ),
+			//    this, SLOT( OnReplyError( QNetworkReply::NetworkError ) ) );
             return nr;
         }
     }
@@ -190,6 +194,23 @@ QNetworkReply* NetworkAccessManager::createRequest( Operation op,
     return QNetworkAccessManager::createRequest( op, nr, outgoingData );   
 }
 
+
+void NetworkAccessManager::LoadSettings() {
+///@todo add configuration for proxy
+#ifndef QT_NO_OPENSSL
+	QSettings settings;
+	//settings.beginGroup( "SSL" );
+    QSslConfiguration sslCfg = QSslConfiguration::defaultConfiguration();
+    QList<QSslCertificate> ca_list = sslCfg.caCertificates();
+    QList<QSslCertificate> ca_new = QSslCertificate::fromData(settings.value(QLatin1String("CaCertificates")).toByteArray());
+    ca_list += ca_new;
+    sslCfg.setCaCertificates(ca_list);
+    //sslCfg.setProtocol(QSsl::AnyProtocol);
+    QSslConfiguration::setDefaultConfiguration(sslCfg);
+    //settings.endGroup();
+#endif
+}
+
 //slots
 void NetworkAccessManager::OnReplyError( QNetworkReply::NetworkError ) {
 	QNetworkReply* nr = qobject_cast< QNetworkReply* >( QObject::sender() );
@@ -197,19 +218,81 @@ void NetworkAccessManager::OnReplyError( QNetworkReply::NetworkError ) {
 	else emit OnError( "NETWORK ERROR" );
 }
 
-void NetworkAccessManager::OnAuthenticateRequest( QNetworkReply*, QAuthenticator* ) {
-	std::cout << "Authentication requested" << std::endl;
-
+void NetworkAccessManager::OnAuthenticateRequest( QNetworkReply* reply, QAuthenticator* a ) {
+	if( authenticator_.isNull()  ) return;
+    QVariantMap credentials = authenticator_->Credentials( reply->url().toString() );
+    if( !credentials.isEmpty() ) {
+	    a->setUser( credentials[ "user" ].toString() );
+	    a->setPassword( credentials[ "password" ].toString() );
+    }
 }
 
+
 #ifndef QT_NO_OPENSSL
-void NetworkAccessManager::OnSSLErrors( QNetworkReply*, const QList< QSslError >& errors ) {
-	QStringList sl;
-	for( QList< QSslError >::const_iterator err = errors.begin();
-		 err != errors.end(); ++err	 ) {
-		sl.append( err->errorString() );
+QString CertToFormattedString( const QSslCertificate& cert ) {
+    QStringList message;
+    message << cert.subjectInfo( QSslCertificate::CommonName );
+    message << QString("Issuer: %1").arg(cert.issuerInfo( QSslCertificate::CommonName ) );
+    message << QString("Not valid before: %1").arg( cert.effectiveDate().toString());
+    message << QString("Valid until: %1").arg( cert.expiryDate().toString() );
+
+    QMultiMap<QSsl::AlternateNameEntryType, QString> names = cert.alternateSubjectNames();
+    if (names.count() > 0) {
+        QString list;
+        list += ("Alternate Names:");
+        list += QStringList(names.values(QSsl::DnsEntry)).join(QLatin1String(", "));
+        list += QLatin1String("\n");
+        message << list;
+    }
+    QString result = message.join(QLatin1String("\n"));
+    return result;
+}
+
+
+void NetworkAccessManager::OnSSLErrors( QNetworkReply* reply, const QList< QSslError >& errors ) {
+	QSettings settings;
+	//settings.beginGroup( "SSL" );
+	QList< QSslCertificate > ca_merge = QSslCertificate::fromData(settings.value(QLatin1String("CaCertificates")).toByteArray());
+	//settings.endGroup();
+    QList< QSslCertificate > ca_new;
+	QStringList errorStrings;
+	for( int i = 0; i < errors.count(); ++i ) {
+	    if( ca_merge.contains( errors.at( i ).certificate() ) ) continue;
+	    errorStrings += errors.at( i ).errorString();
+	    if( !errors.at(i).certificate().isNull() ) {
+	        ca_new.append( errors.at( i ).certificate() );
+	    }
 	}
-	emit OnError( sl.join( "\n" ) );
+	if( errorStrings.isEmpty() ) {
+	    reply->ignoreSslErrors();
+	    return;
+	}
+	if( sslHandler_.isNull()  ) return;
+  	bool ret = sslHandler_->Check( reply->url().toString(), errorStrings );
+	if( ret ) {
+	    if( ca_new.count() > 0 ) {
+		    QStringList certinfos;
+		    for ( int i = 0; i < ca_new.count(); ++i ) certinfos += CertToFormattedString( ca_new.at( i ) );
+		    ret = sslHandler_->AcceptCertificates( certinfos );
+		    if( ret  ) {
+			    ca_merge += ca_new;
+			    QSslConfiguration sslCfg = QSslConfiguration::defaultConfiguration();
+			    QList<QSslCertificate> ca_list = sslCfg.caCertificates();
+			    ca_list += ca_new;
+			    sslCfg.setCaCertificates(ca_list);
+			    //sslCfg.setProtocol(QSsl::AnyProtocol);
+			    QSslConfiguration::setDefaultConfiguration(sslCfg);
+			    reply->setSslConfiguration(sslCfg);
+			    QByteArray pems;
+			    for( int i = 0; i < ca_merge.count(); ++i ) pems += ca_merge.at(i).toPem() + '\n';
+			    //settings.beginGroup( "SSL" );
+			    settings.setValue( QLatin1String( "CaCertificates" ), pems );
+			    //settings.endGroup();
+		    }
+	    }
+	    reply->ignoreSslErrors();
+	}
+	//else emit OnSSLError( errorStrings.join( "\n" ) );
 }
 #endif
 
