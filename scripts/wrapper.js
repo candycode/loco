@@ -6,13 +6,12 @@ try {
   var print = Loco.console.println;
   var ctx = Loco.ctx;
   var logRequests = false;
+  var logActions = false;
 
-  $include( 'keys.js' ); 
-
-  ctx.onError.connect( function( err ) { Loco.gui.criticalDialog( "Error", err ); ctx.exit( -1 ); } ); 
-
-
-// main window menu
+  ctx.onError.connect( function( err ) { Loco.gui.warningDialog( "Error", err ); /*ctx.exit( -1 );*/ } );
+  ctx.javaScriptConsoleMessage.connect( function( t, l, s) { print( t + ": " + l + "\n" + s ); } );
+  
+  // main window menu
   var menu = {
      "_1_Actions": {
        "_1_Toggle fullscreen": {
@@ -45,7 +44,9 @@ try {
     if( ctx.cmdLine()[ i ] === "-feed" ) { 
       feed = true;
       handleFeed = true;
-    } 
+    }
+    if( ctx.cmdLine()[ i ] === "-logRequests" ) logRequests = true;
+    if( ctx.cmdLine()[ i ] === "-logActions"  ) logActions  = true;
   }
 
   if( !URL ) URL = "http://www.nyt.com";  
@@ -56,7 +57,6 @@ try {
   ww.setName( "webWindow" ); 
   ww.addSelfToJSContext();
   ww.addParentObjectsToJS();
-  ww.frameCreated.connect( function( f ) { print( "Frame created" ); } );
   if( logRequests ) {
     ww.emitRequestSignal( true );
     ww.onRequest.connect( function(r) {
@@ -89,7 +89,7 @@ try {
 // setup main window 
   ww.setMenu( menu );
   ww.javaScriptConsoleMessage.connect( function( msg, lineno, srcid ) {
-                                         print( lineno + ': ' + msg + '\n' + srcid ); } ); 
+                                         print( lineno + ': ' + msg + '\n' + srcid ); } );                                
   ww.setAttributes( {JavascriptEnabled: true,
                      JavaEnabled: true,
                      JavascriptCanOpenWindows: true, 
@@ -108,16 +108,21 @@ try {
                      XSSAuditingEnabled: false,
                      FrameFlatteningEnabled: true, 
                      AcceleratedCompositingEnabled: true} );
+  ww.eval( "console.log('redirected console message')" );                        
 
   ww.setEnableContextMenu( true );
   ww.loadProgress.connect( function( i ) { ww.setStatusBarText( i + "%" ); } );
   ww.setForwardKeyEvents( true );
-  ww.keyPress.connect( function( k, m, c ) { 
-                           if( k === LocoKey.F11 ) ww.toggleFullScreen();
-                       } );
-  ww.setLinkDelegationPolicy( "all" );
-  ww.linkClicked.connect( function( url ) { if( feed ) handleFeed = true; ww.load( url ); } ); 
-  ww.actionTriggered.connect( function() { print( "ACTION TRIGGERED" ); } );
+  
+  if( feed ) {                     
+    ww.setLinkDelegationPolicy( "all" );
+    ww.linkClicked.connect( function( url ) { handleFeed = true; ww.load( url ); } );
+  }
+  ww.linkHovered.connect( function(url) { ww.setStatusBarText( url.toString() ); } ); 
+  if( logActions ) {
+    ww.webActionTriggered.connect( function( a, b ) { print( "ACTION " + a + " TRIGGERED" ); } );
+    ww.setEmitWebActionSignal( true );
+  }
   ww.loadFinished.connect( function( ok ) { 
     if( ok ) {
       var c = "Loco.webWindow.setStatusBarText('DONE: ' + \

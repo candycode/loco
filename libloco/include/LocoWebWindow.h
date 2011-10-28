@@ -64,6 +64,7 @@ public:
 		connect( webView_, SIGNAL( fileDownloadProgress( qint64, qint64 ) ), this, SIGNAL( fileDownloadProgress( qint64, qint64 ) ) );
 		connect( webView_, SIGNAL( JavaScriptConsoleMessage( const QString&, int, const QString& ) ),
 		   		 this, SIGNAL( javaScriptConsoleMessage( const QString&, int, const QString& ) ) );
+		connect( webView_, SIGNAL( actionTriggered( const QString&, bool ) ), this, SIGNAL( webActionTriggered( const QString&, bool ) ) );
 
 		jsInterpreter_->setParent( this );
         jsInterpreter_->SetWebPage( webView_->page() );   
@@ -106,6 +107,10 @@ public slots:
     void setPreLoadCBack( const QString& cback ) { preLoadCBack_ = cback; }
 
 public slots:
+	void setEmitWebActionSignal( bool yes ) { webView_->SetEmitWebActionSignal( yes ); }
+	void triggerAction( const QString& action, bool checked = false ) {
+		if( !webView_->TriggerAction( action, checked ) ) error( "Cannot trigger action " + action );
+	}
     void syncLoad( const QUrl& url, int timeout ) { webView_->SyncLoad( url, timeout ); }
     void load( const QUrl& url ) { webView_->load( url ); }
     void setLinkDelegationPolicy( const QString& p ) {
@@ -389,7 +394,7 @@ signals:
     void keyRelease( int key, int modifiers, int count );
     void downloadRequested( const QString& );
     void unsupportedContent( const QString& );
-    void actionTriggered( QWebPage::WebAction, bool );
+    void webActionTriggered( const QString&, bool );
     void fileDownloadProgress( qint64, qint64 );
     void javaScriptConsoleMessage( const QString&, int, const QString& );
 private:

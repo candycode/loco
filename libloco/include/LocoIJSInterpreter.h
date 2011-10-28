@@ -17,6 +17,8 @@ public:
 	virtual void AddObjectToJS( const QString& name, QObject* obj ) = 0;
 	virtual void Init() = 0;
 	virtual ~IJSInterpreter() {}
+signals:
+	virtual void JavaScriptConsoleMessage( const QString& /*text*/, int /*line*/, const QString& /*source id*/ );
 };
 
 }

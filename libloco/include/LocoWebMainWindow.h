@@ -67,10 +67,12 @@ public:
                         		 this, SIGNAL( downloadRequested( const QString& ) ) );
         connect( webView_, SIGNAL( unsupportedContent( const QString& )  ),
                 		 this, SIGNAL( unsupportedContent( const QString& ) ) );
-        connect( webView_, SIGNAL( actionTriggered( QWebPage::WebAction, bool ) ), this, SIGNAL( actionTriggered( QWebPage::WebAction, bool ) ) );
+        connect( webView_, SIGNAL( actionTriggered( const QString&, bool ) ), this, SIGNAL( webActionTriggered( const QString&, bool ) ) );
         connect( webView_, SIGNAL( fileDownloadProgress( qint64, qint64 ) ), this, SIGNAL( fileDownloadProgress( qint64, qint64 ) ) );
         connect( webView_, SIGNAL( JavaScriptConsoleMessage( const QString&, int, const QString& ) ),
         		 this, SIGNAL( javaScriptConsoleMessage( const QString&, int, const QString& ) ) );
+		connect( webView_->page(), SIGNAL( linkHovered( const QString&, const QString&, const QString& ) ),
+        		 this, SIGNAL( linkHovered( const QString&, const QString&, const QString& ) ) );
         
         webView_->settings()->setAttribute( QWebSettings::JavascriptCanOpenWindows, true );
 
@@ -117,7 +119,11 @@ private slots:
     void OnClose() { emit closing(); }
 
 public slots:
-     void syncLoad( const QUrl& url, int timeout ) { webView_->SyncLoad( url, timeout ); }
+	void setEmitWebActionSignal( bool yes ) { webView_->SetEmitWebActionSignal( yes ); }
+	void triggerAction( const QString& action, bool checked = false ) {
+		if( !webView_->TriggerAction( action, checked ) ) error( "Cannot trigger action " + action );
+	}
+	void syncLoad( const QUrl& url, int timeout ) { webView_->SyncLoad( url, timeout ); }
     void setLinkDelegationPolicy( const QString& p ) {
     	if( p == "all" ) webView_->page()->setLinkDelegationPolicy( QWebPage::DelegateAllLinks );
     	else if( p == "external" ) webView_->page()->setLinkDelegationPolicy( QWebPage::DelegateExternalLinks );
@@ -495,6 +501,7 @@ private slots:
 signals:
     void actionTriggered( const QString& path );
     void linkClicked( const QUrl& );
+	void linkHovered( const QString&, const QString&, const QString& );
     void loadFinished( bool );
     void loadProgress( int );
     void loadStarted();
@@ -510,7 +517,7 @@ signals:
     void toolBarVisibilityChangeRequested( bool );
     void downloadRequested( const QString& );
     void unsupportedContent( const QString& );
-    void actionTriggered( QWebPage::WebAction, bool );
+    void webActionTriggered( const QString&, bool );
     void fileDownloadProgress( qint64, qint64 );
     void javaScriptConsoleMessage( const QString&, int, const QString& );
 private:

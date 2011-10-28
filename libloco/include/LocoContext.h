@@ -363,6 +363,7 @@ private slots:
     }
 signals:
     void JSContextCleared();
+	void JavaScriptConsoleMessage( const QString&, int, const QString& );
 public slots:
     // loco::Objects should be connected to this slot to have errors handled by the context
     // and indirectly by javascript
@@ -601,7 +602,9 @@ class JSContext : public Object {
 public:
     JSContext( Context* ctx ) : Object( 0, "LocoContext", "Loco/Context" ),
     ctx_( ctx )  {
-        SetDestroyable( false );       
+        SetDestroyable( false );
+		connect( ctx_, SIGNAL( JavaScriptConsoleMessage( const QString&, int, const QString& ) ),
+			     this, SIGNAL( javaScriptConsoleMessage( const QString&, int, const QString& ) ) );
     }
 
 // invocable from javascript
@@ -728,7 +731,8 @@ public slots: // js interface
         }
         return vm;          
     }
-
+signals:
+	void javaScriptConsoleMessage( const QString&, int, const QString& );
 private slots:
     //forward errors received from Context,
     friend class Context; 

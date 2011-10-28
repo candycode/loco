@@ -37,6 +37,8 @@ Context::Context( IJSInterpreter* jsi, LocoQtApp* app, const QStringList& cmdLin
     jsContext_->setParent( this );
     includePath_ << "." << QCoreApplication::applicationDirPath() + "/include"
                  << QCoreApplication::applicationDirPath() + "/scripts";
+	connect( jsInterpreter_, SIGNAL( JavaScriptConsoleMessage( const QString&, int, const QString& ) ),
+		     this, SIGNAL( JavaScriptConsoleMessage( const QString&, int, const QString& ) ) );
 }
 
 
@@ -67,7 +69,8 @@ void Context::Init( IJSInterpreter* jsi, LocoQtApp* app, const QStringList& cmdL
        
     //allow js context to receive errors from context and emit signals
     connect( this, SIGNAL( onError( const QString&) ), jsContext_, SLOT( ForwardError( const QString& ) ) );
-
+    connect( jsInterpreter_, SIGNAL( JavaScriptConsoleMessage( const QString&, int, const QString& ) ),
+		     this, SIGNAL( JavaScriptConsoleMessage( const QString&, int, const QString& ) ) );
 	jsInterpreter_->Init();
 }
 

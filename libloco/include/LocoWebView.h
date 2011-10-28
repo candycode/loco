@@ -20,6 +20,9 @@
 #include <QNetworkReply>
 #include <QDir>
 
+///@todo remove
+#include <iostream>
+
 class QWebPluginFactory;
 
 namespace loco {
@@ -29,13 +32,19 @@ typedef QList< QPair< QRegExp, QString > > UrlAgentMap;
 class WebPage : public QWebPage {
 	Q_OBJECT
 public:
-	WebPage( QWidget* parent = 0 ) : QWebPage( parent ), allowInterrupt_( true ) {}
+	WebPage( QWidget* parent = 0 ) : QWebPage( parent ),
+		                             allowInterrupt_( true ),
+	                                 emitWebActionSignal_( false ) {}
     void SetUserAgentForUrl( const QRegExp& url, const QString& userAgent ) {
     	urlAgents_.push_back( qMakePair( url, userAgent ) );
     }
     void SetAllowInterruptJavaScript( bool yes ) {
     	allowInterrupt_ = yes;
     }
+	void TriggerAction( WebAction action, bool checked ) {
+	    triggerAction( action, checked );
+	}
+	void SetEmitWebActionSignal( bool yes ) { emitWebActionSignal_ = yes; }
 protected:
     QString userAgentForUrl( const QUrl& url ) const {
     	const QString s = url.toString();
@@ -46,16 +55,15 @@ protected:
         return QWebPage::userAgentForUrl( url );
     }
     void triggerAction( WebAction action, bool checked = false ) {
-    	QWebPage::triggerAction( action, checked );
-    	emit ActionTriggered( action, checked );
-
+		QWebPage::triggerAction( action, checked );
+		if( emitWebActionSignal_ ) emit ActionTriggered( action, checked );
     }
 	void javaScriptConsoleMessage(const QString& message, int lineNumber, const QString& sourceID ) {
 		QWebPage::javaScriptConsoleMessage( message, lineNumber, sourceID );
 	    emit JavaScriptConsoleMessage( message, lineNumber, sourceID );
 	}
 signals:
-    void ActionTriggered( QWebPage::WebAction, bool );
+	void ActionTriggered( QWebPage::WebAction, bool );
 	void JavaScriptConsoleMessage( const QString& message, int lineNumber, const QString& sourceID );
 public slots:
     bool shouldInterruptJavaScript() {
@@ -65,26 +73,14 @@ public slots:
 private:
     bool allowInterrupt_;
     UrlAgentMap urlAgents_;
+	bool emitWebActionSignal_;
 };
 
 
 class WebView : public QWebView {
 	Q_OBJECT
 public:
-	WebView() : eatContextMenuEvent_( true ), eatKeyEvents_( true ),
-	            eatMouseEvents_( false ), syncLoadOK_( false ) {
-		WebPage* wp = new WebPage;
-		wp->setParent( this );
-		setPage( wp );
-		connect( wp, SIGNAL( downloadRequested( const QNetworkRequest& ) ),
-				 this, SLOT( OnDownloadRequested( const QNetworkRequest& ) ) );
-		connect( wp, SIGNAL( unsupportedContent( QNetworkReply* ) ), this,
-				 SLOT( OnUnsupportedContent( QNetworkReply* ) ) );
-		connect( wp, SIGNAL( ActionTriggered( QWebPage::WebAction, bool ) ),
-				 this, SIGNAL( actionTriggered( QWebPage::WebAction, bool ) ) );
-		connect( wp, SIGNAL( frameCreated( QWebFrame* ) ), this, SLOT( OnFrameCreated( QWebFrame* ) ) );
-		wp->setForwardUnsupportedContent( true );
-	}
+	WebView(); 
 	void SetUserAgentForUrl( const QRegExp& url, const QString& userAgent ) {
 	    qobject_cast< WebPage* >( page() )->SetUserAgentForUrl( url, userAgent );
 	}
@@ -147,9 +143,13 @@ public:
     void HighlightText( const QString& substring ) {
     	page()->findText( substring, QWebPage::HighlightAllOccurrences );
     }
-
     bool SaveUrl( const QString& url, const QString& filename, int timeout );
-
+    bool TriggerAction( const QString&, bool );
+	void SetEmitWebActionSignal( bool yes ) {
+	    WebPage* wp = qobject_cast< WebPage* >( page() );
+	    if( !wp ) return;
+        wp->SetEmitWebActionSignal( yes );
+	}
 private slots:
     void OnLoadFinished( bool ok ) { syncLoadOK_ = ok; }
     void OnDownloadRequested( const QNetworkRequest& nr ) {
@@ -161,6 +161,7 @@ private slots:
     void OnFrameCreated( QWebFrame* wf ) {
     	emit onFrameCreated( wf );
     }
+	void OnActionTriggered( QWebPage::WebAction, bool );
 private:
     QUrl TranslateUrl( const QString& urlString ) {
     	if( urlString.contains( "://" ) ) return QUrl( urlString );
@@ -258,10 +259,6 @@ protected:
                                bool( me->buttons() & Qt::RightButton ) );
 
     }
-	void javaScriptConsoleMessage( const QString & message, int lineNumber, const QString & sourceID ) {
-		emit JavaScriptConsoleMessage( message, lineNumber, sourceID );
-	}
-
 signals:
 	void keyPress( int, int, int );
 	void keyRelease( int, int, int );
@@ -272,7 +269,7 @@ signals:
     void closing();
     void downloadRequested( const QString& );
     void unsupportedContent( const QString& );
-    void actionTriggered( QWebPage::WebAction , bool );
+    void actionTriggered( const QString&, bool );
     void fileDownloadProgress( qint64, qint64 );
     void onFrameCreated( QWebFrame* );
 	void JavaScriptConsoleMessage( const QString&, int, const QString& );
