@@ -44,9 +44,7 @@ public:
 
 	}
 	QVariant EvaluateJavaScript( const QString& code ) {
-		QVariant v = wf_->evaluateJavaScript( code );
-		wp_->extension( QWebPage::ErrorPageExtension
-		return v;
+		return wf_->evaluateJavaScript( code );
 	}
 	void AddObjectToJS( const QString& name, QObject* obj ) {
 		wf_->addToJavaScriptWindowObject( name, obj );
