@@ -9,6 +9,8 @@
 
 #include "LocoIJSInterpreter.h"
 
+///@todo remove
+#include <iostream>
 
 namespace loco {
 
@@ -17,10 +19,34 @@ class JSCoreWebPage : public QWebPage {
 public:
 	JSCoreWebPage( QObject* parent = 0 ) : QWebPage( parent ) {}
 protected:
-	void javascriptConsoleMessage( const QString& t, int l, const QString& s ) {
+	void javaScriptConsoleMessage( const QString& t, int l, const QString& s ) {
 		QWebPage::javaScriptConsoleMessage( t, l, s );
 		emit JavaScriptConsoleMessage( t, l, s );
 	}
+public:
+	bool supportsExtension( Extension extension ) const { 
+	    if( extension == QWebPage::ErrorPageExtension ) { 
+		    return true; 
+        } 
+		return false;
+	}
+	bool extension(Extension extension, const ExtensionOption *option = 0, ExtensionReturn *output = 0) {
+        if( extension != QWebPage::ErrorPageExtension ) return false;
+
+        ErrorPageExtensionOption *errorOption = ( ErrorPageExtensionOption* ) option;
+        std::cerr << "Error loading " << qPrintable(errorOption->url.toString())  << std::endl;
+        if(errorOption->domain == QWebPage::QtNetwork)
+            std::cerr << "Network error (" << errorOption->error << "): ";
+        else if(errorOption->domain == QWebPage::Http)
+            std::cerr << "HTTP error (" << errorOption->error << "): ";
+        else if(errorOption->domain == QWebPage::WebKit)
+            std::cerr << "WebKit error (" << errorOption->error << "): ";
+
+        std::cerr << qPrintable(errorOption->errorString) << std::endl;
+
+        return false;
+    }
+
 signals:
 	void JavaScriptConsoleMessage( const QString&, int, const QString& );
 };
@@ -45,6 +71,7 @@ public:
 	}
 	QVariant EvaluateJavaScript( const QString& code ) {
 		return wf_->evaluateJavaScript( code );
+        
 	}
 	void AddObjectToJS( const QString& name, QObject* obj ) {
 		wf_->addToJavaScriptWindowObject( name, obj );

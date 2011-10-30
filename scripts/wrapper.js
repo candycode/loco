@@ -11,6 +11,7 @@ try {
   ctx.onError.connect( function( err ) { Loco.gui.warningDialog( "Error", err ); /*ctx.exit( -1 );*/ } );
   ctx.javaScriptConsoleMessage.connect( function( t, l, s) { print( t + ": " + l + "\n" + s ); } );
   
+
   // main window menu
   var menu = {
      "_1_Actions": {
