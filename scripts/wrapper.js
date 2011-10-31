@@ -10,9 +10,7 @@ try {
 
   ctx.onError.connect( function( err ) { Loco.gui.warningDialog( "Error", err ); /*ctx.exit( -1 );*/ } );
   ctx.javaScriptConsoleMessage.connect( function( t, l, s) { print( t + ": " + l + "\n" + s ); } );
-  
-
-  // main window menu
+      // main window menu
   var menu = {
      "_1_Actions": {
        "_1_Toggle fullscreen": {
@@ -90,7 +88,7 @@ try {
 // setup main window 
   ww.setMenu( menu );
   ww.javaScriptConsoleMessage.connect( function( msg, lineno, srcid ) {
-                                         print( lineno + ': ' + msg + '\n' + srcid ); } );                                
+                                         print( srcid + ', line ' + lineno + '> ' + msg ); } );                                
   ww.setAttributes( {JavascriptEnabled: true,
                      JavaEnabled: true,
                      JavascriptCanOpenWindows: true, 
@@ -108,8 +106,7 @@ try {
                      WebGLEnabled: true,
                      XSSAuditingEnabled: false,
                      FrameFlatteningEnabled: true, 
-                     AcceleratedCompositingEnabled: true} );
-  ww.eval( "console.log('redirected console message')" );                        
+                     AcceleratedCompositingEnabled: true} );                  
 
   ww.setEnableContextMenu( true );
   ww.loadProgress.connect( function( i ) { ww.setStatusBarText( i + "%" ); } );

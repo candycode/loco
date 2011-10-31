@@ -8,6 +8,9 @@
 #include <QMap>
 #include <QListIterator>
 #include <QPointer>
+#ifdef LOCO_GUI
+#include <QMessageBox>
+#endif
 
 #include "LocoObject.h"
 #include "LocoContext.h"
@@ -43,6 +46,8 @@ public:
         ctx_.SetFileAccessManager( &fileAccess_ );
         connect( this, SIGNAL( OnException( const QString&  ) ),
                  &ctx_, SLOT( OnExternalError( const QString& ) ) );
+		connect( &ctx_, SIGNAL( JavaScriptConsoleMessage( const QString&, int, const QString& ) ),
+				 this, SLOT( OnJavaScriptConsoleMessage( const QString&, int, const QString& ) ) );
         app_.setOrganizationName( info_->vendor() );
         app_.setOrganizationDomain( info_->url() );
         app_.setApplicationVersion( info_->version().join( "," ) );
@@ -166,7 +171,7 @@ public:
 
     int Execute( bool forceDefault = false ) {
         try {		
-            QString scriptFileName = defaultScript_;
+            scriptFileName_ = defaultScript_;
             if( !forceDefault ) {
             	// no rbegin/rend, cannot use find_if
             	QListIterator<QString> li( cmdLine_ );
@@ -176,15 +181,15 @@ public:
 						v.toLower().endsWith( ".loco" ) ||
 						v.toLower().endsWith( ".ljs" ) ) break;
             	}
-            	if( li.hasPrevious() ) scriptFileName = v;
+            	if( li.hasPrevious() ) scriptFileName_ = v;
             }
-            QFile scriptFile( scriptFileName );
+            QFile scriptFile( scriptFileName_ );
             if( !scriptFile.exists() ) {
-			    throw std::runtime_error( "file " + scriptFileName.toStdString() + " does not exist" );
+			    throw std::runtime_error( "file " + scriptFileName_.toStdString() + " does not exist" );
         	    return -1;
             }
             if( !scriptFile.open( QIODevice::ReadOnly ) ) {
-                throw std::runtime_error( "Cannot open file: " + scriptFileName.toStdString() );
+                throw std::runtime_error( "Cannot open file: " + scriptFileName_.toStdString() );
                 return -1;
             }
             QString jscriptCode = scriptFile.readAll();
@@ -209,7 +214,10 @@ public:
 		    return execResult;
         } catch( const std::exception& e ) {
             emit OnException( e.what() );
-            std::cerr << "loco::App: " << e.what() << std::endl;
+			std::cerr << app_.applicationName().toStdString() << " - " << e.what() << std::endl;
+#ifdef LOCO_GUI
+			QMessageBox::critical( 0, app_.applicationName(), e.what() );
+#endif
             return -1;
         }
         return -1;
@@ -250,7 +258,14 @@ public:
 
 signals:
     void OnException( const QString& );
-
+private slots:
+	void OnJavaScriptConsoleMessage( const QString& t, int l, const QString& s ) {
+		const QString sid = s == "undefined" ? scriptFileName_ : s;
+		QString msg = QString("%1, line %2> %3").arg( sid ).arg( l ).arg( t );
+		if( t.toLower().contains( "error" ) ) {	
+			throw std::runtime_error( msg.toStdString() );
+		}
+	}
 private:
     void ReadRules( const QString& fname, RuleType target ) {
     	 QFile f( fname );
@@ -283,6 +298,7 @@ private:
 	IJSInterpreter* jsInterpreter_;
 	Context ctx_;
 	QString defaultScript_;
+	mutable QString scriptFileName_; 
     QPointer< ObjectInfo > info_;
 	QString helpText_;
 	QVariant execResult_;
