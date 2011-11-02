@@ -1,18 +1,18 @@
 #pragma once
 //#SRCHEADER
-#include <QMainWindow>
+#include <QtGui/QMainWindow>
 #include <QString>
 #include <QVariantMap>
-#include <QMenu>
+#include <QtGui/QMenu>
 #include <QMap>
-#include <QPixmap>
-#include <QBitmap>
+#include <QtGui/QPixmap>
+#include <QtGui/QBitmap>
 #include <QtWebKit/QWebPage>
 #include <QtWebKit/QWebFrame>
 #include <QtWebKit/QWebSettings>
 #include <QtWebKit/QWebElementCollection>
 #include <QtWebKit/QWebElement>
-#include <QCursor>
+#include <QtGui/QCursor>
 
 
 #include "LocoObject.h"

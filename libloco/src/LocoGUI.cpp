@@ -3,8 +3,11 @@
 
 #include "LocoContext.h"
 #include "LocoGUI.h"
+
+#ifdef LOCO_WKIT
 #include "LocoWebWindow.h"
 #include "LocoWebMainWindow.h"
+#endif
 
 namespace loco {
 
@@ -17,7 +20,7 @@ QVariant GUI::create( const QString& name, const QVariantMap& params ) const {
 
     //will be replaced with an IGUIFactory class
     //if support for different Widget sets is needed
-
+#ifdef LOCO_WKIT
     if( name == "WebWindow" ) {
         WebWindow* wv = new WebWindow();
 		if( !GetContext()->GetNetworkAccessManager() ) throw std::runtime_error( "NULL Network Access Manager" );
@@ -31,10 +34,16 @@ QVariant GUI::create( const QString& name, const QVariantMap& params ) const {
         const bool NOT_OWNED_BY_JAVASCRIPT = false;
         QVariant obj = GetContext()->AddObjToJSContext( wv, NOT_OWNED_BY_JAVASCRIPT );
         return obj;
-    } else {
+    }
+    else {
         error( "GUI object \"" + name + "\" not recognized" );
         return QVariant();
     }
+#else
+    error( "GUI object \"" + name + "\" not recognized - QWebKit required" );
+    return QVariant();
+#endif
+
 }
 
 }

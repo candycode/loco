@@ -18,6 +18,7 @@ public:
 public slots:
 	void print( const QString& s) const { std::cout << s.toAscii().constData(); }
 	void println( const QString& s ) const { print( s ); std::cout << std::endl; }
+	void log( const QString& s ) const { println( s ); }
     void println() const { std::cout << std::endl; }
 	void printerr( const QString& s ) const { std::cerr << s.toAscii().constData(); }
 	void printerrln( const QString& s ) const { printerr( s ); std::cerr << std::endl; }

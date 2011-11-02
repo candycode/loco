@@ -41,6 +41,9 @@ public:
             sl << "};";
         }
 
+#ifndef LOCO_WKIT
+		sl << "var console = " + ctx_->GetJSGlobalNameForContext() + ".console;";
+#endif
         cache_ = sl.join( "\n" );
 		return cache_;
     }

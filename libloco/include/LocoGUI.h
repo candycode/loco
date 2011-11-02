@@ -1,13 +1,13 @@
 #pragma once
 //#SRCHEADER
 #include <QVariant>
-#include <QDesktopWidget>
+#include <QtGui/QDesktopWidget>
 #include <QRect>
-#include <QFileDialog>
-#include <QColorDialog>
-#include <QColor>
-#include <QMessageBox>
-#include <QApplication>
+#include <QtGui/QFileDialog>
+#include <QtGui/QColorDialog>
+#include <QtGui/QColor>
+#include <QtGui/QMessageBox>
+#include <QtGui/QApplication>
 
 #include "LocoObject.h"
 

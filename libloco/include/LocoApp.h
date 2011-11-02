@@ -260,7 +260,7 @@ signals:
     void OnException( const QString& );
 private slots:
 	void OnJavaScriptConsoleMessage( const QString& t, int l, const QString& s ) {
-		const QString sid = s == "undefined" ? scriptFileName_ : s;
+		const QString sid = s == "undefined" || s.isEmpty() ? scriptFileName_ : s;
 		QString msg = QString("%1, line %2> %3").arg( sid ).arg( l ).arg( t );
 		if( t.toLower().contains( "error" ) ) {	
 			throw std::runtime_error( msg.toStdString() );

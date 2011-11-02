@@ -7,7 +7,7 @@
 #include <QMap>
 #include <QVariantMap>
 #include <QStringList>
-#include <QWebPluginFactory>
+#include <QtWebKit/QWebPluginFactory>
 #include <QUrl>
 
 #include "LocoObject.h"

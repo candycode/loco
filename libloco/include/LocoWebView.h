@@ -2,10 +2,10 @@
 //#SRCHEADER
 
 #include <QtWebKit/QWebView>
-#include <QKeyEvent>
-#include <QMouseEvent>
-#include <QPixmap>
-#include <QPainter>
+#include <QtGui/QKeyEvent>
+#include <QtGui/QMouseEvent>
+#include <QtGui/QPixmap>
+#include <QtGui/QPainter>
 #include <QtWebKit/QWebFrame>
 #include <QTimer>
 #include <QEventLoop>

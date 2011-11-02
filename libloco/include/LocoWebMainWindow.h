@@ -2,21 +2,21 @@
 //#SRCHEADER
 #include <limits>
 
-#include <QMainWindow>
+#include <QtGui/QMainWindow>
 #include <QString>
 #include <QVariantMap>
-#include <QMenu>
-#include <QAction>
+#include <QtGui/QMenu>
+#include <QtGui/QAction>
 #include <QSignalMapper>
-#include <QMenuBar>
-#include <QStatusBar>
+#include <QtGui/QMenuBar>
+#include <QtGui/QStatusBar>
 #include <QMap>
-#include <QPixmap>
-#include <QBitmap>
+#include <QtGui/QPixmap>
+#include <QtGui/QBitmap>
 #include <QtWebKit/QWebPage>
 #include <QtWebKit/QWebFrame>
 #include <QtWebKit/QWebSettings>
-#include <QToolBar>
+#include <QtGui/QToolBar>
 #include <QVariantList>
 #include <QAbstractNetworkCache>
 

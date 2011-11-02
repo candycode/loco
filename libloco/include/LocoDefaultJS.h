@@ -3,6 +3,7 @@
 #include <QString>
 #include <QVariant>
 #include <QScopedPointer>
+#include <QStringList>
 #include <QtScript/QScriptEngine>
 
 #include "LocoIJSInterpreter.h"
@@ -17,7 +18,13 @@ class DefaultJS : public IJSInterpreter {
 	Q_OBJECT
 public:
 	QVariant EvaluateJavaScript( const QString& code ) {
-		return jsEngine_.evaluate( code ).toVariant();
+		QVariant ret = jsEngine_.evaluate( code ).toVariant();
+		if( jsEngine_.hasUncaughtException() ) {
+			const QString msg = jsEngine_.uncaughtException().toString();
+			const int lineno = jsEngine_.uncaughtExceptionLineNumber();
+            const QStringList bt = jsEngine_.uncaughtExceptionBacktrace();
+            emit JavaScriptConsoleMessage( "ERROR - " + msg + "\nBack trace:\n" + bt.join( "\n" ), lineno, "" );
+		}
 	}
 	void AddObjectToJS( const QString& name, QObject* obj ) {
 		jsEngine_.globalObject().setProperty( name, jsEngine_.newQObject( obj, QScriptEngine::AutoOwnership ) );
@@ -30,6 +37,7 @@ public:
 	}
 signals:
 	void JavaScriptContextCleared();
+    void JavaScriptConsoleMessage( const QString& /*text*/, int /*line*/, const QString& /*source id*/ );
 private slots:
 	void EmitJavaScriptContextCleared() { emit JavaScriptContextCleared(); }
 private:

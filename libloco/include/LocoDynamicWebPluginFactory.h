@@ -7,7 +7,7 @@
 #include <QList>
 #include <QVariantMap>
 #include <QStringList>
-#include <QWebPluginFactory>
+#include <QtWebKit/QWebPluginFactory>
 #include <QPluginLoader>
 #include <QUrl>
 #include <QMetaObject>

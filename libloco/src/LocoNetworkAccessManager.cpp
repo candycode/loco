@@ -7,7 +7,9 @@
 #include <QNetworkCookieJar>
 #include <QSettings>
 #include <QNetworkDiskCache>
-#include <QDesktopServices>
+#ifdef LOCO_GUI
+#include <QtGui/QDesktopServices>
+#endif
 #include <QSslConfiguration>
 #include <QAuthenticator>
 
@@ -95,8 +97,12 @@ NetworkAccessManager::NetworkAccessManager( QObject* p,
 		if( !cacheDir.isEmpty() ) {
 			networkDiskCache_->setCacheDirectory( cacheDir );
 		} else {
+#ifdef LOCO_GUI
 			networkDiskCache_->setCacheDirectory(
 					QDesktopServices::storageLocation(QDesktopServices::CacheLocation));
+#else
+			networkDiskCache_->setCacheDirectory( "./" );
+#endif
 		}
 		setCache( networkDiskCache_ );
 	}
