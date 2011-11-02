@@ -1,4 +1,4 @@
-
+// The required (regardless of the project scope) Fibonacci functions
 
 var createTimer = function() {
                    return ( function() {
@@ -46,15 +46,6 @@ var f = fib( 50 );
 timer.stop();
 print( timer.elapsed() );
 print( f );
-
-print( timer.getStart() );
-var timer2 = createTimer();
-timer2.start();
-timer2.stop();
-print( timer.getStart() );
-print( timer2.getStart() );
-
-
 
 Loco.ctx.exit( 0 );
 
