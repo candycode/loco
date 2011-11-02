@@ -35,6 +35,7 @@ public:
 	void Init() { 
 		emit JavaScriptContextCleared(); 
 	}
+	QString Name() const { return "qtscript"; }
 signals:
 	void JavaScriptContextCleared();
     void JavaScriptConsoleMessage( const QString& /*text*/, int /*line*/, const QString& /*source id*/ );

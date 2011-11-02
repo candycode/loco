@@ -26,6 +26,7 @@ public:
 		wf_->addToJavaScriptWindowObject( name, obj, vo );
 	}
 	void Init() {}
+	QString Name() const { return "webkit-js-core-wrapper"; }
 	void SetWebPage( QWebPage* wp ) { 
 		wp_ = wp;
 		wf_ = wp_->mainFrame();

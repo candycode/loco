@@ -16,9 +16,10 @@ public:
 	virtual void AddObjectToJS( const QString& name, QObject* obj, QScriptEngine::ValueOwnership vo ) = 0;
 	virtual void AddObjectToJS( const QString& name, QObject* obj ) = 0;
 	virtual void Init() = 0;
+	virtual QString Name() const = 0; //used to pass information on type and version e.g. QtScript vs Webkit JS core
 	virtual ~IJSInterpreter() {}
 signals:
-	virtual void JavaScriptConsoleMessage( const QString& /*text*/, int /*line*/, const QString& /*source id*/ );
+	/*virtual*/ void JavaScriptConsoleMessage( const QString& /*text*/, int /*line*/, const QString& /*source id*/ );
 };
 
 }

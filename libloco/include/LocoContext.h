@@ -239,6 +239,8 @@ public:
 
 	void Quit() { app_->quit(); }
 
+	QString JSInterpreterName() const { return jsInterpreter_->Name(); }
+
  // attched to internal signals            
 private slots:
    
@@ -493,7 +495,6 @@ private:
                                       this, SLOT( OnFilterError( const QString& ) ) );
         filters_[ id ] = lf;
     }
-
     void LoadScriptFilter( const QString& id,
 		                   const QString& uri,
 						   const QString& jfun,
@@ -609,6 +610,7 @@ public:
 
 // invocable from javascript
 public slots: // js interface
+    QString jsInterpreterName() const { return ctx_->JSInterpreterName(); }
     bool setNetworkAuthentication( const QString& user, const QString& pwd ) {
     	NetworkAccessManager* nam = qobject_cast< NetworkAccessManager* >( ctx_->GetNetworkAccessManager() );
     	if( !nam ) return false;

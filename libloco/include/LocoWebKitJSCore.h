@@ -80,6 +80,7 @@ public:
 		wf_->addToJavaScriptWindowObject( name, obj, vo );
 	}
 	void Init() {}
+	QString Name() const { return "webkit-js-core"; }
     ~WebKitJSCore() {
         QObject* p = parent();
     }
