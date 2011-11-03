@@ -1,1 +1,1 @@
-Loco.console.println 'ciao'
+Loco.console.println 'ciao from coffeescript'
