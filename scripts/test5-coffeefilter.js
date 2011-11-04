@@ -9,8 +9,8 @@ try {
   }
   var c = CoffeeScript.compile( "x = 32", {bare: true} );
   Loco.console.println( "COFFEE: x = 32\nJAVASCRIPT:\n" + c );
-  Loco.ctx.addScriptFilter( "coffeescript", "coffeeCompile",
-                            "function coffeeCompile( coffeeCode ) {" +
+  Loco.ctx.addScriptFilter( "coffeescript", "loco_coffeeCompile_",
+                            "function loco_coffeeCompile_( coffeeCode ) {" +
                             "  return CoffeeScript.compile( coffeeCode, {bare: true} );" +
                             "}" );
   Loco.ctx.evalFile( "./test5.coffee", ["coffeescript"] );

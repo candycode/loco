@@ -1,4 +1,8 @@
 <!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+  <file>coffee-script.js</file>
+  <file>coffee-script-no-this.js</file>
+</qresource>
 <qresource prefix="/loco">
   <file alias="main">main.js</file>
 </qresource>

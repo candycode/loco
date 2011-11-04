@@ -1,4 +1,6 @@
-List of * -> JavaScript transaltors tested through filters:
+Partial list of * -> JavaScript compilers:
+
+* CoffeeScript: http://jashkenas.github.com/coffee-script 
 
 * Scheme: http://www.biwascheme.org/
           http://javascript.crockford.com/little.html
@@ -8,7 +10,6 @@ List of * -> JavaScript transaltors tested through filters:
 * Lua: https://github.com/josevalim/luascript
 
 * http://cappuccino.org/learn/tutorials/objective-j-tutorial.php
-[not fully tested, won't use anyway through filters]
 
 * Python: http://www.skulpt.org/ [??]
 

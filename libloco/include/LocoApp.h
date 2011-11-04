@@ -60,6 +60,10 @@ public:
 		
 	}
 
+	void MapToFilters( const QRegExp& rx, const QStringList& filterIds ) {
+        ctx_.AddNameFilterMapping( rx, filterIds );
+	}
+
 	bool GetEventLoopEnable() const { return startEventLoop_; }
 
 	void SetEventLoopEnable( bool yes ) { startEventLoop_ = yes; }
@@ -71,6 +75,8 @@ public:
         jsInterpreter_->setParent( this ); // app owns interpreter
     }
     
+	void SetMapFiltersToExtension( bool on ) { ctx_.SetAutoMapFilters( on ); }
+
 	void AddModuleToJS( Object* obj ) {
 		ctx_.AddJSStdObject( obj ); // context owns module
 	}
@@ -169,6 +175,10 @@ public:
         }
     }
 
+    void InitContext() {
+        ctx_.Init( jsInterpreter_, &app_, cmdLine_ );
+    }
+
     int Execute( bool forceDefault = false ) {
         try {		
             scriptFileName_ = defaultScript_;
@@ -192,22 +202,9 @@ public:
                 throw std::runtime_error( "Cannot open file: " + scriptFileName_.toStdString() );
                 return -1;
             }
-            QString jscriptCode = scriptFile.readAll();
-            if( scriptFile.error() != QFile::NoError ) {
-        	    throw std::runtime_error( scriptFile.errorString().toStdString() );
-        	    return -1;
-            }
             scriptFile.close();
-            if( jscriptCode.isEmpty() ) {
-            	throw std::logic_error( "Empty source file" );
-            	return -1;
-            }
-                                                
-            // 2 - Create run-time environment                             
-	        ctx_.Init( jsInterpreter_, &app_, cmdLine_ );
-
-	        // 3 - execute
-	        execResult_ = ctx_.Eval( jscriptCode );
+	        // execute
+	        execResult_ = ctx_.Insert( scriptFileName_ );
             int execResult = 0;
 	        if( startEventLoop_ ) execResult = app_.exec();
 		    if( execResult_.isValid() && execResult_.type() == QVariant::Int ) return execResult_.toInt();
@@ -247,8 +244,13 @@ public:
         ctx_.LoadFilter( id, uri );
     }
 
-    void PreloadScriptFilter( const QString& id, const QString& uri ) {
-        ctx_.AddScriptFilter( id, uri );
+    void PreloadScriptFilter( const QString& id,
+    		                  const QString& uri,
+    		                  const QString& jfun,
+			                  const QString& jcode = "",
+                              const QString& jerrfun = "",
+                              const QString& codePlaceHolder = "" ) {
+        ctx_.LoadScriptFilter( id, uri, jfun, jcode, jerrfun, codePlaceHolder );
     }
 
     void PreloadObject( const QString& uri ) {

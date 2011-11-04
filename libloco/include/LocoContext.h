@@ -498,17 +498,17 @@ private:
     void LoadScriptFilter( const QString& id,
 		                   const QString& uri,
 						   const QString& jfun,
+						   const QString& jcode = "",
                            const QString& jerrfun = "",
                            const QString& codePlaceHolder = "" ) {
         if( !fileAccessMgr_->CheckAccess( uri ) ) {
             error( "Access to " + uri + " not allowed" );
             return;
         }
-        QString f = Read( uri );
-        if( f.isEmpty() ) return;   
-        Filter* lf = new ScriptFilter( jsInterpreter_, jfun, f, jerrfun, codePlaceHolder );
+        Include( uri );
+        Filter* lf = new ScriptFilter( jsInterpreter_, jfun, jcode, jerrfun, codePlaceHolder );
         connect( lf, SIGNAL( onError( const QString& ) ), 
-                                      this, SLOT( OnFilterError( const QString& ) ) );
+                 this, SLOT( OnFilterError( const QString& ) ) );
         filters_[ id ] = lf;
     }
 
@@ -532,7 +532,7 @@ private:
             for( NameFilterMap::iterator i = nameFilterMap_.begin();
                  i != nameFilterMap_.end(); ++i ) {
                 if( i->first.exactMatch( uri ) ) {
-                    Read( uri, i->second );
+                    code = Read( uri, i->second );
                     break;
                 }
             }    
@@ -551,6 +551,8 @@ private:
         includeSet_.insert( uri );
         return Insert( uri, filters );
     } 
+
+    void SetAutoMapFilters( bool on ) { autoMapFilters_ = on; }
 
 private:
     QByteArray ReadUrl( const QString& url, QSet< QUrl > redirects = QSet< QUrl >() );
@@ -610,6 +612,7 @@ public:
 
 // invocable from javascript
 public slots: // js interface
+    void enableAutoMapFilters( bool on ) { ctx_->SetAutoMapFilters( on ); }
     QString jsInterpreterName() const { return ctx_->JSInterpreterName(); }
     bool setNetworkAuthentication( const QString& user, const QString& pwd ) {
     	NetworkAccessManager* nam = qobject_cast< NetworkAccessManager* >( ctx_->GetNetworkAccessManager() );

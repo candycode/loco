@@ -39,7 +39,7 @@ public:
             r = jsInterpreter_->EvaluateJavaScript( jfun_ + "(" +   s  + ");" );
         // placeholder, replace with translated code
         } else {
-            QString nj = jcode_;
+            QString nj = jfun_;
             const QString& njref = nj.replace( codePlaceHolder_, s );
             r = jsInterpreter_->EvaluateJavaScript( njref );
         }

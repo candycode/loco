@@ -25,7 +25,7 @@ function ifib_( n ) {
 
 // recursive
 function rfib_( n ) {
-  if( n === 0 || n === 1 || n === 2 ) return 1;
+  if( n === 0 || n === 1 ) return 1;
   return rfib_( n - 2 ) + rfib_( n - 1 ); 
 }
 

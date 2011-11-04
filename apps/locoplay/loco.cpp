@@ -79,6 +79,20 @@ int main(int argc, char *argv[])
 		app.SetAllowNetAccess( true );
 		app.SetFilterNetRequests( false );
 #endif
+#ifdef LOCO_WKIT
+		const QString& CS = ":/coffee-script.js";
+#else
+		const QString& CS = ":/coffee-script-no-this.js";
+#endif
+		app.InitContext();
+		app.PreloadScriptFilter( "coffee", CS,
+				                 "loco_coffeeCompile_",
+				                 "function loco_coffeeCompile_( coffeeCode ) {"
+				                 "  return CoffeeScript.compile( coffeeCode, {bare: true} );"
+				                 "}" );
+		app.MapToFilters( QRegExp( ".+coffee$" ), QStringList() << "coffee" );
+		app.SetMapFiltersToExtension( true );
+
 		app.ParseCommandLine();
 		ret = app.Execute();
 	} catch( const std::exception& e ) {

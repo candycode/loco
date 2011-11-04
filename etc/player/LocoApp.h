@@ -229,8 +229,13 @@ public:
         ctx_.LoadFilter( id, uri );
     }
 
-    void PreloadScriptFilter( const QString& id, const QString& uri ) {
-        ctx_.AddScriptFilter( id, uri );
+    void PreloadScriptFilter( const QString& id,
+    		                  const QString& uri,
+    		                  const QString& jfun,
+							  const QString& jcode = "",
+		                      const QString& jerrfun = "",
+		                      const QString& codePlaceHolder = "" ) {
+        ctx_.LoadScriptFilter( id, uri, jfun, jcode, jerrfun, codePlaceHolder );
     }
 
     void PreloadObject( const QString& uri ) {
