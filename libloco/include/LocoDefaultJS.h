@@ -25,6 +25,7 @@ public:
             const QStringList bt = jsEngine_.uncaughtExceptionBacktrace();
             emit JavaScriptConsoleMessage( "ERROR - " + msg + "\nBack trace:\n" + bt.join( "\n" ), lineno, "" );
 		}
+		return ret;
 	}
 	void AddObjectToJS( const QString& name, QObject* obj ) {
 		jsEngine_.globalObject().setProperty( name, jsEngine_.newQObject( obj, QScriptEngine::AutoOwnership ) );

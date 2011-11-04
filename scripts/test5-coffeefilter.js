@@ -9,14 +9,10 @@ try {
   }
   var c = CoffeeScript.compile( "x = 32", {bare: true} );
   Loco.console.println( "COFFEE: x = 32\nJAVASCRIPT:\n" + c );
-  Loco.ctx.addScriptFilter( "coffeescript", "coffeeCompile" );
-  // if the interpreter is 'qtscript' the value returned by the eval() method
-  // is not automatically converted to string
-  var coffeeCompile = function( coffeeCode ) {
-    if( typeof coffeeCode !== "string" ) coffeeCode = coffeeCode.toString();
-    return CoffeeScript.compile( coffeeCode, {bare: true} );
-  }
-  //var fromCoffee = function( s ) { Loco.console.println( s ); }
+  Loco.ctx.addScriptFilter( "coffeescript", "coffeeCompile",
+                            "function coffeeCompile( coffeeCode ) {" +
+                            "  return CoffeeScript.compile( coffeeCode, {bare: true} );" +
+                            "}" );
   Loco.ctx.evalFile( "./test5.coffee", ["coffeescript"] );
   Loco.ctx.exit( 0 );
 } catch( e ) {

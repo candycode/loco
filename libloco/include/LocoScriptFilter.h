@@ -27,16 +27,16 @@ public:
 public:
 	QByteArray Apply( const QByteArray& ba ) const { return Apply( QString( ba ) ).toAscii().constData();  } 
     QString Apply( const QString& ss ) const {
-        QString s = ss;
+        QString s = ss.trimmed() + "\n";
 		s = "\"" + s.replace( "\"", "\\\"" ) + "\"";
-		QVariant r;
+        s.replace("\n", "\\n");
 		if( !jcode_.isEmpty() ) {
-			jsInterpreter_->EvaluateJavaScript( jcode_ );//"(function(){"
-				                     //+ jcode_ + "})();\n" );
+			jsInterpreter_->EvaluateJavaScript( jcode_ );
 		}
-        // no placeholder, assume it's a function call
+		QVariant r;
+		// no placeholder, assume it's a function call
         if( codePlaceHolder_.isEmpty() ) {
-            r = jsInterpreter_->EvaluateJavaScript( jfun_ + "(" +  s + ");" );
+            r = jsInterpreter_->EvaluateJavaScript( jfun_ + "(" +   s  + ");" );
         // placeholder, replace with translated code
         } else {
             QString nj = jcode_;
