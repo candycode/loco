@@ -170,7 +170,6 @@ QByteArray Context::ReadUrl( const QString& url, QSet< QUrl > redirects ) {
 }
 
 QByteArray Context::ReadFile( const QString& f ) {
-	std::cout << qPrintable( f ) << std::endl;
     QString filePath = f;    
     if( !f.contains( ":/" ) && !QDir::isAbsolutePath( f ) ) {
         QStringList::const_iterator i = includePath_.begin();
@@ -195,7 +194,6 @@ QByteArray Context::ReadFile( const QString& f ) {
     }
     QByteArray b;
     while( file.bytesAvailable() ) b.append( file.readAll() );
-    std::cout << qPrintable( b );
     file.close();
     if( file.error() != QFile::NoError ) {
         error( file.errorString() );

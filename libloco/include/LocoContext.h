@@ -4,14 +4,7 @@
 #include <cstdlib> //for dupenv (win), putenv, getenv
 #include <stdexcept>
 
-#ifdef LOCO_WKIT
-#include <QtWebKit/QWebFrame>
-#endif
-
 #include <QCoreApplication>
-#ifdef LOCO_GUI
-#include <QApplication>
-#endif
 
 #include <QString>
 #include <QList>
@@ -147,7 +140,7 @@ public:
     // call this method from factory objects willing to add new objects into
     // the current context and have the object's lifetime managed by javascript
     // NEVER add root objects from plugins because such objects must be deleted
-    // through the plusgin loader's unload method
+    // through the plugin loader's unload method
     QVariant AddObjToJSContext( Object* obj, bool ownedByJavascript = true ) {
         jsInterpreter_->AddObjectToJS( obj->jsInstanceName(),
                                        obj,
@@ -528,16 +521,18 @@ private:
 
     QVariant Insert( const QString& uri, const QStringList& filters = QStringList() ) {
         QString code;
+		bool match = false;
         if( filters.isEmpty() && autoMapFilters_ ) {
             for( NameFilterMap::iterator i = nameFilterMap_.begin();
                  i != nameFilterMap_.end(); ++i ) {
                 if( i->first.exactMatch( uri ) ) {
-                    code = Read( uri, i->second );
-                    break;
+				    code = Read( uri, i->second );
+                    match = true;
+					break;
                 }
             }    
         }
-        else code = Read( uri, filters );
+        if( !match ) code = Read( uri, filters );
         if( code.isEmpty() ) return QVariant();
         return Eval( code );
     }

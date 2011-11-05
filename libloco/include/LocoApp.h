@@ -30,9 +30,8 @@ private:
     enum RuleType { NetDeny, NetAllow, FileDeny, FileAllow };
 public:
 	App( LocoQtApp& app, int argc, char** argv, ObjectInfo* oi ) : app_( app ),
-        jsInterpreter_( 0 ),
-	    defaultScript_( ":/loco/main" ),
-	    info_( oi ),
+        jsInterpreter_( 0 ), defaultScript_( ":/loco/main" ), info_( oi ),
+		scriptNameRX_( ".+\\.js$|.+\\.loco$|.+\\.ljs$" ), 
 #ifdef LOCO_GUI
 	    startEventLoop_( true ) { //read from embedded resource; 'main' is an alias for 'main.loco' file
 #else
@@ -179,19 +178,14 @@ public:
         ctx_.Init( jsInterpreter_, &app_, cmdLine_ );
     }
 
+	void SetScriptFileNameMatchingExpression( const QRegExp& rx )  { scriptNameRX_ = rx; }
+	
     int Execute( bool forceDefault = false ) {
         try {		
             scriptFileName_ = defaultScript_;
             if( !forceDefault ) {
-            	// no rbegin/rend, cannot use find_if
-            	QListIterator<QString> li( cmdLine_ );
-            	QString v;
-            	for( li.toBack(); li.hasPrevious(); v = li.previous() ) {
-					if( v.toLower().endsWith( ".js" )  ||
-						v.toLower().endsWith( ".loco" ) ||
-						v.toLower().endsWith( ".ljs" ) ) break;
-            	}
-            	if( li.hasPrevious() ) scriptFileName_ = v;
+            	const int si = cmdLine_.indexOf( scriptNameRX_ );
+            	if( si >= 0 ) scriptFileName_ = cmdLine_[ si ];
             }
             QFile scriptFile( scriptFileName_ );
             if( !scriptFile.exists() ) {
@@ -307,5 +301,6 @@ private:
     NetworkAccessManager netAccess_;
     FileAccessManager fileAccess_;
     bool startEventLoop_;
+	QRegExp scriptNameRX_;
 };
 }

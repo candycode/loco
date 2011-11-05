@@ -15,6 +15,9 @@ try {
     Loco.console.println( e[ v ] );
   }
   Loco.console.println("QT VERSION: " + Loco.ctx.qtVersion());
-} catch(e) {
+  Loco.console.println("Javascript interpreter: " + Loco.ctx.jsInterpreterName());
+  Loco.ctx.exit( 0 );
+} catch( e ) {
   Loco.console.printerrln( e );
+  Loco.ctx.exit( -1 );
 }

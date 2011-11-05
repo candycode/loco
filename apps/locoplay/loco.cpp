@@ -92,7 +92,9 @@ int main(int argc, char *argv[])
 				                 "}" );
 		app.MapToFilters( QRegExp( ".+coffee$" ), QStringList() << "coffee" );
 		app.SetMapFiltersToExtension( true );
-
+		// tell the application what is considered a valid file name for a script
+		// to execute
+		app.SetScriptFileNameMatchingExpression( QRegExp( ".+\\.js$|.+\\.coffee$" ) );
 		app.ParseCommandLine();
 		ret = app.Execute();
 	} catch( const std::exception& e ) {
