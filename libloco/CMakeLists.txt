@@ -110,7 +110,7 @@ set( MOC_HEADERS
 QT4_WRAP_CPP( MOC_SRCS ${MOC_HEADERS} ) 
 
 # Lib 
-set( SRCS ${LSRC}/LocoObject.cpp  ${LOCO_FSYSTEM_SRCS} ${LOCO_WKIT_SRCS}
+set( SRCS ${LSRC}/LocoObject.cpp  ${LOCO_FSYSTEM_SRCS} ${LOCO_WKIT_SRCS} ${LSRC}/LocoApp.cpp
      ${LOCO_SYSTEM_SRCS} ${LOCO_GUI_SRCS} ${LSRC}/LocoContext.cpp ${LSRC}/LocoNetworkAccessManager.cpp )    
     
 set( SRCS_INCLUDE ${MOC_HEADERS} ${LOCO_WKIT_HEADERS} ${LOCO_FSYSTEM_INCLUDE} ${LINC}/LocoDefaultJSInit.h ${LINC}/LocoApp.h )

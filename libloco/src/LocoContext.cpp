@@ -204,4 +204,230 @@ QByteArray Context::ReadFile( const QString& f ) {
 
 void Context::SetJSContextName( const QString& n ) { jsContext_->setName( n ); }
 
+void Context::RemoveNameFilterMapping( const QRegExp& rx ) {
+    for( NameFilterMap::iterator i = nameFilterMap_.begin();
+         i != nameFilterMap_.end(); ++i ) {
+        if( i->first == rx ) {
+            nameFilterMap_.erase( i );
+            break;
+        }
+    } 
+}
+
+void Context::AddJSStdObject( Object* obj, bool immediateAdd ) { 
+    jscriptStdObjects_.push_back( obj );
+    if( obj->GetContext() == 0 ) obj->SetContext( this );
+    if( obj->GetPluginLoader() == 0 && obj->parent() == 0 ) obj->setParent( this );
+    ConnectErrCBack( obj );
+    connect( obj, SIGNAL( destroyed( QObject* ) ), this, SLOT( RemoveStdObject( QObject* ) ) );
+    if( immediateAdd ) {
+        jsInterpreter_->AddObjectToJS( obj->jsInstanceName(), obj );
+    }
+}
+    
+void Context::AddJSCtxObject( Object* obj, bool immediateAdd ) {
+    jscriptCtxInstances_.push_back( obj );
+    if( obj->GetContext() == 0 ) obj->SetContext( this );
+    if( obj->GetPluginLoader() == 0 && obj->parent() == 0 ) obj->setParent( this );
+    ConnectErrCBack( obj );
+    connect( obj, SIGNAL( destroyed( QObject* ) ), this, SLOT( RemoveJSCtxObject( QObject* ) ) );
+    if( immediateAdd ) {
+        jsInterpreter_->AddObjectToJS( obj->jsInstanceName(), obj );
+    }
+   
+}
+
+QVariant Context::AddObjToJSContext( Object* obj, bool ownedByJavascript ) {
+    jsInterpreter_->AddObjectToJS( obj->jsInstanceName(),
+                                   obj,
+                                   ownedByJavascript ? QScriptEngine::ScriptOwnership :
+                                     QScriptEngine::QtOwnership );
+    obj->SetContext( this );
+    ConnectErrCBack( obj );
+    connect( obj, SIGNAL( destroyed( QObject* ) ), this, SLOT( RemoveScopeObject( QObject* ) ) );
+    instanceObjs_.push_back( obj );
+    return jsInterpreter_->EvaluateJavaScript( obj->jsInstanceName() );
+}
+
+void Context::SetNetworkAccessManager( NetworkAccessManager* nam ) { 
+    if( nam == netAccessMgr_ && nam != 0 ) return;
+    if( netAccessMgr_ != 0 ) {
+        disconnect( netAccessMgr_, SIGNAL( UrlAccessDenied( QString ) ),
+                    this, SLOT( OnNetworkRequestDenied( QString ) ) );
+        disconnect( netAccessMgr_, SIGNAL( UnauthorizedNetworkAccessAttempt() ),
+                    this, SLOT( OnUnauthorizedNetworkAccess() ) );
+    }
+    netAccessMgr_ = nam;
+    if( netAccessMgr_ ) {
+        connect( netAccessMgr_, SIGNAL( UrlAccessDenied( QString ) ),
+                 this, SLOT( OnNetworkRequestDenied( QString ) ) );
+        connect( netAccessMgr_, SIGNAL( UnauthorizedNetworkAccessAttempt() ),
+                 this, SLOT( OnUnauthorizedNetworkAccess() ) ); 
+    }
+}
+
+void Context::RemoveJSCtxObject( QObject* o ) {
+    Object* obj = qobject_cast< Object* >( o );
+    JScriptObjCtxInstances::iterator i = 
+        std::find( jscriptCtxInstances_.begin(), jscriptCtxInstances_.end(), obj );
+    if( i != jscriptCtxInstances_.end() ) jscriptCtxInstances_.erase( i );
+    EraseObjectFromMaps( obj );
+}
+
+void Context::RemoveStdObject( QObject* o ) {
+    Object* obj = qobject_cast< Object* >( o );
+    JScriptObjCtxInstances::iterator i = 
+        std::find( jscriptStdObjects_.begin(), jscriptStdObjects_.end(), obj );
+    if( i != jscriptStdObjects_.end() ) jscriptStdObjects_.erase( i );
+    EraseObjectFromMaps( obj );
+}
+
+void Context::RemoveScopeObject( QObject* o ) {
+    Object* obj = qobject_cast< Object* >( o );
+    JScriptObjCtxInstances::iterator i = 
+        std::find( instanceObjs_.begin(), instanceObjs_.end(), obj );
+    if( i != instanceObjs_.end() ) instanceObjs_.erase( i ); 
+    EraseObjectFromMaps( obj ); 
+}
+
+void Context::InitJScript() {
+	if( addParentObjs_ && parent_ != 0 ) {
+	    jsInterpreter_->EvaluateJavaScript( parent_->GetJSInitCode() );
+		const bool APPEND_TO_GLOBAL_LOCO_OBJECT = true;
+		jsInterpreter_->EvaluateJavaScript( jsInitGenerator_->GenerateCode( APPEND_TO_GLOBAL_LOCO_OBJECT ) );
+	} else {
+	    jsInterpreter_->EvaluateJavaScript( jsInitGenerator_->GenerateCode() );
+	}
+}
+
+    
+void Context::AddJSCtxObjects( IJSInterpreter* jsi ) {
+    for( JScriptObjCtxInstances::const_iterator i = jscriptCtxInstances_.begin();
+         i != jscriptCtxInstances_.end(); ++i ) {
+        if( (*i)->GetContext() == 0 ) (*i)->SetContext( this );
+        ConnectErrCBack( *i );
+        if( (*i)->GetPluginLoader() == 0 && (*i)->parent() == 0 ) (*i)->setParent( this );
+        jsi->AddObjectToJS( (*i)->jsInstanceName(), *i );  
+    }
+}
+
+/// Remove instance objects created during context operations
+void Context::RemoveInstanceObjects() {
+    for( JScriptObjCtxInstances::iterator i = jscriptCtxInstances_.begin();
+        i != jscriptCtxInstances_.end(); ++i ) {
+        if( (*i)->GetContext() == this ) (*i)->destroy();
+    }
+    for( PluginLoaders::iterator i = ctxPluginLoaders_.begin();
+        i != ctxPluginLoaders_.end(); ++i ) {
+        (*i)->unload(); // <- this call deletes the root object;
+                        //    the objects generated by the root object are
+                        //    garbage collected by the javascript environment
+        (*i)->deleteLater();
+    }
+    jscriptCtxInstances_.clear();
+    ctxPluginLoaders_.clear();
+    const bool TEMPORARY = false;
+    uriObjectMap_[ TEMPORARY ].clear();
+    instanceObjs_.clear();
+}
+
+void Context::RemoveStdObjects() {
+    for( JScriptObjCtxInstances::iterator i = jscriptStdObjects_.begin();
+        i != jscriptStdObjects_.end(); ++i ) {
+        if( (*i)->GetContext() == this && (*i)->GetPluginLoader() == 0 && 
+            ( (*i)->parent() == this || (*i)->parent() == 0 ) ) (*i)->destroy();
+    }      
+    for( PluginLoaders::iterator i = stdPluginLoaders_.begin();
+        i != stdPluginLoaders_.end(); ++i ) {
+        (*i)->unload(); // <- delete root object
+        (*i)->deleteLater();
+    }
+    jscriptStdObjects_.clear();
+    stdPluginLoaders_.clear();
+    const bool PERSISTENT = true;
+    uriObjectMap_[ PERSISTENT ].clear();
+}    
+
+void Context::RemoveFilters() {
+    for( PluginLoaders::iterator i = filterPluginLoaders_.begin();
+         i != filterPluginLoaders_.end(); ++i ) {
+        (*i)->unload(); // deletes all root (created with instance()) objects
+        (*i)->deleteLater();
+    } 
+    filters_.clear();
+    filterPluginLoaders_.clear();
+    ResetNameFilterMap(); 
+}
+	
+void Context::OnJSContextCleared() {
+   	RemoveInstanceObjects();
+    RemoveFilters();
+    AddJavaScriptObjects();
+   	InitJScript();
+   	emit JSContextCleared();
+}
+//public slots:
+void Context::AddJSStdObjects( IJSInterpreter* jsi ) {
+    for( JScriptObjCtxInstances::const_iterator i = jscriptStdObjects_.begin();
+         i != jscriptStdObjects_.end(); ++i ) {
+        if( (*i)->GetContext() == 0 ) (*i)->SetContext( this );      
+        ConnectErrCBack( *i );
+        if( (*i)->GetPluginLoader() == 0 && (*i)->parent() == 0 ) (*i)->setParent( this );
+        jsi->AddObjectToJS( (*i)->jsInstanceName(), *i );  
+    } 
+}
+
+QVariant Context::Eval( QString code, const QStringList& filters ) { 
+   code = ApplyFilter( code, filters );
+   if( !error() ) return jsInterpreter_->EvaluateJavaScript( code );
+   else {
+       jsInterpreter_->EvaluateJavaScript( jsErrCBack_ );
+       return QVariant();
+   } 
+}
+
+void Context::LoadFilter( const QString& id, const QString& uri ) {
+    if( !fileAccessMgr_->CheckAccess( uri ) ) {
+        error( "Access to " + uri + " not allowed" );
+        return;
+    }
+    if( uriFilterMap_.find( uri ) != uriFilterMap_.end() ) return;
+    QPluginLoader* pl = new QPluginLoader( uri );
+    if( !pl->load() ) {
+        error( pl->errorString() );
+        jsInterpreter_->EvaluateJavaScript( jsErrCBack_ );
+        delete pl;
+    } else {
+        loco::Filter* lf = qobject_cast< loco::Filter* >( pl->instance() );
+        if( lf == 0 ) {
+            error( "Wrong filter type" );
+            jsInterpreter_->EvaluateJavaScript( jsErrCBack_ );
+            delete pl;    
+        }
+        filters_[ id ] = lf;
+        connect( lf, SIGNAL( onError( const QString& ) ), 
+                 this, SLOT( OnFilterError( const QString& ) ) );
+        filterPluginLoaders_.push_back( pl );
+        uriFilterMap_[ uri ] = lf;
+    }      
+}
+
+QVariant Context::Insert( const QString& uri, const QStringList& filters ) {
+    QString code;
+	bool match = false;
+    if( filters.isEmpty() && autoMapFilters_ ) {
+        for( NameFilterMap::iterator i = nameFilterMap_.begin();
+             i != nameFilterMap_.end(); ++i ) {
+            if( i->first.exactMatch( uri ) ) {
+			    code = Read( uri, i->second );
+                match = true;
+				break;
+            }
+        }    
+    }
+    if( !match ) code = Read( uri, filters );
+    if( code.isEmpty() ) return QVariant();
+    return Eval( code );
+}
+
 }

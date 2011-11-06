@@ -25,7 +25,7 @@ public:
     void SetJErrCode( const QString& f ) { jerrfun_ = f; }
     const QString& GetJErrCode() const { return jerrfun_; }
 public:
-	QByteArray Apply( const QByteArray& ba ) const { return Apply( QString( ba ) ).toAscii().constData();  } 
+	QByteArray Apply( const QByteArray& ba ) const { return Apply( QString( ba ) ).toAscii();  } 
     QString Apply( const QString& ss ) const {
         QString s = ss.trimmed() + "\n";
 		s = "\"" + s.replace( "\"", "\\\"" ) + "\"";

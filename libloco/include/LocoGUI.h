@@ -22,7 +22,6 @@ public:
 public slots:
     
     QVariant create( const QString& name, const QVariantMap& params = QVariantMap() ) const;
-
     QVariantMap desktopGeometry( int screen = -1 ) {
         const QDesktopWidget dw;
         const QRect geom = dw.availableGeometry();
@@ -35,31 +34,26 @@ public slots:
         vm[ "screens" ] = dw.screenCount();
         return vm;
     }
-
     QString saveFileDialog( const QString& caption = QString(),
     		                const QString& filePath = QString(),
     		                const QString& filter = QString() ) {
 
         return QFileDialog::getSaveFileName ( 0,  caption, filePath, filter );
     }
-
     QString	openFileDialog( const QString& caption = QString(),
     		                const QString& filePath = QString(),
     		                const QString& filter = QString() ) {
     	return QFileDialog::getOpenFileName( 0, caption, filePath, filter );
-    }
-    
+    }    
     QStringList	openFilesDialog( const QString& caption = QString(),
     		                     const QString& filePath = QString(),
     		                     const QString& filter = QString() ) {
     	return QFileDialog::getOpenFileNames( 0, caption, filePath, filter );
     }
-
 	QString selectDirDialog ( const QString& caption = QString(),
 			                  const QString& dir = QString() ) {
 		return QFileDialog::getExistingDirectory( 0, caption, dir );
 	}
-
     QVariantMap colorDialog( const QVariantMap& cm = QVariantMap(),
     		                 const QString& caption = QString(),
     		                 bool alpha = false ) {
@@ -78,7 +72,6 @@ public slots:
         m[ "b" ] = c.blue();
         return m;
     }
-
 	void criticalDialog( const QString& caption, const QString& msg ) {
 		QMessageBox::critical( 0, caption, msg );
 	}
@@ -91,14 +84,12 @@ public slots:
 	void warningDialog( const QString& caption, const QString& msg ) {
 		QMessageBox::warning( 0, caption, msg );
 	}
-
 	QVariantMap dpi() const {
 		QVariantMap m;
 		m[ "x" ] = QApplication::desktop()->physicalDpiX();
 		m[ "y" ] = QApplication::desktop()->physicalDpiY();
         return m;
 	}
-
 };
 
 }

@@ -14,7 +14,6 @@
 
 #include "LocoObject.h"
 
-
 namespace loco {
 
 class System : public Object {
@@ -45,9 +44,7 @@ public slots:
         free( p );
         return ret;
 #endif
-    }
-    
-    
+    }   
     QString os() const {
         #if defined( Q_OS_LINUX )
     	    return "LINUX";
@@ -64,7 +61,6 @@ public slots:
             return "";
         #endif
     }
-
     bool hasGUI() const {
         #if defined( Q_WS_WIN )
             return true;
@@ -78,7 +74,6 @@ public slots:
             return false;
         #endif
     }     
-
     QString run( const QString& program,
                  const QStringList& args = QStringList(),
                  const QVariantMap& env  = QVariantMap(),
@@ -111,7 +106,6 @@ public slots:
             return output;
         }                          
     } 
-
 	qint64 runDetached( const QString& program,
                         const QStringList& args,
                         const QString& workingDir ) {
@@ -130,12 +124,9 @@ public slots:
             vm[ *kv.begin() ] = *( ++kv.begin() );
         }
         return vm;          
-    }
-    
+    }    
     QVariant process() const;
-
 	QVariant eventLoop() const;
-
 	void sleep( int ms ) const {
 	  sleepMutex_.lock();
       sleepWCond_.wait( &sleepMutex_, ms );   // two seconds
