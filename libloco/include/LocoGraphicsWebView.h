@@ -33,12 +33,6 @@ public:
     void EatMouseEvents( bool yes ) { eatMouseEvents_ = yes; }
     bool EatingMouseEvents() const { return eatMouseEvents_; }
     void SetWebPluginFactory( QWebPluginFactory* pf ) {
-        /*QWebPluginFactory* wpf = page()->pluginFactory(); // is plugin factory owned by Page() ?
-        if( wpf != 0 && pf == wpf ) return;
-        if( wpf != 0 ) {
-            wpf_->setParent( 0 );
-            wpf_->deleteLater();
-        }*/
         gwebView_->page()->setPluginFactory( pf );       
     }
     QWebPluginFactory* GetWebPluginFactory() const { return gwebView_->page()->pluginFactory(); }
@@ -53,12 +47,12 @@ public:
     qreal zoomFactor() const { return gwebView_->zoomFactor(); }
     void setTextSizeMultiplier( qreal tm ) { gwebView_->page()->mainFrame()->setTextSizeMultiplier( tm ); }
     qreal textSizeMultiplier() const { return gwebView_->page()->mainFrame()->textSizeMultiplier(); }
-    void reload() { /*gwebView_->page()->mainFrame()->reload();*/ }
+    void reload() { gwebView_->page()->mainFrame()->reload(); }
     void setContentEditable( bool yes ) { gwebView_->page()->setContentEditable( yes ); }
     qint64 totalBytes() const { return gwebView_->page()->totalBytes(); }
     bool isModified() const { return false; }
     void triggerPageAction( QWebPage::WebAction action, bool checked ) {
-        //gwebView_->page()->triggerPageAction( action, checked );
+        gwebView_->page()->triggerPageAction( action, checked );
     }
     
 protected:
