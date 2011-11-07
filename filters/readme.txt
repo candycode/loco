@@ -1,9 +1,9 @@
 Partial list of * -> JavaScript compilers:
 
-* CoffeeScript: http://jashkenas.github.com/coffee-script 
+* CoffeeScript: http://jashkenas.github.com/coffee-script [tested]
 
-* Scheme: http://www.biwascheme.org/
-          http://javascript.crockford.com/little.html
+* Scheme: http://www.biwascheme.org/ 
+          http://javascript.crockford.com/little.html [tested]
 
 * Haskell: https://github.com/johang88/haskellinjavascript
 
@@ -11,6 +11,6 @@ Partial list of * -> JavaScript compilers:
 
 * http://cappuccino.org/learn/tutorials/objective-j-tutorial.php
 
-* Python: http://www.skulpt.org/ [??]
+* Python: http://www.skulpt.org/ [tested]
 
 * Kaffeine: https://github.com/weepy/kaffeine

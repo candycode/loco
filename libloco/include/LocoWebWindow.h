@@ -60,7 +60,7 @@ public:
         connect( webView_, SIGNAL( downloadRequested( const QString& ) ),
                  this, SIGNAL( downloadRequested( const QString& ) ) );
 		connect( webView_, SIGNAL( fileDownloadProgress( qint64, qint64 ) ), this, SIGNAL( fileDownloadProgress( qint64, qint64 ) ) );
-		connect( webView_, SIGNAL( actionTriggered( QWebPage::WebAction, bool ) ), this, SIGNAL( actionTriggered( QWebPage::WebAction, bool ) ) );
+		connect( webView_, SIGNAL( actionTriggered( const QString&, bool ) ), this, SIGNAL( webActionTriggered( const QString&, bool ) ) );
 		connect( webView_, SIGNAL( fileDownloadProgress( qint64, qint64 ) ), this, SIGNAL( fileDownloadProgress( qint64, qint64 ) ) );
 		connect( webView_, SIGNAL( JavaScriptConsoleMessage( const QString&, int, const QString& ) ),
 		   		 this, SIGNAL( javaScriptConsoleMessage( const QString&, int, const QString& ) ) );

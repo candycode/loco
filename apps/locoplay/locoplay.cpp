@@ -80,9 +80,9 @@ int main(int argc, char *argv[])
 		app.SetFilterNetRequests( false );
 #endif
 #ifdef LOCO_WKIT
-		const QString& CS = ":/coffee-script.js";
+		const QString& CS = ":/coffee/coffee-script.js";
 #else
-		const QString& CS = ":/coffee-script-no-this.js";
+		const QString& CS = ":/coffee/coffee-script-no-this.js";
 #endif
 		app.InitContext();
 		app.PreloadScriptFilter( "coffee", CS,
@@ -90,11 +90,18 @@ int main(int argc, char *argv[])
 				                 "function loco_coffeeCompile_( coffeeCode ) {"
 				                 "  return CoffeeScript.compile( coffeeCode, {bare: true} );"
 				                 "}" );
-		app.MapToFilters( QRegExp( ".+coffee$" ), QStringList() << "coffee" );
+		app.PreloadScriptFilter( "skulpt", ":/skulpt/skulpt-filter.js",
+				                 "loco_skulptCompile_",
+				                 "function loco_skulptCompile_( code ) {"
+							     "  var s = Sk.compile( code, '', 'single' );"
+								 "  return s.code + s.funcname + '()';"
+								 "}" );
+		app.MapToFilters( QRegExp( ".+\\.+coffee$" ), QStringList() << "coffee" );
+		app.MapToFilters( QRegExp( ".+\\.+py$" ), QStringList() << "skulpt" );
 		app.SetMapFiltersToExtension( true );
 		// tell the application what is considered a valid file name for a script
 		// to execute
-		app.SetScriptFileNameMatchingExpression( QRegExp( ".+\\.js$|.+\\.coffee$" ) );
+		app.SetScriptFileNameMatchingExpression( QRegExp( ".+\\.js$|.+\\.coffee$|.+\\.py$" ) );
 		app.SetDocHandler( QRegExp( ".+\\.html$|.+\\.htm$|^http(s)?://.+" ), ":/browser.js" );
 		app.ParseCommandLine();
 		ret = app.Execute();

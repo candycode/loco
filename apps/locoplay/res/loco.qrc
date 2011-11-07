@@ -1,7 +1,10 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
-  <file>coffee-script.js</file>
-  <file>coffee-script-no-this.js</file>
+  <file>coffee/coffee-script.js</file>
+  <file>coffee/coffee-script-no-this.js</file>
+  <file>skulpt/skulpt-filter.js</file>
+  <file>skulpt/skulpt.js</file>
+  <file>skulpt/builtin.js</file>
   <file>browser.js</file>
 </qresource>
 <qresource prefix="/loco">

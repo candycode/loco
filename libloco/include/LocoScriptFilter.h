@@ -13,15 +13,18 @@ class ScriptFilter : public Filter {
 public:
     ScriptFilter( IJSInterpreter* jsInterpreter,
 				  const QString& jfun,
-				  const QString& jcode = "", 
+				  const QString& jcodeBegin = "",
+				  const QString& jcodeEnd = "",
                   const QString& jerrfun = "",
                   const QString& codePlaceHolder = "" ) 
-        : jsInterpreter_( jsInterpreter ), jfun_( jfun), jcode_( jcode ),
-          jerrfun_( jerrfun ), codePlaceHolder_( codePlaceHolder ) {}
+        : jsInterpreter_( jsInterpreter ), jfun_( jfun), jcodeBegin_( jcodeBegin ),
+          jcodeEnd_( jcodeEnd ), jerrfun_( jerrfun ), codePlaceHolder_( codePlaceHolder ) {}
     void SetJSIntepreter( IJSInterpreter* jsInterpreter ) { jsInterpreter_ = jsInterpreter; }
     IJSInterpreter* GetJSInterpreter() const { return jsInterpreter_; }
-    void SetJCode( const QString& f ) { jcode_ = f; }
-    const QString& GetJCode() const { return jcode_; }
+    void SetJCodeBegin( const QString& b ) { jcodeBegin_ = b; }
+    void SetJCodeEnd( const QString& e ) { jcodeEnd_ = e; }
+    const QString& GetJCodeBegin() const { return jcodeBegin_; }
+    const QString& GetJCodeEnd() const { return jcodeEnd_; }
     void SetJErrCode( const QString& f ) { jerrfun_ = f; }
     const QString& GetJErrCode() const { return jerrfun_; }
 public:
@@ -30,8 +33,8 @@ public:
         QString s = ss.trimmed() + "\n";
 		s = "\"" + s.replace( "\"", "\\\"" ) + "\"";
         s.replace("\n", "\\n");
-		if( !jcode_.isEmpty() ) {
-			jsInterpreter_->EvaluateJavaScript( jcode_ );
+		if( !jcodeBegin_.isEmpty() ) {
+			jsInterpreter_->EvaluateJavaScript( jcodeBegin_ );
 		}
 		QVariant r;
 		// no placeholder, assume it's a function call
@@ -49,14 +52,18 @@ public:
             else error( "Error parsing code" );
             return s;
         }
-        if( r.isValid() ) return r.toString();
+        if( r.isValid() ) {
+        	if( !jcodeEnd_.isEmpty() ) jsInterpreter_->EvaluateJavaScript( jcodeEnd_ );
+        	return r.toString();
+        }
         else return "";
     }
     ~ScriptFilter() {}
 private:
 	QPointer< IJSInterpreter > jsInterpreter_;
 	QString jfun_; 
-    QString jcode_;
+    QString jcodeBegin_;
+    QString jcodeEnd_;
     QString jerrfun_;
     QString codePlaceHolder_;
 };
