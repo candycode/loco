@@ -6,8 +6,11 @@
 #include <QString>
 #include <QStringList>
 #include <QMap>
+#include <QList>
+#include <QPair>
 #include <QListIterator>
 #include <QPointer>
+#include <QRegExp>
 #ifdef LOCO_GUI
 #include <QMessageBox>
 #endif
@@ -23,6 +26,7 @@ namespace loco {
 
 typedef QMap< QString, Object* > ModuleMap;
 typedef QStringList CMDLine;
+typedef QList< QPair< QRegExp, QString > > DocHandlers;
 
 class App : public QObject {
     Q_OBJECT
@@ -86,35 +90,27 @@ public:
     void InitContext() {
         ctx_.Init( jsInterpreter_, &app_, cmdLine_ );
     }
-
 	void SetScriptFileNameMatchingExpression( const QRegExp& rx )  { scriptNameRX_ = rx; }
-	
     int Execute( bool forceDefault = false );
-
     void ConfigNetAccessFromFile( const QString& deny,
     		                      const QString& allow ) {
     	ReadRules( deny, NetDeny );
     	ReadRules( allow, NetAllow );
     }
-
     void ConfigFileAccessFromFile( const QString& deny,
     		                       const QString& allow ) {
     	ReadRules( deny, FileDeny );
     	ReadRules( allow, FileAllow );
     }
-
     void AddNameFilterMapping( const QRegExp& rx, const QStringList& filterIds ) {
         ctx_.AddNameFilterMapping( rx, filterIds );
     }
-
     void RemoveNameFilterMapping( const QRegExp& rx ) {
         ctx_.RemoveNameFilterMapping( rx );
-    }   
-   
+    }
     void PreloadFilter( const QString& id, const QString& uri ) {
         ctx_.LoadFilter( id, uri );
     }
-
     void PreloadScriptFilter( const QString& id,
     		                  const QString& uri,
     		                  const QString& jfun,
@@ -123,12 +119,13 @@ public:
                               const QString& codePlaceHolder = "" ) {
         ctx_.LoadScriptFilter( id, uri, jfun, jcode, jerrfun, codePlaceHolder );
     }
-
     void PreloadObject( const QString& uri ) {
         const bool PERSISTENT = true;
         ctx_.LoadObject( uri, PERSISTENT );
     }
-
+    void SetDocHandler( const QRegExp& rx, const QString& scriptURI ) {
+    	docHandlers_.push_back( qMakePair( rx, scriptURI ) );
+    }
 signals:
     void OnException( const QString& );
 private slots:
@@ -150,5 +147,6 @@ private:
     FileAccessManager fileAccess_;
     bool startEventLoop_;
 	QRegExp scriptNameRX_;
+	DocHandlers docHandlers_;
 };
 }

@@ -2,6 +2,7 @@
 <qresource>
   <file>coffee-script.js</file>
   <file>coffee-script-no-this.js</file>
+  <file>browser.js</file>
 </qresource>
 <qresource prefix="/loco">
   <file alias="main">main.js</file>

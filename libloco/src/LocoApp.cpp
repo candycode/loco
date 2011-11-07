@@ -104,9 +104,26 @@ void App::ParseCommandLine() {
 int App::Execute( bool forceDefault  ) {
     try {		
         scriptFileName_ = defaultScript_;
+        bool found = false;
         if( !forceDefault ) {
         	const int si = cmdLine_.indexOf( scriptNameRX_ );
-        	if( si >= 0 ) scriptFileName_ = cmdLine_[ si ];
+        	if( si >= 0 ) {
+        		scriptFileName_ = cmdLine_[ si ];
+        		found = true;
+        	}
+        }
+        if( !found ) {
+        	for( QStringList::const_iterator s = cmdLine_.begin(); s != cmdLine_.end(); ++s ) {
+        		bool match = false;
+        		for( DocHandlers::const_iterator i = docHandlers_.begin(); i != docHandlers_.end(); ++i ) {
+        			if( i->first.exactMatch( *s ) ) {
+        				scriptFileName_ = i->second;
+        				match = true;
+        				break;
+        			}
+        		}
+        		if( match ) break;
+        	}
         }
         QFile scriptFile( scriptFileName_ );
         if( !scriptFile.exists() ) {
@@ -143,6 +160,7 @@ void App::OnJavaScriptConsoleMessage( const QString& t, int l, const QString& s 
 		throw std::runtime_error( msg.toStdString() );
 	}
 }
+
 //private:
 void App::ReadRules( const QString& fname, RuleType target ) {
 	 QFile f( fname );

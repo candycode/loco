@@ -95,6 +95,7 @@ int main(int argc, char *argv[])
 		// tell the application what is considered a valid file name for a script
 		// to execute
 		app.SetScriptFileNameMatchingExpression( QRegExp( ".+\\.js$|.+\\.coffee$" ) );
+		app.SetDocHandler( QRegExp( ".+\\.html$|.+\\.htm$|^http(s)?://.+" ), ":/browser.js" );
 		app.ParseCommandLine();
 		ret = app.Execute();
 	} catch( const std::exception& e ) {
