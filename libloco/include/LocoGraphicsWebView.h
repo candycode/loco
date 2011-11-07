@@ -1,6 +1,8 @@
 #pragma once
 //#SRCHEADER
 
+#include <stdexcept>
+
 #include <QGraphicsView>
 #include <QGraphicsScene>
 #include <QtWebKit/QGraphicsWebView>
@@ -47,12 +49,12 @@ public:
     qreal zoomFactor() const { return gwebView_->zoomFactor(); }
     void setTextSizeMultiplier( qreal tm ) { gwebView_->page()->mainFrame()->setTextSizeMultiplier( tm ); }
     qreal textSizeMultiplier() const { return gwebView_->page()->mainFrame()->textSizeMultiplier(); }
-    void reload() { gwebView_->page()->mainFrame()->reload(); }
+    void reload() { gwebView_->reload(); }
     void setContentEditable( bool yes ) { gwebView_->page()->setContentEditable( yes ); }
     qint64 totalBytes() const { return gwebView_->page()->totalBytes(); }
     bool isModified() const { return false; }
     void triggerPageAction( QWebPage::WebAction action, bool checked ) {
-        gwebView_->page()->triggerPageAction( action, checked );
+    	throw std::logic_error( "'triggerPageAction' not implemented" );
     }
     
 protected:
