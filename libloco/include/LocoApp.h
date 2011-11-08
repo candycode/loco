@@ -35,6 +35,10 @@ private:
 public:
 	App( LocoQtApp& app, int argc, char** argv, ObjectInfo* oi ); 
 
+	void AddResources( const QString& path ) {
+	    QResource::registerResource( path );
+	}
+
 	void MapToFilters( const QRegExp& rx, const QStringList& filterIds ) {
         ctx_.AddNameFilterMapping( rx, filterIds );
 	}

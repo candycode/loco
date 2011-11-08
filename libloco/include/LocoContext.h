@@ -20,6 +20,7 @@
 #include <QRegExp>
 #include <QPointer>
 #include <QMap>
+#include <QResource>
 
 #include <algorithm>
 #include <cstdlib>
@@ -77,7 +78,9 @@ public:
                const QStringList& cmdLine = QStringList(), Context* parent = 0 );
 // called from C++
 public:
-
+	bool RegisterResources( const QString& path ) {
+		return QResource::registerResource( path );
+	}
     Object* JSObjToPointer( const QVariantMap& jsObj ) {
         NamePointerMap::const_iterator i = nameToPointer_.find( jsObj[ "jsInstanceName" ].toString() );
         if( i == nameToPointer_.end() ) return 0;
@@ -347,6 +350,7 @@ public:
 
 // invocable from javascript
 public slots: // js interface
+	bool registerResources( const QString& path ) { return ctx_->RegisterResources( path ); }
     void enableAutoMapFilters( bool on ) { ctx_->SetAutoMapFilters( on ); }
     QString jsInterpreterName() const { return ctx_->JSInterpreterName(); }
     bool setNetworkAuthentication( const QString& user, const QString& pwd ) {

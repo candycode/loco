@@ -103,6 +103,7 @@ int main(int argc, char *argv[])
 		// to execute
 		app.SetScriptFileNameMatchingExpression( QRegExp( ".+\\.js$|.+\\.coffee$|.+\\.py$" ) );
 		app.SetDocHandler( QRegExp( ".+\\.html$|.+\\.htm$|^http(s)?://.+" ), ":/browser.js" );
+		app.SetDocHandler( QRegExp( ".+\\.rcc$|.+\\.lrcc$" ), ":/rccexec.js" );
 		app.ParseCommandLine();
 		ret = app.Execute();
 	} catch( const std::exception& e ) {
