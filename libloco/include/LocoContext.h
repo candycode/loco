@@ -78,8 +78,11 @@ public:
                const QStringList& cmdLine = QStringList(), Context* parent = 0 );
 // called from C++
 public:
-	bool RegisterResources( const QString& path ) {
-		return QResource::registerResource( path );
+	bool RegisterResources( const QString& path, const QString& rootPath = QString() ) {
+		return QResource::registerResource( path, rootPath );
+	}
+	bool UnRegisterResources( const QString& path, const QString& rootPath = QString() ) {
+		return QResource::unregisterResource( path, rootPath );
 	}
     Object* JSObjToPointer( const QVariantMap& jsObj ) {
         NamePointerMap::const_iterator i = nameToPointer_.find( jsObj[ "jsInstanceName" ].toString() );
@@ -350,7 +353,12 @@ public:
 
 // invocable from javascript
 public slots: // js interface
-	bool registerResources( const QString& path ) { return ctx_->RegisterResources( path ); }
+	bool registerResources( const QString& path, const QString& rootPath = QString() ) {
+		return ctx_->RegisterResources( path, rootPath );
+	}
+	bool unregisterResources( const QString& path, const QString& rootPath = QString() ) {
+		return ctx_->UnRegisterResources( path, rootPath );
+	}
     void enableAutoMapFilters( bool on ) { ctx_->SetAutoMapFilters( on ); }
     QString jsInterpreterName() const { return ctx_->JSInterpreterName(); }
     bool setNetworkAuthentication( const QString& user, const QString& pwd ) {

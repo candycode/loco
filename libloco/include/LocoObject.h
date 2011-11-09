@@ -12,9 +12,6 @@
 #include "EWL.h"
 #include "LocoObjectInfo.h"
 
-//temporary
-#include <iostream>
-
 
 namespace loco {
 
@@ -42,6 +39,7 @@ public:
         setObjectName( jsInstanceName_ ); //choose unique name for Qt object instance
         if( info_ != 0 ) info_->setParent( this );                   
     }
+    QVariant JSInstance() const;
     virtual void Init( const QVariantMap& ) {}
 	const QString& GetModule() const { return module_; }  
     void SetPluginLoader( QPluginLoader* pl ) { pluginLoader_ = pl; }
