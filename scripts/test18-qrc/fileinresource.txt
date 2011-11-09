@@ -1,0 +1,1 @@
+Hello I live in a resource file!
