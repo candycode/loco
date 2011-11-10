@@ -96,12 +96,18 @@ int main(int argc, char *argv[])
 							     "  var s = Sk.compile( code, '', 'single' );"
 								 "  return s.code + s.funcname + '()';"
 								 "}" );
+	    app.PreloadScriptFilter( "biwascheme", ":/biwascheme/biwascheme-filter.js",
+				                 "loco_schemeCompile_",
+				                 "function loco_schemeCompile_( code ) {"
+								 " return '(new BiwaScheme.Interpreter(locoHandleBiwaSchemeError_)).evaluate(' + code + ');';"
+								 "}" );
 		app.MapToFilters( QRegExp( ".+\\.+coffee$" ), QStringList() << "coffee" );
 		app.MapToFilters( QRegExp( ".+\\.+py$" ), QStringList() << "skulpt" );
+		app.MapToFilters( QRegExp( ".+\\.+scm$" ), QStringList() << "biwascheme" );
 		app.SetMapFiltersToExtension( true );
 		// tell the application what is considered a valid file name for a script
 		// to execute
-		app.SetScriptFileNameMatchingExpression( QRegExp( ".+\\.js$|.+\\.coffee$|.+\\.py$" ) );
+		app.SetScriptFileNameMatchingExpression( QRegExp( ".+\\.js$|.+\\.coffee$|.+\\.py$|.+\\.scm$" ) );
 		app.SetDocHandler( QRegExp( ".+\\.html$|.+\\.htm$|^http(s)?://.+" ), ":/browser.js" );
 		app.SetDocHandler( QRegExp( ".+\\.rcc$|.+\\.lrcc$" ), ":/rccexec.js" );
 		app.ParseCommandLine();

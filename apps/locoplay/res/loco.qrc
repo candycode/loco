@@ -5,12 +5,13 @@
   <file>skulpt/skulpt-filter.js</file>
   <file>skulpt/skulpt.js</file>
   <file>skulpt/builtin.js</file>
+  <file>biwascheme/biwascheme-filter.js</file>
+  <file>biwascheme/biwascheme_closure_compiled.js</file>
+  <file>biwascheme/biwascheme_no_web_closure_compiled.js</file>
   <file>browser.js</file>
   <file>rccexec.js</file>
 </qresource>
-<qresource>
-</qresource>
-<qresource prefix="/loco">
+<qresource prefix="/loco"> 
   <file alias="main">main.js</file>
 </qresource>
 </RCC>

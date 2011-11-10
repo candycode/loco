@@ -6,6 +6,7 @@ var BiwaScheme = BiwaScheme || {};
 
 var Console = {};
 
+
 Console.puts = function(str, no_newline) {
   Loco.console.print(str);
   if (!no_newline) {
@@ -17,8 +18,35 @@ Console.p = function() {
   Loco.console.print.apply(this, arguments);
 };
 
+
+function puts(m,nnl) { return Console.puts( n, nnl ); }
+
 var WKIT = Loco.ctx.jsInterpreterName().indexOf( "webkit" ) >= 0;
 
+include( "../filters/biwascheme/biwascheme_closure_compiled.js" );
+if( WKIT ) {
+  BiwaScheme.Interpreter.dumper = new BiwaScheme.Dumper();
+}
+
+function show_error(e){
+ Loco.console.println("Error: "+e.message);
+}
+function ev(str){
+  Loco.console.println("ev> "+str);
+  var ret = (new BiwaScheme.Interpreter(show_error)).evaluate(str);
+  return ret;
+}
+
+var print_ = Loco.console.println;
+
+var E = ev( "print (+ 1 2 )" );
+ev( '(js-eval "Loco.console.println( \'ciao\' )")' );
+Loco.console.println( E );
+Loco.ctx.exit( 0 );
+} catch(e) { Loco.console.println(e); }
+
+
+/*
 include( dir+"version.js");
 if( WKIT ) include( dir+"deps/jquery.js");
 include( dir+"deps/underscore.js");
@@ -51,22 +79,4 @@ include( dir+"library/webscheme_lib.js");
 include( dir+"library/extra_lib.js");
 include( dir+"library/srfi.js");
 if( WKIT ) include( dir+"platforms/browser/dumper.js");
-
-if( WKIT ) {
-  BiwaScheme.Interpreter.dumper = new BiwaScheme.Dumper();
-}
-
-function show_error(e){
- Loco.console.println("Error: "+e.message);
-}
-function ev(str){
-  Loco.console.println("ev> "+str);
-  var ret = (new BiwaScheme.Interpreter(show_error)).evaluate(str);
-  return ret;
-}
-
-var E = ev( "(+ 1 2 )" );
-ev( '(js-eval "Loco.console.println( \'ciao\' )")' );
-Loco.console.println( E );
-Loco.ctx.exit( 0 );
-} catch(e) { Loco.console.println(e); }
+*/

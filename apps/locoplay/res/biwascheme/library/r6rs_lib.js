@@ -1934,7 +1934,7 @@ if( typeof(BiwaScheme)!='object' ) BiwaScheme={}; with(BiwaScheme) {
       [Sym("begin"),
         registration,
         [Sym("define"), constructor_name, [Sym("record-constructor"), cd]],
-        [Sym("define"), predicate_name, [Sym("record-predicate"), rtd]],
+        [Sym("define"), predicate_name, [Sym("record-predicate"), rtd]]
         ].concat(accessor_defs).
           concat(mutator_defs)
     );
