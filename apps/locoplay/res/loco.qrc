@@ -8,6 +8,8 @@
   <file>browser.js</file>
   <file>rccexec.js</file>
 </qresource>
+<qresource>
+</qresource>
 <qresource prefix="/loco">
   <file alias="main">main.js</file>
 </qresource>

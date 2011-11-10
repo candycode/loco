@@ -4,25 +4,17 @@ var include = Loco.ctx.include;
 
 var BiwaScheme = BiwaScheme || {};
 
-var print = Loco.console.print;
-function puts( str, no_newline )  {
-  print(str);
-  if (!no_newline) {
-    print("\n");
-  }
-}
-
 var Console = {};
 
 Console.puts = function(str, no_newline) {
-  print(str);
+  Loco.console.print(str);
   if (!no_newline) {
-    print("\n");
+     Loco.console.print("\n");
   }
 };
 
 Console.p = function() {
-  print.apply(this, arguments);
+  Loco.console.print.apply(this, arguments);
 };
 
 var WKIT = Loco.ctx.jsInterpreterName().indexOf( "webkit" ) >= 0;
@@ -65,17 +57,16 @@ if( WKIT ) {
 }
 
 function show_error(e){
-  puts("Error: "+e.message);
+ Loco.console.println("Error: "+e.message);
 }
 function ev(str){
-  puts("ev> "+str);
+  Loco.console.println("ev> "+str);
   var ret = (new BiwaScheme.Interpreter(show_error)).evaluate(str);
   return ret;
 }
 
 var E = ev( "(+ 1 2 )" );
 ev( '(js-eval "Loco.console.println( \'ciao\' )")' );
-puts( typeof E );
-puts( E );
+Loco.console.println( E );
 Loco.ctx.exit( 0 );
 } catch(e) { Loco.console.println(e); }
