@@ -2,7 +2,7 @@ Partial list of * -> JavaScript compilers:
 
 * CoffeeScript: http://jashkenas.github.com/coffee-script [tested]
 
-* Scheme: http://www.biwascheme.org/ 
+* Scheme: http://www.biwascheme.org/ [tested]
           http://javascript.crockford.com/little.html [tested]
 
 * Haskell: https://github.com/johang88/haskellinjavascript
