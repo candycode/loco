@@ -169,19 +169,20 @@ QByteArray Context::ReadUrl( const QString& url, QSet< QUrl > redirects ) {
     else return reply->readAll();
 }
 
-QByteArray Context::ReadFile( const QString& f ) {
-    QString filePath = f;    
-    if( !f.contains( ":/" ) && !QDir::isAbsolutePath( f ) ) {
+QByteArray Context::ReadFile( QString filePath ) {
+    if( filePath.startsWith( "~/" ) ) filePath = QDir::homePath() + filePath.remove( 0, 1 );
+    else if( !filePath.contains( ":/" ) && !QDir::isAbsolutePath( filePath ) ) {
         QStringList::const_iterator i = includePath_.begin();
         for( ; i != includePath_.end(); ++i ) {
-            if( !QFile::exists( *i + "/" + f ) ) continue;
-            else { filePath = *i + "/" + f; break; }
+            if( !QFile::exists( *i + "/" + filePath ) ) continue;
+            else { filePath = *i + "/" + filePath; break; }
         }
         if( i == includePath_.end() ) {
-            error( "File " + f + " does not exists" );
+            error( "File " + filePath + " does not exists" );
             return QByteArray();
         }
-    } 
+    }
+
                 
     if( !fileAccessMgr_->CheckAccess( filePath ) ) {
         error( "Not authorized to access file " + filePath );
@@ -189,7 +190,7 @@ QByteArray Context::ReadFile( const QString& f ) {
     }    
     QFile file( filePath );
     if( !file.open( QIODevice::ReadOnly ) ) {
-        error( "Cannot open file " + f );
+        error( "Cannot open file " + filePath );
         return QByteArray();
     }
     QByteArray b;

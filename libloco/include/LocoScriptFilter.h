@@ -6,6 +6,10 @@
 #include "LocoIJSInterpreter.h"
 #include "LocoFilter.h"
 
+
+///@todo remove
+#include <iostream>
+
 namespace loco {
 
 class ScriptFilter : public Filter {
@@ -29,35 +33,7 @@ public:
     const QString& GetJErrCode() const { return jerrfun_; }
 public:
 	QByteArray Apply( const QByteArray& ba ) const { return Apply( QString( ba ) ).toAscii();  } 
-    QString Apply( const QString& ss ) const {
-        QString s = ss.trimmed() + "\n";
-		s = "\"" + s.replace( "\"", "\\\"" ) + "\"";
-        s.replace("\n", "\\n");
-		if( !jcodeBegin_.isEmpty() ) {
-			jsInterpreter_->EvaluateJavaScript( jcodeBegin_ );
-		}
-		QVariant r;
-		// no placeholder, assume it's a function call
-        if( codePlaceHolder_.isEmpty() ) {
-            r = jsInterpreter_->EvaluateJavaScript( jfun_ + "(" +   s  + ");" );
-        // placeholder, replace with translated code
-        } else {
-            QString nj = jfun_;
-            const QString& njref = nj.replace( codePlaceHolder_, s );
-            r = jsInterpreter_->EvaluateJavaScript( njref );
-        }
-        if( r.isNull() || !r.isValid() ) {
-            QVariant e = jsInterpreter_->EvaluateJavaScript( jerrfun_ );
-            if( !e.isNull() && e.isValid() ) error( e.toString() );
-            else error( "Error parsing code" );
-            return s;
-        }
-        if( r.isValid() ) {
-        	if( !jcodeEnd_.isEmpty() ) jsInterpreter_->EvaluateJavaScript( jcodeEnd_ );
-        	return r.toString();
-        }
-        else return "";
-    }
+    QString Apply( const QString& ss ) const;
     ~ScriptFilter() {}
 private:
 	QPointer< IJSInterpreter > jsInterpreter_;

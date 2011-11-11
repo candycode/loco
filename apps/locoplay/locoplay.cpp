@@ -99,7 +99,7 @@ int main(int argc, char *argv[])
 	    app.PreloadScriptFilter( "biwascheme", ":/biwascheme/biwascheme-filter.js",
 				                 "loco_schemeCompile_",
 				                 "function loco_schemeCompile_( code ) {"
-								 " return '(new BiwaScheme.Interpreter(locoHandleBiwaSchemeError_)).evaluate(' + code + ');';"
+								 " return (new BiwaScheme.Interpreter(locoHandleBiwaSchemeError_)).evaluate( code );"
 								 "}" );
 		app.MapToFilters( QRegExp( ".+\\.+coffee$" ), QStringList() << "coffee" );
 		app.MapToFilters( QRegExp( ".+\\.+py$" ), QStringList() << "skulpt" );

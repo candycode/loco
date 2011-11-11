@@ -299,7 +299,7 @@ private:
 
 private:
     QByteArray ReadUrl( const QString& url, QSet< QUrl > redirects = QSet< QUrl >() );
-    QByteArray ReadFile( const QString& f );
+    QByteArray ReadFile( QString f );
     void jsErr() { jsInterpreter_->EvaluateJavaScript( jsErrCBack_ ); }
 
 private:

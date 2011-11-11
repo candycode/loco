@@ -1,32 +1,21 @@
 try {
-var dir = "../filters/biwascheme/";
-var include = Loco.ctx.include;
-
+ 
+Loco.ctx.onError.connect( function(e) { throw e; } );
 var BiwaScheme = BiwaScheme || {};
-
 var Console = {};
-
-
 Console.puts = function(str, no_newline) {
   Loco.console.print(str);
   if (!no_newline) {
      Loco.console.print("\n");
   }
 };
-
 Console.p = function() {
   Loco.console.print.apply(this, arguments);
 };
 
-
 function puts(m,nnl) { return Console.puts( n, nnl ); }
-
-var WKIT = Loco.ctx.jsInterpreterName().indexOf( "webkit" ) >= 0;
-
-include( "../filters/biwascheme/biwascheme_closure_compiled.js" );
-if( WKIT ) {
-  BiwaScheme.Interpreter.dumper = new BiwaScheme.Dumper();
-}
+Loco.ctx.include( "../filters/biwascheme/biwascheme-min.js" );
+//BiwaScheme.Interpreter.dumper = new BiwaScheme.Dumper();
 
 function show_error(e){
  Loco.console.println("Error: "+e.message);
@@ -37,17 +26,46 @@ function ev(str){
   return ret;
 }
 
-var print_ = Loco.console.println;
+BiwaScheme.define_libfunc("print", 1, 1, function(args) {
+  
+  Loco.console.println( args[ 0 ] );
+  return true;
+});
+BiwaScheme.define_libfunc("open-web-page", 1, 1, function(args) {
+  var ww = Loco.gui.create( "WebWindow" );
+  puts( args[ 0 ] );
+  ww.load( args[ 0 ] );
+  ww.show();
+  return true;
+});
 
-var E = ev( "print (+ 1 2 )" );
-ev( '(js-eval "Loco.console.println( \'ciao\' )")' );
-Loco.console.println( E );
-Loco.ctx.exit( 0 );
-} catch(e) { Loco.console.println(e); }
+ev('(print "hi,...from a scheme function defined from javascript")');
+var E = ev( "(+ 1 2 )" );
+Loco.console.println( '\t' + E );
+ev( '(js-eval "Loco.console.println( \'hi...from a javascript function invoked from scheme\' )")' );
+
+ev( "(define (fib n)" +
+    "  (if (< n 2)" +
+    "    n" +
+    "    (+ (fib (- n 1)) (fib (- n 2)))))" +
+    "(print (fib 12))" );
+
+
+
+ev( '(open-web-page "http://www.nyt.com")' );
+
+//Loco.ctx.exit( 0 );
+} catch(e) { 
+  Loco.console.printerrln(e);
+}
 
 
 /*
+//WITH THE FOLLOWING EXPLICIT INCLUDES IT WORKS WITH QtScript on Qt 4.8 as well, provided
+//all 'var' keywords are removed from the global declarations
+var dir = "../filters/biwascheme/";
 include( dir+"version.js");
+var include = Loco.ctx.include;
 if( WKIT ) include( dir+"deps/jquery.js");
 include( dir+"deps/underscore.js");
 include( dir+"deps/underscore.string.js");
