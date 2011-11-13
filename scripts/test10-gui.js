@@ -37,10 +37,10 @@ try {
     }
     html += "</ol></body></html>";
     var sw = Loco.gui.create( "WebWindow" );
-    //sw.setParentWindow( Loco.webWindow );
+    sw.setParentWindow( Loco.webWindow );
     //sw.setMask( "../res/mask.png" ); 
     if( Loco.ctx.os() !== "MAC")  
-      sw.setWindowType( ["tool"] );
+      sw.setWindowType( ["dialog"] );
     else
       sw.setWindowType( ["drawer"] );  
     sw.setHtml( html );
