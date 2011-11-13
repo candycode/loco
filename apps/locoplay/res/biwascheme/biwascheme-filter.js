@@ -23,5 +23,9 @@ BiwaScheme.define_libfunc("open-web-page", 1, 1, function(args) {
    return true;
 });
 BiwaScheme.define_libfunc("prompt", 1, 1, function(args) {
-   return parseInt( prompt( args[ 0 ] ) );
+   return prompt( args[ 0 ] );
+});
+BiwaScheme.define_libfunc("include", 1, 1, function(args) {
+   Loco.ctx.include( args[ 0 ] );
+   return true;
 });

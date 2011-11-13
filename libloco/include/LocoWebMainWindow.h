@@ -332,8 +332,8 @@ public slots:
     void showMenu() { mw_.menuBar()->show(); }
     void hideStatusBar() { mw_.statusBar()->hide(); }
     void showStatusBar() { mw_.statusBar()->show(); }
-    void setWindowIcon( const QPixmap& p ) { webView_->setWindowIcon( p ); }
-    void setWindowIcon( const QString& f ) { webView_->setWindowIcon( QIcon( f ) ); }  
+    void setWindowIcon( const QPixmap& p ) { mw_.setWindowIcon( p ); }
+    void setWindowIcon( const QString& f ) { mw_.setWindowIcon( QIcon( f ) ); }   
     void move( int x, int y ) { mw_.move( x, y ); }
     void enableAction( QWebPage::WebAction action, bool yes ) { webView_->pageAction( action )->setEnabled( yes ); }
     bool isActionEnabled( QWebPage::WebAction action ) const { return webView_->pageAction( action )->isEnabled(); }

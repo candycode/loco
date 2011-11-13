@@ -1,14 +1,11 @@
 //#SRCHEADER
 #include "LocoScriptFilter.h"
 
-
-
 namespace loco {
 
 QString ScriptFilter::Apply( const QString& ss ) const {
    QString s = ss.trimmed() + "\n";
 	s = "\"" + s.replace( "\"", "\\\"" ) + "\"";
-	std::cout << s.toStdString() << std::endl;
     s.remove( "\r" );
 	s.replace("\n", "\\n");
 	if( !jcodeBegin_.isEmpty() ) {
@@ -16,12 +13,10 @@ QString ScriptFilter::Apply( const QString& ss ) const {
 	}
 	QVariant r;
 	// no placeholder, assume it's a function call
-   if( codePlaceHolder_.isEmpty() ) {
-	std::cout << jfun_.toStdString() << std::endl;
-	std::cout << s.toStdString() << std::endl;
-	   r = jsInterpreter_->EvaluateJavaScript( jfun_ + "(" +   s  + ");" );
+    if( codePlaceHolder_.isEmpty() ) {
+       r = jsInterpreter_->EvaluateJavaScript( jfun_ + "(" +   s  + ");" );
    // placeholder, replace with translated code
-   } else {
+    } else {
 	   QString nj = jfun_;
 	   const QString& njref = nj.replace( codePlaceHolder_, s );
 	   r = jsInterpreter_->EvaluateJavaScript( njref );

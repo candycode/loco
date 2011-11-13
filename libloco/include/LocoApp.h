@@ -49,7 +49,7 @@ public:
 
 	void SetInterpreter( IJSInterpreter* i );
     
-	void SetMapFiltersToExtension( bool on ) { ctx_.SetAutoMapFilters( on ); }
+	void SetMapFiltersToFileNames( bool on ) { ctx_.SetAutoMapFilters( on ); }
 
 	void AddModuleToJS( Object* obj ) {
 		ctx_.AddJSStdObject( obj ); // context owns module

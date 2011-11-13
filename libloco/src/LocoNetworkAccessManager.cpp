@@ -44,8 +44,6 @@ QString OpToString( QNetworkAccessManager::Operation op ) {
 }
 }
 
-
-
 class NetworkCookieJar : public QNetworkCookieJar {
 public:
 	NetworkCookieJar( QObject* parent = 0 ) : QNetworkCookieJar( parent ), cookieFile_( "loco-cookies.ini" ) {}

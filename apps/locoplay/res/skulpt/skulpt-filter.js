@@ -14,6 +14,7 @@ if( Loco.ctx.jsInterpreterName().indexOf( "webkit" ) >= 0 ) {
 }
 
 Sk.configure( {output: locoprint_, read: Loco.ctx.read} );
+
 if( Loco.ctx.jsInterpreterName().indexOf( "webkit" ) >= 0 ) {
   Sk.builtin.openWebWindow = function( s ) {
       var WW = Loco.gui.create( "WebWindow" );
@@ -21,4 +22,10 @@ if( Loco.ctx.jsInterpreterName().indexOf( "webkit" ) >= 0 ) {
       WW.show();
   }
   Sk.builtins[ "openWebWindow" ] = Sk.builtin.openWebWindow;
+}
+if( !Sk.builtin.include ) {
+  Sk.builtin.include = function( s ) {
+     Loco.ctx.include( s );
+  }
+  Sk.builtins[ "include" ] = Sk.builtin.include;
 }

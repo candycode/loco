@@ -104,7 +104,7 @@ int main(int argc, char *argv[])
 		app.MapToFilters( QRegExp( ".+\\.+coffee$" ), QStringList() << "coffee" );
 		app.MapToFilters( QRegExp( ".+\\.+py$" ), QStringList() << "skulpt" );
 		app.MapToFilters( QRegExp( ".+\\.+scm$" ), QStringList() << "biwascheme" );
-		app.SetMapFiltersToExtension( true );
+		app.SetMapFiltersToFileNames( true );
 		// tell the application what is considered a valid file name for a script
 		// to execute
 		app.SetScriptFileNameMatchingExpression( QRegExp( ".+\\.js$|.+\\.coffee$|.+\\.py$|.+\\.scm$" ) );
