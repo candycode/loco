@@ -250,6 +250,13 @@ QVariant Context::AddObjToJSContext( Object* obj, bool ownedByJavascript ) {
     return jsInterpreter_->EvaluateJavaScript( obj->jsInstanceName() );
 }
 
+void Context::AddQObjectToJSContext( QObject* obj, const QString& name, bool ownedByJavascript ) {
+    jsInterpreter_->AddObjectToJS( name,
+                                   obj,
+                                   ownedByJavascript ? QScriptEngine::ScriptOwnership :
+                                     QScriptEngine::QtOwnership );
+}
+
 void Context::SetNetworkAccessManager( NetworkAccessManager* nam ) { 
     if( nam == netAccessMgr_ && nam != 0 ) return;
     if( netAccessMgr_ != 0 ) {

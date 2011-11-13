@@ -4,6 +4,8 @@
 #include "LocoContext.h"
 #include "LocoGUI.h"
 
+#include "LocoMainWindow.h"
+
 #ifdef LOCO_WKIT
 #include "LocoWebWindow.h"
 #include "LocoWebMainWindow.h"
@@ -18,10 +20,17 @@ QVariant GUI::create( const QString& name, const QVariantMap& params ) const {
         return QVariant();
     }
 
+    if( name == "MainWindow" ) {
+        MainWindow* wv = new MainWindow();
+        const bool NOT_OWNED_BY_JAVASCRIPT = false;
+        QVariant obj = GetContext()->AddObjToJSContext( wv, NOT_OWNED_BY_JAVASCRIPT );
+        return obj;
+    }
+
     //will be replaced with an IGUIFactory class
     //if support for different Widget sets is needed
 #ifdef LOCO_WKIT
-    if( name == "WebWindow" ) {
+    else if( name == "WebWindow" ) {
         WebWindow* wv = new WebWindow();
 		if( !GetContext()->GetNetworkAccessManager() ) throw std::runtime_error( "NULL Network Access Manager" );
 		wv->SetNetworkAccessManager( GetContext()->GetNetworkAccessManager() );

@@ -13,22 +13,13 @@
 #include <QMap>
 #include <QtGui/QPixmap>
 #include <QtGui/QBitmap>
-#include <QtWebKit/QWebPage>
-#include <QtWebKit/QWebFrame>
-#include <QtWebKit/QWebSettings>
 #include <QtGui/QToolBar>
 #include <QVariantList>
-#include <QAbstractNetworkCache>
 
 #include "LocoObject.h"
 #include "LocoContext.h"
-#include "LocoWebView.h"
-#include "LocoWebKitAttributeMap.h"
-#include "LocoWebKitJSCoreWrapper.h"
-#include "LocoDynamicWebPluginFactory.h"
-#include "LocoStaticWebPluginFactory.h"
-#include "LocoWebElement.h"
 
+#include "LocoWrappedWidget.h"
 namespace loco {
 
 typedef QMap< QString, QMenu* > MenuMap;
@@ -40,8 +31,7 @@ typedef QMap< QAction*, QString > CBackMap;
 class MainWindow : public Object {
     Q_OBJECT
 public:
-    MainWindow() : Object( 0, "LocoMainWindow", "Loco/GUI/Window" ), toolBar_( 0 )  {
-      
+    MainWindow() : Object( 0, "LocoMainWindow", "Loco/GUI/Window" ), toolBar_( 0 )  {      
         mapper_ = new QSignalMapper( this );
         connect( mapper_, SIGNAL( mapped( QObject* ) ), this, SLOT( ActionTriggered( QObject* ) ) );
     }
@@ -49,10 +39,15 @@ public:
 
 public slots:
 	bool setCentralWidget( QObject* widget ) {
-	    QWidget* w = qobject_cast< QWidget* >( widget );
+		QWidget *w = qobject_cast< QWidget* >( widget );
 		if( !w ) {
-			error( "'setCentralWidget' requires a QWidget instance" );
-			return false;
+	        WrappedWidget* ww = dynamic_cast< WrappedWidget* >( widget );
+			if( !ww ) {
+			   error( "'setCentralWidget' requires a QWidget or WrappedWidget instance" );
+			   return false;
+			} else {
+				w = ww->Widget();
+			}
 		}
 		mw_.setCentralWidget( w );
 		return true;

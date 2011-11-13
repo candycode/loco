@@ -55,10 +55,12 @@ try {
   var ww = Loco.gui.create( "WebWindow" );
   mainWindow.setCentralWidget( ww );
   ww.onError.connect( function( err ) { print( err ); } );
-  ww.setName("webWindow");
-  mainWindow.setName("mainWindow");
-  ww.addSelfToJSContext();
-  ww.addParentObjectsToJS();
+  ww.addObjectToContext( mainWindow, "mainWindow" );
+  ww.addObjectToContext( ww, "webWindow" );
+  // ww.setName("webWindow");
+  //mainWindow.setName("mainWindow");
+  //ww.addSelfToJSContext();
+  //ww.addParentObjectsToJS();
   if( logRequests ) {
     ww.emitRequestSignal( true );
     ww.onRequest.connect( function(r) {

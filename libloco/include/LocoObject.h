@@ -96,10 +96,10 @@ private:
         return type_ + " " + jsInstanceName_ + ": " + msg; 
     }
 private:
-    Context* context_; // ONLY EXCEPTION TO THE QPointer rule for non-owned object;
+    Context* context_; // ONLY EXCEPTION TO THE QPointer rule for non-owned objects;
                        // required because QPointer needs to know that Context is derived from QObject
                        // and this in turn requires the inclusion of LocoContext.h but LocoContext.h
-                       // *does* need LocoObjects.h.
+                       // *does* need LocoObject.h.
     QString name_;
     QString type_;
     QString jsInstanceName_;

@@ -25,6 +25,8 @@
 #include "LocoStaticWebPluginFactory.h"
 #include "LocoNetworkAccessManager.h"
 #include "LocoWebElement.h"
+#include "LocoWrappedWidget.h"
+#include "LocoMainWindow.h"
 
 
 class QWebPluginFactory;
@@ -37,10 +39,19 @@ typedef QMap< QAction*, QString > ActionPath;
 typedef QMap< QAction*, QString > CBackMap;
 
 
-class WebWindow : public Object {
+class WebWindow : public WrappedWidget {
     Q_OBJECT
+private:
+	struct ObjectEntry {
+	    QObject* obj_;
+		QString jsName_;
+		bool own_;
+		ObjectEntry( QObject* obj, const QString& jsName, bool own ) :
+		    obj_( obj ), jsName_( jsName ), own_( own ) {}
+	};
+	typedef QList< ObjectEntry > ContextObjects;
 public:
-    WebWindow() : Object( 0, "LocoWebWindow", "Loco/GUI/Window" ),
+    WebWindow() : WrappedWidget( 0, "LocoWebWindow", "Loco/GUI/Window" ),
         webView_( new WebView() ), jsInterpreter_( new WebKitJSCoreWrapper )  {
         wf_ = webView_->page()->mainFrame();
         ws_ = webView_->page()->settings();
@@ -65,13 +76,22 @@ public:
 		connect( webView_, SIGNAL( JavaScriptConsoleMessage( const QString&, int, const QString& ) ),
 		   		 this, SIGNAL( javaScriptConsoleMessage( const QString&, int, const QString& ) ) );
 		connect( webView_, SIGNAL( actionTriggered( const QString&, bool ) ), this, SIGNAL( webActionTriggered( const QString&, bool ) ) );
-
+		connect( webView_->page(), SIGNAL( statusBarMessage( const QString& ) ), this, SIGNAL( statusBarMessage( const QString& ) ) );
+        connect( webView_->page(), SIGNAL( statusBarVisibilityChangeRequested( bool ) ),
+        		 this, SIGNAL( statusBarVisibilityChangeRequested( bool ) ) );
+        connect( webView_->page(), SIGNAL( toolBarVisibilityChangeRequested( bool ) ),
+                 this, SIGNAL( toolBarVisibilityChangeRequested( bool ) ) );
+		connect( webView_->page(), SIGNAL( linkHovered( const QString&, const QString&, const QString& ) ),
+        		 this, SIGNAL( linkHovered( const QString&, const QString&, const QString& ) ) );
+        connect( jsInterpreter_, SIGNAL( JavaScriptContextCleared() ), this, SLOT( JavaScriptContextCleared() ) );
 		jsInterpreter_->setParent( this );
         jsInterpreter_->SetWebPage( webView_->page() );   
         ctx_.Init( jsInterpreter_ );
         ctx_.SetJSContextName( "wctx" ); //web window context
         ctx_.AddContextToJS();
     }
+	QWidget* Widget() { return webView_; }
+	virtual const QWidget* Widget() const { return webView_; }
     ~WebWindow() { if( webView_ && webView_->parent() == 0 ) webView_->deleteLater(); }
 
     void AddSelfToJSContext() {
@@ -99,14 +119,22 @@ public:
     ::QWebPluginFactory* GetWebPluginFactory() const { return webView_->page()->pluginFactory(); }
 
 private slots:
-
+    void JavaScriptContextCleared() {
+		for( ContextObjects::const_iterator i = ctxObjects_.begin();
+			 i != ctxObjects_.end(); ++i ) {
+		   ctx_.AddQObjectToJSContext( i->obj_, i->jsName_, i->own_ ); 
+		}	
+	}
     void PreLoadCBack() { ctx_.Eval( preLoadCBack_ ); }
     void OnClose() { emit closing(); }
-public slots:
-
-    void setPreLoadCBack( const QString& cback ) { preLoadCBack_ = cback; }
 
 public slots:
+	void setPreLoadCBack( const QString& cback ) { preLoadCBack_ = cback; }
+	void addObjectToContext( QObject* obj, const QString& jsName, bool own = false ) {
+		ctx_.AddQObjectToJSContext( obj, jsName, own );
+		ctxObjects_.push_back( ObjectEntry( obj, jsName, own ) );
+	}
+	void resetObject() { ctxObjects_.clear(); }
 	void setEmitWebActionSignal( bool yes ) { webView_->SetEmitWebActionSignal( yes ); }
 	void triggerAction( const QString& action, bool checked = false ) {
 		if( !webView_->TriggerAction( action, checked ) ) error( "Cannot trigger action " + action );
@@ -382,6 +410,7 @@ public slots:
 
 signals:
     void linkClicked( const QUrl& );
+	void linkHovered( const QString&, const QString&, const QString& );
     void loadFinished( bool );
     void loadProgress( int );
     void loadStarted();
@@ -397,6 +426,9 @@ signals:
     void webActionTriggered( const QString&, bool );
     void fileDownloadProgress( qint64, qint64 );
     void javaScriptConsoleMessage( const QString&, int, const QString& );
+	void statusBarMessage( const QString& );
+    void statusBarVisibilityChangeRequested( bool );
+    void toolBarVisibilityChangeRequested( bool );
 private:
     WebView* webView_; //owned by this object
     Context ctx_; // this is where objects are created
@@ -405,6 +437,7 @@ private:
     WebKitAttributeMap attrMap_;
     WebKitJSCoreWrapper* jsInterpreter_;
     QString preLoadCBack_;
+	ContextObjects ctxObjects_;
 };
 
 }

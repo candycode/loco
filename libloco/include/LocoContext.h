@@ -106,7 +106,9 @@ public:
     // the current context and have the object's lifetime managed by javascript
     // NEVER add root objects from plugins because such objects must be deleted
     // through the plugin loader's unload method
-    QVariant AddObjToJSContext( Object* obj, bool ownedByJavascript = true );  
+    QVariant AddObjToJSContext( Object* obj, bool ownedByJavascript = true );
+	// this method is intended to insert objects from other contexts
+	void AddQObjectToJSContext( QObject* obj, const QString& name, bool ownedByJavascript = false );
     void AddFilter( const QString& id, Filter* f ) { 
         if( f->GetPluginLoader() == 0 && f->parent() == 0 ) f->setParent( this );
         filters_[ id ] = f;
