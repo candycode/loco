@@ -29,7 +29,6 @@ try {
       return f;
     };
    
-    //w.setType( ["drawer"] );  
     var html = "<html><head></head><body style='font-family:\"Courier new\"'><ol>";
     var entries = Wrapper.log;
     for( var e = 0; e < Wrapper.log.length; e += 1 ) {
@@ -37,12 +36,12 @@ try {
     }
     html += "</ol></body></html>";
     var sw = Loco.gui.create( "WebWindow" );
-    sw.setParentWindow( Loco.webWindow );
-    //sw.setMask( "../res/mask.png" ); 
     if( Loco.ctx.os() !== "MAC")  
-      sw.setWindowType( ["dialog"] );
-    else
-      sw.setWindowType( ["drawer"] );  
+      sw.setWindowStyle( ["dialog","modal-hint"] );
+    else {
+      sw.setParentWindow( Loco.webWindow );
+      sw.setWindowStyle( ["drawer"] );
+    }  
     sw.setHtml( html );
     sw.show();
   }

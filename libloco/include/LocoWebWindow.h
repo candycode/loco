@@ -55,7 +55,6 @@ public:
         webView_( new WebView() ), jsInterpreter_( new WebKitJSCoreWrapper )  {
         wf_ = webView_->page()->mainFrame();
         ws_ = webView_->page()->settings();
-        connect( webView_, SIGNAL( closing() ), this, SLOT( OnClose() ) );
         connect( webView_, SIGNAL( keyPress( int, int, int ) ), this, SIGNAL( keyPress( int, int, int ) ) );
         connect( webView_, SIGNAL( keyRelease( int, int, int ) ), this, SIGNAL( keyRelease( int, int, int ) ) );
         connect( webView_->page(), SIGNAL( loadFinished( bool ) ), this, SIGNAL( loadFinished( bool ) ) );
@@ -89,6 +88,10 @@ public:
         ctx_.Init( jsInterpreter_ );
         ctx_.SetJSContextName( "wctx" ); //web window context
         ctx_.AddContextToJS();
+        // base class instance is constructed before current instance, it is therefore
+        // not possible to connect signals in base class constructor since Widget() method
+        // must return pointer which is set within this constructor
+        WrappedWidget::ConnectSignals();
     }
 	QWidget* Widget() { return webView_; }
 	virtual const QWidget* Widget() const { return webView_; }
@@ -126,7 +129,6 @@ private slots:
 		}	
 	}
     void PreLoadCBack() { ctx_.Eval( preLoadCBack_ ); }
-    void OnClose() { emit closing(); }
 
 public slots:
 	void setPreLoadCBack( const QString& cback ) { preLoadCBack_ = cback; }
@@ -149,7 +151,7 @@ public slots:
     }
     bool saveUrl( const QString& url, const QString& filename, int timeout ) { return webView_->SaveUrl( url, filename, timeout ); }
     QString webKitVersion() const { return QTWEBKIT_VERSION_STR; }
-    void close() { webView_->close(); }
+
     void highLightText( const QString& substring ) { webView_->HighlightText( substring ); }
     QList< QVariant > forEachElement( const QString& selectorQuery,
     		                          const QString& cond,
@@ -238,74 +240,6 @@ public slots:
     		error( "only 'dynamic' supported at this time" );
     	}
     }
-    void setMouseCursor( const QString& shape ) {
-        if( shape == "arrow" ) webView_->setCursor( Qt::ArrowCursor );
-        else if( shape == "upArrow" ) webView_->setCursor( Qt::UpArrowCursor );
-        else if( shape == "cross" )  webView_->setCursor( Qt::CrossCursor );
-        else if( shape == "wait" ) webView_->setCursor( Qt::WaitCursor );
-        else if( shape == "ibeam" ) webView_->setCursor( Qt::IBeamCursor );
-        else if( shape == "sizeVert" ) webView_->setCursor( Qt::SizeVerCursor );
-        else if( shape == "sizeHor" ) webView_->setCursor( Qt::SizeHorCursor );
-        else if( shape == "wait" ) webView_->setCursor( Qt::WaitCursor );
-        else if( shape == "sizeAll" ) webView_->setCursor( Qt::SizeAllCursor );
-        else if( shape == "hide" ) webView_->setCursor( Qt::BlankCursor );
-        else if( shape == "splitVert" ) webView_->setCursor( Qt::SplitVCursor );
-        else if( shape == "splitHor" ) webView_->setCursor( Qt::SplitHCursor );
-        else if( shape == "pointHand" ) webView_->setCursor( Qt::PointingHandCursor );
-        else if( shape == "forbid" ) webView_->setCursor( Qt::ForbiddenCursor );
-        else if( shape == "openHand" ) webView_->setCursor( Qt::OpenHandCursor );
-        else if( shape == "closedHand" ) webView_->setCursor( Qt::ClosedHandCursor );
-        else if( shape == "whatsThis" ) webView_->setCursor( Qt::WhatsThisCursor );
-        else if( shape == "busy" ) webView_->setCursor( Qt::BusyCursor );
-        else if( shape == "dragMove" ) webView_->setCursor( Qt::DragMoveCursor );
-        else if( shape == "dragCopy" ) webView_->setCursor( Qt::DragCopyCursor );
-        else if( shape == "dragLink" ) webView_->setCursor( Qt::DragLinkCursor ); 
-    }
-    void setMouseCursor( const QPixmap& pmap, int hotX = -1, int hotY = -1 ) {
-        QCursor c( pmap, hotX, hotY );
-        webView_->setCursor( c );
-    }
-    void setWindowAttributes( Qt::WidgetAttribute wa ) {
-        webView_->setAttribute( wa );
-    }
-    void setWindowIcon( const QPixmap& p ) { webView_->setWindowIcon( p ); }
-    void setWindowIcon( const QString& f ) { webView_->setWindowIcon( QIcon( f ) ); }  
-    void move( int x, int y ) { webView_->move( x, y ); }
-    void setParentWindow( QObject* obj ) {
-        if( qobject_cast< WebWindow* >( obj ) != 0  ) {
-            WebWindow* ww = qobject_cast< WebWindow* >( obj );     
-            webView_->setParent( ww->GetWebView() );
-        } else if( qobject_cast< WebMainWindow* >( obj ) != 0 ) {
-            WebMainWindow* ww = qobject_cast< WebMainWindow* >( obj );     
-            webView_->setParent( ww->GetMainWindow() );
-        } else {
-            error( "Not a LoCO window object" );
-        }          
-    }   
-    void setWindowType( const QStringList& flags ) {
-        Qt::WindowFlags w = 0;
-        for( QStringList::const_iterator i = flags.begin(); i != flags.end(); ++i ) {
-            const QString& f = *i;
-            if( f == "dialog" ) w |= Qt::Dialog;
-            else if( f == "window" ) w |= Qt::Window;
-            else if( f == "sheet" ) w |= Qt::Sheet;
-            else if( f == "drawer" ) w |= Qt::Drawer;
-            else if( f == "popup" ) w |= Qt::Popup;
-            else if( f == "tool" ) w |= Qt::Tool;
-            else if( f == "splash" ) w |= Qt::SplashScreen;
-            else if( f == "sub" ) w |= Qt::SubWindow;     
-        }
-        webView_->setWindowFlags( w );
-    }
-    void setWindowOpacity( double op ) { webView_->setWindowOpacity( op ); }
-    double windowOpacity() const { return webView_->windowOpacity(); }
-    void setMask( const QPixmap& p ) {
-        webView_->setMask( p.mask() );
-    }
-    void setMask( const QString& ppath ) {
-        QPixmap p( ppath );
-        webView_->setMask( p.mask() );
-    }  
     void enableAction( QWebPage::WebAction action, bool yes ) { webView_->pageAction( action )->setEnabled( yes ); }
     bool isActionEnabled( QWebPage::WebAction action ) const { return webView_->pageAction( action )->isEnabled(); }
     void triggerAction( QWebPage::WebAction action, bool checked = false ) { webView_->triggerPageAction( action, checked ); }
@@ -316,11 +250,6 @@ public slots:
     bool getEnableContextMenu() const { return !webView_->EatingContextMenuEvent(); }
     void setForwardKeyEvents( bool yes ) { webView_->EatKeyEvents( !yes ); }
     bool getForwardKeyEvents( bool yes ) const { return !webView_->EatingKeyEvents(); }
-    void setWindowTitle( const QString& t ) { webView_->setWindowTitle( t ); }
-    QString title() const { return webView_->windowTitle(); }
-    void showNormal() { webView_->showNormal(); }
-    void showFullScreen() { webView_->showFullScreen(); }
-    void show() {  webView_->show(); }
     //connect from parent context Context::onError() -> WebWindow::onParentError()
     void onParentError( const QString& err ) {
         ctx_.Eval( "throw " + err + ";\n" );
@@ -417,7 +346,6 @@ signals:
     void selectionChanged();
     void titleChanged( const QString& );
     void urlChanged( const QUrl& );
-    void closing();
     void onRequest( const QVariantMap& );
     void keyPress( int key, int modifiers, int count );
     void keyRelease( int key, int modifiers, int count );

@@ -4,8 +4,6 @@
 #include <QtWebKit/QWebView>
 #include <QtGui/QKeyEvent>
 #include <QtGui/QMouseEvent>
-#include <QtGui/QPixmap>
-#include <QtGui/QPainter>
 #include <QtWebKit/QWebFrame>
 #include <QTimer>
 #include <QEventLoop>

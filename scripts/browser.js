@@ -14,19 +14,19 @@ try {
   var menu = {
      "_1_Actions": {
        "_1_Toggle fullscreen": {
-        cback: "Loco.webWindow.toggleFullScreen()",
+        cback: "mainWindow.toggleFullScreen()",
         tooltip: "Toggle fullscreen",
         status: "Show fullscreen/normal",
         icon: ""
        },
-       "_2_Quit": {
-        cback  : "Loco.webWindow.close();",
+     "_2_Quit": {
+        cback  : "Loco.ctx.quit();",
         tooltip: "Quit",
         status : "Exit from application",
         icon   : ""
-       }      
+       }                
      }   
-    };
+  };
   var userName, pwd, URL;
   var feed = false;
   var handleFeed = false;
@@ -51,11 +51,12 @@ try {
   if( !URL ) URL = "http://www.nyt.com";  
 
 // create main window  
-  var ww = Loco.gui.create( "WebMainWindow" );
-  ww.onError.connect( function( err ) { print( err ); } ); 
-  ww.setName( "webWindow" ); 
-  ww.addSelfToJSContext();
-  ww.addParentObjectsToJS();
+  var mainWindow = Loco.gui.create( "MainWindow" );
+  var ww = Loco.gui.create( "WebWindow" );
+  mainWindow.setCentralWidget( ww );
+  ww.onError.connect( function( err ) { print( err ); } );
+  ww.addObjectToContext( mainWindow, "mainWindow" );
+  ww.addObjectToContext( ww, "webWindow" );
   if( logRequests ) {
     ww.emitRequestSignal( true );
     ww.onRequest.connect( function(r) {
@@ -68,7 +69,7 @@ try {
   }
   
   ctx.setDefaultSSLExceptionHandler();
-  ww.statusBarMessage.connect( function( msg ) { ww.setStatusBarText( msg ); } );
+  ww.statusBarMessage.connect( function( msg ) { mainWindow.setStatusBarText( msg ); } );
   ww.downloadRequested.connect( function( f ) {
                                   var filename = f.slice( f.lastIndexOf( '/' ) + 1 );
                                   filename = Loco.fs.curDir() + '/' + filename;
@@ -82,11 +83,11 @@ try {
 //ww.unsupportedContent.connect( function( c ) { Loco.console.println( c ); } );
   ww.unsupportedContent.connect( ww.downloadRequested );
   ww.fileDownloadProgress.connect( function( b, t ) {
-                                     ww.setStatusBarText( b  + ( t > 0 ? ' of ' + t : "" ) );
+                                     mainWindow.setStatusBarText( b  + ( t > 0 ? ' of ' + t : "" ) );
                                    } ); 
-  ww.closing.connect( function() { Loco.ctx.quit(); } );       
+  mainWindow.closing.connect( function() { Loco.ctx.quit(); } );       
 // setup main window 
-  ww.setMenu( menu );
+  mainWindow.setMenu( menu );
   ww.javaScriptConsoleMessage.connect( function( msg, lineno, srcid ) {
                                          print( srcid + ', line ' + lineno + '> ' + msg ); } );                                
   ww.setAttributes( {JavascriptEnabled: true,
@@ -109,22 +110,22 @@ try {
                      AcceleratedCompositingEnabled: true} );                  
 
   ww.setEnableContextMenu( true );
-  ww.loadProgress.connect( function( i ) { ww.setStatusBarText( i + "%" ); } );
+  ww.loadProgress.connect( function( i ) { mainWindow.setStatusBarText( i + "%" ); } );
   ww.setForwardKeyEvents( true );
   
   if( feed ) {                     
     ww.setLinkDelegationPolicy( "all" );
     ww.linkClicked.connect( function( url ) { handleFeed = true; ww.load( url ); } );
   }
-  ww.linkHovered.connect( function(url) { ww.setStatusBarText( url.toString() ); } ); 
+  ww.linkHovered.connect( function(url) { mainWindow.setStatusBarText( url.toString() ); } ); 
   if( logActions ) {
     ww.webActionTriggered.connect( function( a, b ) { print( "ACTION " + a + " TRIGGERED" ); } );
     ww.setEmitWebActionSignal( true );
   }
   ww.loadFinished.connect( function( ok ) { 
     if( ok ) {
-      var c = "Loco.webWindow.setStatusBarText('DONE: ' + \
-               Loco.webWindow.totalBytes() + ' bytes loaded');";
+      var c = "mainWindow.setStatusBarText('DONE: ' + \
+               webWindow.totalBytes() + ' bytes loaded');";
       
       ww.eval( c );
       if( handleFeed ) {
@@ -158,15 +159,16 @@ try {
         doc += "</body></html>";
         handleFeed = false;
         ww.setHtml( doc );
-        ww.show();
+        mainWindow.show();
       }
     }
     else Loco.gui.errorDialog( "Error loading page" );
   });
-  ww.setStatusBarText( "Loading..." );
-  ww.setWindowTitle( ctx.appName() ); 
-  ww.load( URL, {username: userName, password: pwd} ); 
-  if( !feed ) ww.show();   
+  mainWindow.setStatusBarText( "Loading..." );
+  mainWindow.setWindowTitle( ctx.appName() );
+  // problem: with syncload it works, without the js object are not properly added 
+  ww.load( URL, {username: userName, password: pwd} );
+  if( !feed ) mainWindow.show(); 
 } catch(e) {
   Loco.console.printerrln(e);
   Loco.ctx.quit( -1 );
