@@ -19,14 +19,20 @@ try {
         status: "Show fullscreen/normal",
         icon: ""
        },
-       "_2_Quit": {
-        cback  : "Loco.ctx.quit()",
+     "_2_Open Console": {
+        cback  : "wc.syncLoad('./test20-console.html'); Loco.wc.show();",
+        tooltip: "Open console",
+        status : "Open console",
+        icon   : ""
+       },   
+     "_3_Quit": {
+        cback  : "wc.close();Loco.ctx.quit();",
         tooltip: "Quit",
         status : "Exit from application",
         icon   : ""
-       }      
+       }                
      }   
-    };
+  };
   var userName, pwd, URL;
   var feed = false;
   var handleFeed = false;
@@ -53,14 +59,15 @@ try {
 // create main window  
   var mainWindow = Loco.gui.create( "MainWindow" );
   var ww = Loco.gui.create( "WebWindow" );
+  var wc = Loco.gui.create( "WebWindow" );
+  wc.setWindowTitle( "Console" );
   mainWindow.setCentralWidget( ww );
   ww.onError.connect( function( err ) { print( err ); } );
+  wc.onError.connect( function( err ) { print( err ); } );
   ww.addObjectToContext( mainWindow, "mainWindow" );
   ww.addObjectToContext( ww, "webWindow" );
-  // ww.setName("webWindow");
-  //mainWindow.setName("mainWindow");
-  //ww.addSelfToJSContext();
-  //ww.addParentObjectsToJS();
+  wc.addObjectToContext( ww, "webWindow" );
+  ww.addParent
   if( logRequests ) {
     ww.emitRequestSignal( true );
     ww.onRequest.connect( function(r) {
