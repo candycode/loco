@@ -192,8 +192,6 @@ private:
 		AddToUrlQuery( url, q );
 		return url;
     }
-
-
 protected:
 
 	void closeEvent( QCloseEvent* e ) {

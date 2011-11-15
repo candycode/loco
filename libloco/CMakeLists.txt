@@ -85,7 +85,7 @@ if( LOCO_SYSTEM )
   set( LOCO_SYSTEM_SRCS ${LSRC}/LocoSystem.cpp ${LSRC}/LocoProcess.cpp )
 endif()
 if( LOCO_WKIT )
-  set( LOCO_WKIT_MOC_HEADERS ${LINC}/LocoWebMainWindow.h ${LINC}/LocoWebWindow.h ${LINC}/LocoGraphicsWebView.h
+  set( LOCO_WKIT_MOC_HEADERS ${LINC}/LocoWebWindow.h ${LINC}/LocoGraphicsWebView.h
        ${LINC}/LocoWebKitJSCore.h ${LINC}/LocoWebKitJSCoreWrapper.h ${LINC}/LocoWebView.h
        ${LINC}/LocoDynamicWebPluginFactory.h ${LINC}/LocoWebElement.h )
   set( LOCO_WKIT_HEADERS ${LINC}/LocoWebKitAttributeMap.h ${LINC}/LocoStaticWebPluginFactory.h )
@@ -99,9 +99,9 @@ if( LOCO_SCRIPT )
   set( LOCO_SCRIPT_MOC_HEADERS ${LINC}/LocoDefaultJS.h )
 endif()
 
-set( MOC_HEADERS 
+set( MOC_HEADERS
   ${LOCO_CONSOLE_MOC_HEADERS}
-  ${LINC}/LocoContext.h ${LINC}/EWL.h ${LINC}/LocoObject.h ${LINC}/LocoFilter.h ${LINC}/LocoScriptFilter.h
+  ${LINC}/LocoContext.h ${LINC}/LocoJSContext.h ${LINC}/EWL.h ${LINC}/LocoObject.h ${LINC}/LocoFilter.h ${LINC}/LocoScriptFilter.h
   ${LOCO_FSYSTEM_MOC_HEADERS} ${LOCO_SYSTEM_MOC_HEADERS} 
   ${LINC}/LocoNetworkAccessManager.h ${LINC}/LocoApp.h ${LINC}/LocoObjectInfo.h ${LINC}/LocoIJSInterpreter.h
   ${LOCO_WKIT_MOC_HEADERS} ${LOCO_GUI_MOC_HEADERS}

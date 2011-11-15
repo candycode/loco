@@ -3,13 +3,14 @@
 #include <QTimer>
 #include <QtNetwork/QNetworkReply>
 #include <QUrl>
+#include <QMetaMethod>
 
 #include "LocoContext.h"
+#include "LocoJSContext.h"
 
 #include "LocoDefaultJSInit.h"
 
 namespace loco {
-
 
 Context::Context( Context* parent ) : jsContext_( new JSContext( this ) ),
                      jsInterpreter_( 0 ), jsInitGenerator_( 0 ),
@@ -436,6 +437,42 @@ QVariant Context::Insert( const QString& uri, const QStringList& filters ) {
     if( !match ) code = Read( uri, filters );
     if( code.isEmpty() ) return QVariant();
     return Eval( code );
+}
+
+QVariant Context::LoadQtPlugin( QString filePath,
+		                        const QString& jsInstanceName,
+		                        const QString& initMethodName,
+		                        const QVariantMap& params ) {
+	if( filePath.startsWith( "~/" ) ) filePath = QDir::homePath() + filePath.remove( 0, 1 );
+	QPluginLoader* pluginLoader = new QPluginLoader( filePath );
+	if( !pluginLoader ) {
+		error( "Cannot load plugin from " + filePath );
+		return QVariant();
+	}
+	QObject* obj = pluginLoader->instance();
+	if( !obj ) {
+		delete pluginLoader;
+		error( "Cannot create object instance from plugin " + filePath );
+		return QVariant();
+	}
+	obj->setParent( pluginLoader );
+	const QMetaObject* mo = obj->metaObject();
+	const QString initMethodSignature = "QString " + initMethodName + "(QVariantMap)";
+	if( mo->indexOfMethod( initMethodSignature.toAscii().constData() ) >= 0 ) {
+	    QMetaMethod method = mo->method( mo->indexOfMethod( initMethodSignature.toAscii().constData() ) );
+	    QString ret;
+	    method.invoke( obj, Qt::DirectConnection,
+	    		            Q_RETURN_ARG( QString, ret ),
+	          			    Q_ARG( QVariantMap, params ) );
+        if( !ret.isEmpty() && ret.toLower() != "ok" ) {
+        	pluginLoader->deleteLater();
+        	error( ret );
+        	return QVariant();
+        }
+	}
+	AddQObjectToJSContext( pluginLoader, jsInstanceName + "__QPluginLoader", true );
+    AddQObjectToJSContext( obj, jsInstanceName, false );
+    return jsInterpreter_->EvaluateJavaScript( jsInstanceName );
 }
 
 }

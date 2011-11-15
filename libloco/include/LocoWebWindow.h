@@ -20,13 +20,11 @@
 #include "LocoWebView.h"
 #include "LocoWebKitAttributeMap.h"
 #include "LocoWebKitJSCoreWrapper.h"
-#include "LocoWebMainWindow.h"
 #include "LocoDynamicWebPluginFactory.h"
 #include "LocoStaticWebPluginFactory.h"
 #include "LocoNetworkAccessManager.h"
 #include "LocoWebElement.h"
 #include "LocoWrappedWidget.h"
-#include "LocoMainWindow.h"
 
 
 class QWebPluginFactory;
