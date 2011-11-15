@@ -24,6 +24,9 @@
 #include <LocoGUI.h>
 #endif
 #include <LocoQtApp.h>
+#ifdef LOCOPLAY_JS_SYNTAX_CHECKER
+#include <LocoJSSyntaxChecker.h>
+#endif
 
 #include <LocoAppConfig.h>
 
@@ -74,7 +77,9 @@ int main(int argc, char *argv[])
 #ifdef LOCOPLAY_CONTEXT
 		app.AddContextToJS();
 #endif
-
+#ifdef LOCOPLAY_JS_SYNTAX_CHECKER
+		app.AddModuleToJS( new SyntaxChecker );
+#endif
 #ifdef LOCOPLAY_NETWORK
 		app.SetAllowNetAccess( true );
 		app.SetFilterNetRequests( false );

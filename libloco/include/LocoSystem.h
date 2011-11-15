@@ -108,7 +108,7 @@ public slots:
     } 
 	qint64 runDetached( const QString& program,
                         const QStringList& args,
-                        const QString& workingDir ) {
+                        const QString& workingDir = "./" ) {
     	    qint64 pid = -1;
 			QProcess::startDetached( program, args, workingDir, &pid );
             return pid;

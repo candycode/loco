@@ -21,6 +21,7 @@ option( LOCO_CONTEXT "Adds context to javscript" ON )
 option( LOCO_NETWORK "Access to network" ON  )
 option( LOCO_DYNAMIC "Dynamic library" OFF )
 option( LOCO_SCRIPT "Enable QScript; not needed if WebKit enabled" OFF )
+option( LOCO_JS_SYNTAX_CHECKER "Add SyntaxChecker module - enables QScript" ON )
 
 if( LOCO_WKIT )
   set( LOCO_LIB_NAME "loco-wkit" CACHE STRING "LoCO library name" )
@@ -39,7 +40,9 @@ endif()
 if( LOCO_WKIT )
   set( QT_DONT_USE_QTGUI OFF )
   set( QT_USE_QTWEBKIT ON )
-  set( QT_USE_QTSCRIPT OFF )
+  if( NOT LOCO_JS_SYNTAX_CHECKER )  
+    set( QT_USE_QTSCRIPT OFF )
+  endif()  
   set( LOCO_SCRIPT OFF )
   set( LOCO_GUI ON )
   add_definitions( -DLOCO_GUI -DLOCO_WKIT ) 
@@ -62,6 +65,9 @@ endif()
 if( LOCO_CONTEXT )
   add_definitions( -DLOCO_CONTEXT ) 
 endif()         
+if( LOCO_JS_SYNTAX_CHECKER )
+  set( QT_USE_QTSCRIPT ON )
+endif()  
 
 ####Qt
 find_package(Qt4)
@@ -98,6 +104,9 @@ endif()
 if( LOCO_SCRIPT )
   set( LOCO_SCRIPT_MOC_HEADERS ${LINC}/LocoDefaultJS.h )
 endif()
+if( LOCO_JS_SYNTAX_CHECKER )
+  set( LOCO_JS_SYNTAX_CHECKER_MOC_HEADERS ${LINC}/LocoJSSyntaxChecker.h )
+endif()  
 
 set( MOC_HEADERS
   ${LOCO_CONSOLE_MOC_HEADERS}
@@ -105,7 +114,7 @@ set( MOC_HEADERS
   ${LOCO_FSYSTEM_MOC_HEADERS} ${LOCO_SYSTEM_MOC_HEADERS} 
   ${LINC}/LocoNetworkAccessManager.h ${LINC}/LocoApp.h ${LINC}/LocoObjectInfo.h ${LINC}/LocoIJSInterpreter.h
   ${LOCO_WKIT_MOC_HEADERS} ${LOCO_GUI_MOC_HEADERS}
-  ${LOCO_SCRIPT_MOC_HEADERS} ) 
+  ${LOCO_SCRIPT_MOC_HEADERS} ${LOCO_JS_SYNTAX_CHECKER_MOC_HEADERS} ) 
 
 QT4_WRAP_CPP( MOC_SRCS ${MOC_HEADERS} ) 
 
