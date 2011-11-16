@@ -78,6 +78,11 @@ public:
                const QStringList& cmdLine = QStringList(), Context* parent = 0 );
 // called from C++
 public:
+    void AddNetworkRequestHandler( const QString& scheme, QObject* handler );
+    void SetEnableCustomNetRequestHandlers( bool yes ) {
+    	netAccessMgr_->SetEnableCustomRequestHandlers( yes );
+    }
+    QVariant Create( const QString& className );
 	bool RegisterResources( const QString& path, const QString& rootPath = QString() ) {
 		return QResource::registerResource( path, rootPath );
 	}

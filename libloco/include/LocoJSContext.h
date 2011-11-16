@@ -16,6 +16,11 @@ public:
     }
 // invocable from javascript
 public slots: // js interface
+    void addNetworkRequestHandler( const QString& scheme, QObject* handler ) {
+    	ctx_->AddNetworkRequestHandler( scheme, handler );
+    }
+    void setEnableCustomNetRequestHandlers( bool yes ) { ctx_->SetEnableCustomNetRequestHandlers( yes ); }
+    QVariant create( const QString& className ) { return ctx_->Create( className ); }
     QVariant loadQtPlugin( QString filePath,
                            const QString& jsInstanceName,
                            const QString& initMethodName = "Init",

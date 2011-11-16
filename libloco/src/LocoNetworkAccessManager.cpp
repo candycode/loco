@@ -15,10 +15,11 @@
 
 #include <stdexcept>
 
+// some SSL-related code taken from Arora
+
 namespace loco {
 
 
-namespace {
 QString OpToString( QNetworkAccessManager::Operation op ) {
     switch ( op ) {
     case QNetworkAccessManager::GetOperation:
@@ -41,7 +42,6 @@ QString OpToString( QNetworkAccessManager::Operation op ) {
         break;
     }
     return "";
-}
 }
 
 class NetworkCookieJar : public QNetworkCookieJar {
@@ -88,8 +88,9 @@ NetworkAccessManager::NetworkAccessManager( QObject* p,
       enableUrlMapping_( false ),
       signalAccessDenied_( true ),
       logRequests_( false ),
-      emitRequestSignal_( false )  {
-	//setCookieJar( new NetworkCookieJar ); // with this gmail doesn't work
+      emitRequestSignal_( false ),
+      customRequestHandlingEnabled_( false ) {
+	//setCookieJar( new NetworkCookieJar ); // with this gmail doesn't work properly
 	if( cache ) {
 		networkDiskCache_ = new QNetworkDiskCache( this );
 		if( !cacheDir.isEmpty() ) {
@@ -152,11 +153,11 @@ QNetworkReply* NetworkAccessManager::createRequest( Operation op,
         emit UnauthorizedNetworkAccessAttempt();
 		QNetworkRequest nr;
 	    nr.setUrl( defaultUrl_ );
-        return QNetworkAccessManager::createRequest( op, nr, outgoingData );
+        return HandleRequest( op, nr, outgoingData );
     }        
     
 	if( !filterRequests_ ) {
-		QNetworkReply* nr = QNetworkAccessManager::createRequest( op, req, outgoingData );
+		QNetworkReply* nr = HandleRequest( op, req, outgoingData );
 		connect( nr, SIGNAL( error( QNetworkReply::NetworkError ) ),
 			     this, SLOT( OnReplyError( QNetworkReply::NetworkError ) ) );
 		return nr;
@@ -180,12 +181,12 @@ QNetworkReply* NetworkAccessManager::createRequest( Operation op,
             if( signalAccessDenied_ ) emit UrlAccessDenied( url );
             QNetworkRequest nr;
 	        nr.setUrl( defaultUrl_ );
-            return QNetworkAccessManager::createRequest( op, nr, outgoingData );
+            return HandleRequest( op, nr, outgoingData );
         }
     }
     for( RegExps::const_iterator i = allow_.begin(); i != allow_.end(); ++i ) {
         if( i->exactMatch( url ) ) {
-			QNetworkReply* nr = QNetworkAccessManager::createRequest( op, req, outgoingData );
+			QNetworkReply* nr = HandleRequest( op, req, outgoingData );
 		    //connect( nr, SIGNAL( error( QNetworkReply::NetworkError ) ),
 			//    this, SLOT( OnReplyError( QNetworkReply::NetworkError ) ) );
             return nr;
@@ -195,7 +196,7 @@ QNetworkReply* NetworkAccessManager::createRequest( Operation op,
     if( signalAccessDenied_ ) emit UrlAccessDenied( url );
     QNetworkRequest nr;
 	nr.setUrl( defaultUrl_ );
-    return QNetworkAccessManager::createRequest( op, nr, outgoingData );   
+    return HandleRequest( op, nr, outgoingData );
 }
 
 

@@ -7,8 +7,8 @@
 
 #include "LocoContext.h"
 #include "LocoJSContext.h"
-
 #include "LocoDefaultJSInit.h"
+#include "LocoScriptNetworkRequestHandler.h"
 
 namespace loco {
 
@@ -473,6 +473,25 @@ QVariant Context::LoadQtPlugin( QString filePath,
 	AddQObjectToJSContext( pluginLoader, jsInstanceName + "__QPluginLoader", true );
     AddQObjectToJSContext( obj, jsInstanceName, false );
     return jsInterpreter_->EvaluateJavaScript( jsInstanceName );
+}
+
+QVariant Context::Create( const QString& className ) {
+	if( className == "NetworkRequestHandler" ) {
+		return AddObjToJSContext( new ScriptNetworkRequestHandler );
+	} else {
+		error( "Cannot create object of type " + className );
+		return QVariant();
+	}
+}
+
+void Context::AddNetworkRequestHandler( const QString& scheme, QObject* handler ) {
+	INetworkRequestHandler* nrh = qobject_cast< ScriptNetworkRequestHandler* >( handler );
+	if( !nrh ) {
+		error( "Invalid request handler type" );
+		return;
+	} else {
+	    netAccessMgr_->AddNetworkRequestHandler( scheme, nrh );
+	}
 }
 
 }

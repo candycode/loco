@@ -10,9 +10,11 @@
 #include <QRegExp>
 #include <QNetworkReply>
 #include <QPointer>
+#include <QMap>
 
 #include "LocoIAuthenticator.h"
 #include "LocoISSLExceptionHandler.h"
+#include "LocoINetworkRequestHandler.h"
 
 #ifndef QT_NO_OPENSSL
 #include <QSslError>
@@ -35,6 +37,8 @@ struct RedirEntry {
 };
 
 typedef QList< RedirEntry > RedirMap;
+
+typedef QMap< QString, INetworkRequestHandler* > RequestHandlers;
 
 class NetworkAccessManager : public QNetworkAccessManager {
     Q_OBJECT
@@ -82,11 +86,34 @@ public:
     }
     void RemoveAuthenticator()       { authenticator_->deleteLater(); authenticator_ = 0; }
     void RemoveSSLExceptionHandler() { sslHandler_->deleteLater(); sslHandler_ = 0; }
+    // request handler runtime in managed by this object, objects are destroyed in the destructor
+    void AddNetworkRequestHandler( const QString& scheme,
+    		                       INetworkRequestHandler* nrh  ) {
+    	requestHandlers_[ scheme ] = nrh;
+    }
+    ~NetworkAccessManager() {
+    	for( RequestHandlers::iterator i = requestHandlers_.begin();
+    		 i != requestHandlers_.end(); ++i ) {
+    		delete i.value();
+    	}
+    }
+    void SetEnableCustomRequestHandlers( bool yes ) {
+    	customRequestHandlingEnabled_ = yes;
+    }
 protected:
     virtual QNetworkReply* createRequest( Operation op,
                                           const QNetworkRequest& req,
                                           QIODevice* outgoingData = 0 );
 private:
+    QNetworkReply* HandleRequest( Operation op,
+                                  const QNetworkRequest& req,
+                                  QIODevice* outgoingData = 0 ) {
+    	if( customRequestHandlingEnabled_ && requestHandlers_.contains( req.url().scheme() ) ) {
+    		return requestHandlers_[ req.url().scheme() ]->HandleRequest( op, req, outgoingData );
+    	} else {
+    		return QNetworkAccessManager::createRequest( op, req, outgoingData );
+    	}
+    }
     void LoadSettings();
 signals:
     void UrlAccessDenied( QString );
@@ -116,6 +143,8 @@ private:
 	QNetworkDiskCache* networkDiskCache_;
     QPointer< IAuthenticator > authenticator_;
     QPointer< ISSLExceptionHandler  > sslHandler_;
+    RequestHandlers requestHandlers_;
+    bool customRequestHandlingEnabled_;
 };
 
 }
