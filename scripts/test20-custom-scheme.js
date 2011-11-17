@@ -5,20 +5,20 @@ var include = Loco.ctx.include,
     readline = Loco.console.readLine,
     fread = Loco.ctx.read,
     exit = Loco.ctx.exit,
-    ctx = Loco.ctx, 
+    ctx = Loco.ctx,
+    quit = Loco.ctx.quit, 
     WEBKIT = Loco.ctx.jsInterpreterName().indexOf( "webkit" ) >= 0, 
     err = function(msg) { throw msg; }
 
 Loco.ctx.onError.connect( function( msg ) { print( msg ); } );
-
-
 //==============================================================================
 if( !WEBKIT ) err( "NEED WEBKIT" );  
 var reqHandler = ctx.create( "NetworkRequestHandler" );
 ctx.setEnableCustomNetRequestHandlers( true );
 ctx.addNetworkRequestHandler( "myscheme", reqHandler );
 function handleRequest( req, reply ) {
-  var content = "<head>\n \
+  var content = 
+  "<head>\n \
   <title>Custom scheme test</title>\n \
   </head>\n  \
   <body>\n \
@@ -29,7 +29,7 @@ function handleRequest( req, reply ) {
   This page comes from a custom scheme(protocol) handler\n \
   <br/><a href='javascript:webWindow.close()'>close</a>\n \
   </body>\n \
-  </html>".replace(/@1/,req.url)
+  </html>".replace(/@1/,req.url.replace(/&/g, "&#38;"))
           .replace(/@2/,req.scheme)
           .replace(/@3/,(function(){
                          var q = "<br/>";
@@ -53,11 +53,7 @@ ww.addObjectToContext( ww, "webWindow" );
 ww.onError.connect( err );
 if( !ww.syncLoad( "./test20-custom-scheme.html", 2000  ) ) throw "ERROR LOADING PAGE";
 ww.show();
-
 //==============================================================================
-
-//exit(0);
-
 } catch( e ) {
   if( e.message ) Loco.console.printerrln( e.message );
   else Loco.console.printerrln( e );

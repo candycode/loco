@@ -138,9 +138,12 @@ QNetworkReply* NetworkAccessManager::createRequest( Operation op,
 			headers.append( header );
 		}
 		requestLog[ "headers" ] = headers;
-   		QVariantMap m;
+		QVariantMap m;
 		for( QI::const_iterator i = qi.begin(); i != qi.end(); ++i ) {
-			m[ i->first ]  = i->second;
+			if( !m.contains( i->first ) ) m[ i->first ] = QVariantList();
+			QVariantList vl =  m[ i->first ].toList();
+			vl.push_back( i->second );
+			m[ i->first ] = vl;
 		}
 		requestLog[ "query" ] = m;
 		if( outgoingData != 0 ) {

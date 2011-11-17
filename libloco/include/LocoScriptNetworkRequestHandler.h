@@ -19,9 +19,6 @@
 #include <LocoObject.h>
 #include <LocoINetworkRequestHandler.h>
 
-///@todo remove
-#include <iostream>
-
 namespace loco {
 
 QString OpToString( QNetworkAccessManager::Operation op );
@@ -65,13 +62,11 @@ public slots:
     	typedef QList< QPair< QString, QString > > QI;
     	QI qi = nr_->url().queryItems();
     	QVariantMap m;
-    	std::cout << qi.length() << std::endl;
         for( QI::const_iterator i = qi.begin(); i != qi.end(); ++i ) {
     	    if( !m.contains( i->first ) ) m[ i->first ] = QVariantList();
     	    QVariantList vl =  m[ i->first ].toList();
     	    vl.push_back( i->second );
     	    m[ i->first ] = vl;
-    	    std::cout << i->first.toStdString() << " = " << i->second.toStdString() << std::endl;
         }
     	return m;
     }
