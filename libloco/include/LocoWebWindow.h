@@ -81,7 +81,10 @@ public:
 		connect( webView_->page(), SIGNAL( linkHovered( const QString&, const QString&, const QString& ) ),
         		 this, SIGNAL( linkHovered( const QString&, const QString&, const QString& ) ) );
         connect( jsInterpreter_, SIGNAL( JavaScriptContextCleared() ), this, SLOT( JavaScriptContextCleared() ) );
-		jsInterpreter_->setParent( this );
+		webView_->page()->settings()->setAttribute( QWebSettings::JavascriptEnabled, true );
+		webView_->page()->settings()->setAttribute( QWebSettings::JavascriptCanOpenWindows, true );
+		webView_->page()->settings()->setAttribute( QWebSettings::LocalContentCanAccessFileUrls, true );
+        jsInterpreter_->setParent( this );
         jsInterpreter_->SetWebPage( webView_->page() );   
         ctx_.Init( jsInterpreter_ );
         ctx_.SetJSContextName( "wctx" ); //web window context
@@ -208,7 +211,7 @@ public slots:
 	void SetAllowInterruptJavaScript( bool yes ) {
 		webView_->SetAllowInterruptJavaScript( yes );
 	}
-    bool syncLoad( const QString& url, int timeout ) { return webView_->SyncLoad( QUrl( url ), timeout ); }
+    bool syncLoad( const QString& url, int timeout ) { return webView_->SyncLoad( url,  timeout ); }
     bool syncLoad( const QString& urlString, const QVariantMap& opt, int timeout ) {
         return webView_->SyncLoad( urlString, opt, timeout );
     }

@@ -19,6 +19,8 @@
 #include <LocoObject.h>
 #include <LocoINetworkRequestHandler.h>
 
+///@todo remove
+#include <iostream>
 
 namespace loco {
 
@@ -63,9 +65,13 @@ public slots:
     	typedef QList< QPair< QString, QString > > QI;
     	QI qi = nr_->url().queryItems();
     	QVariantMap m;
+    	std::cout << qi.length() << std::endl;
         for( QI::const_iterator i = qi.begin(); i != qi.end(); ++i ) {
     	    if( !m.contains( i->first ) ) m[ i->first ] = QVariantList();
-    	    m[ i->first ].toList().push_back( i->second );
+    	    QVariantList vl =  m[ i->first ].toList();
+    	    vl.push_back( i->second );
+    	    m[ i->first ] = vl;
+    	    std::cout << i->first.toStdString() << " = " << i->second.toStdString() << std::endl;
         }
     	return m;
     }
@@ -85,10 +91,11 @@ public:
 public: //overridden
 	void abort() {}
 	qint64 bytesAvailable() const {
-		return content_.length() - offset_;
+		return content_.length();// - offset;
 	}
 	bool isSequential() const { return true; }
     bool reset() {
+    	QNetworkReply::reset();
     	offset_ = 0;
     	return true;
     }
@@ -96,10 +103,10 @@ protected:
     qint64 readData( char* data, qint64 maxSize ) {
     	if( offset_ < content_.length() ) {
     		const qint64 l = std::min( maxSize, content_.length() - offset_ );
-    		memcpy( data, content_.constData(), l );
-    		offset_ += maxSize;
+    		memcpy( data, content_.constData() + offset_, l );
+    		offset_ += l;
     		return l;
-    	} else return 0;
+    	} else return -1;
     }
 private:
     qint64 offset_;
@@ -123,7 +130,10 @@ public slots:
     void setHeader( const QString& name, const QVariant& value ) {
     	nr_->SetHeader( nameToHeader_[ name ], value );
     }
-    void open() { nr_->open( QIODevice::ReadOnly | QIODevice::Unbuffered ); }
+    void open() {
+
+        nr_->open( QIODevice::ReadOnly | QIODevice::Unbuffered );
+    }
     void setUrl( const QString& url ) { nr_->SetUrl( QUrl( url ) ); }
 private:
     NetworkReply* nr_;
@@ -140,10 +150,12 @@ public:
         req_.Wrap( &req, op );
 		NetworkReply* snr = new NetworkReply;
 		rep_.Wrap( snr );
+		QTimer::singleShot(0, snr, SIGNAL(readyRead()));
+		QTimer::singleShot(0, snr, SIGNAL(finished()));
+		snr->open( QIODevice::ReadOnly | QIODevice::Unbuffered );
         emit handleRequest( &req_, &rep_ ); //sync emit, returns after slot finishes
+
         //queue signals
-        QTimer::singleShot(0, snr, SIGNAL(readyRead()));
-        QTimer::singleShot(0, snr, SIGNAL(finished()));
         return snr;
 	}
 signals:

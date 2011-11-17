@@ -18,9 +18,6 @@
 #include <QNetworkReply>
 #include <QDir>
 
-///@todo remove
-#include <iostream>
-
 class QWebPluginFactory;
 
 namespace loco {
@@ -114,7 +111,7 @@ public:
         QEventLoop loop;
     	QObject::connect( this, SIGNAL( loadFinished( bool ) ), this, SLOT( OnLoadFinished( bool ) ) );
     	syncLoadOK_ = false;
-    	load( url );
+       	load( url );
         // soft real-time guarantee: kill network request if the total time is >= timeout
     	QTimer::singleShot( timeout, &loop, SLOT( quit() ) );
     	// Execute the event loop here, now we will wait here until readyRead() signal is emitted
@@ -122,6 +119,9 @@ public:
     	loop.exec();
     	QObject::disconnect( this, SIGNAL( loadFinished( bool ) ), this, SLOT( OnLoadFinished( bool ) ) );
     	return syncLoadOK_;
+    }
+    bool SyncLoad( const QString& url, int timeout ) {
+    	return SyncLoad( QUrl( TranslateUrl( url ) ), timeout );
     }
     bool SyncLoad( const QString& urlString, const QVariantMap& opt, int timeout ) {
         return SyncLoad( ConfigureURL( urlString, opt ), timeout );
