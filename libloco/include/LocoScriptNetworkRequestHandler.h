@@ -140,8 +140,8 @@ class ScriptNetworkRequestHandler : public Object, public INetworkRequestHandler
 	Q_OBJECT
 public:
 	QNetworkReply* HandleRequest( QNetworkAccessManager::Operation op,
-	                                      const QNetworkRequest& req,
-	                                      QIODevice* outgoingData ) {
+	                              const QNetworkRequest& req,
+	                              QIODevice* outgoingData ) {
         req_.Wrap( &req, op );
 		NetworkReply* snr = new NetworkReply;
 		rep_.Wrap( snr );
