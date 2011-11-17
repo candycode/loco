@@ -226,7 +226,9 @@ void Context::AddJSStdObject( Object* obj, bool immediateAdd ) {
         jsInterpreter_->AddObjectToJS( obj->jsInstanceName(), obj );
     }
 }
-    
+
+
+///@todo REVIEW AddJSCtxObject for removal
 void Context::AddJSCtxObject( Object* obj, bool immediateAdd ) {
     jscriptCtxInstances_.push_back( obj );
     if( obj->GetContext() == 0 ) obj->SetContext( this );

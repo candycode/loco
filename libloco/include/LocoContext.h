@@ -106,6 +106,7 @@ public:
     // object ownership is transferred to context     
     void AddContextToJS(); 
     void AddJSStdObject( Object* obj, bool immediateAdd = false );    
+    ///@todo REVIEW FOR REMOVAL
     void AddJSCtxObject( Object* obj, bool immediateAdd = false );
     // call this method from factory objects willing to add new objects into
     // the current context and have the object's lifetime managed by javascript
@@ -332,7 +333,8 @@ private:
     PluginLoaders ctxPluginLoaders_;
     PluginLoaders filterPluginLoaders_;    
     JScriptObjCtxInstances jscriptStdObjects_;
-    JScriptObjCtxInstances jscriptCtxInstances_;    
+    ///@todo REVIEW FOR REMOVAL
+    JScriptObjCtxInstances jscriptCtxInstances_;
     JScriptObjCtxInstances instanceObjs_; 
     QString jsErrCBack_;
     URIObjectMap uriObjectMap_;

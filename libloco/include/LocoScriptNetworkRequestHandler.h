@@ -139,6 +139,7 @@ private:
 class ScriptNetworkRequestHandler : public Object, public INetworkRequestHandler  {
 	Q_OBJECT
 public:
+	ScriptNetworkRequestHandler() : Object( 0, "LocoScriptNetworkRequestHandler", "Loco/Network/RequestHandler" ) {}
 	QNetworkReply* HandleRequest( QNetworkAccessManager::Operation op,
 	                              const QNetworkRequest& req,
 	                              QIODevice* outgoingData ) {
