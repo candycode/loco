@@ -16,10 +16,10 @@ public:
     }
 // invocable from javascript
 public slots: // js interface
-    void addNetworkRequestHandler( const QString& scheme, QObject* handler ) {
+    void addProtocolHandler( const QString& scheme, QObject* handler ) {
     	ctx_->AddNetworkRequestHandler( scheme, handler );
     }
-    void setEnableCustomNetRequestHandlers( bool yes ) { ctx_->SetEnableCustomNetRequestHandlers( yes ); }
+    void setEnableCustomProtocolHandlers( bool yes ) { ctx_->SetEnableCustomNetRequestHandlers( yes ); }
     QVariant create( const QString& className ) { return ctx_->Create( className ); }
     QVariant loadQtPlugin( QString filePath,
                            const QString& jsInstanceName,
@@ -65,11 +65,11 @@ public slots: // js interface
 	void setPluginPath( const QStringList& paths ) { QCoreApplication::setLibraryPaths( paths ); }
     void addPluginPath( const QString& p ) { QCoreApplication::addLibraryPath( p ); }
 	QString appFilePath() const { return QCoreApplication::applicationFilePath(); }
-	QString appDirPath() const { return QCoreApplication::applicationDirPath(); }
+	QString appDir() const { return QCoreApplication::applicationDirPath(); }
 	QString appName() const { return QCoreApplication::applicationName(); }
 	QString appVersion() const { return QCoreApplication::applicationVersion(); }
 	QString appVendor() const { return QCoreApplication::organizationName(); }
-	QString currentDir() const { return QDir::current().absolutePath(); }
+	QString curDir() const { return QDir::current().absolutePath(); }
 	QString homeDir() const { return QDir::home().absolutePath(); }
     QVariantMap appInfo() const {
         return ctx_->GetAppInfo() ? ctx_->GetAppInfo()->ToVariantMap()

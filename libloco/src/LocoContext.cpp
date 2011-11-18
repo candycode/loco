@@ -478,7 +478,7 @@ QVariant Context::LoadQtPlugin( QString filePath,
 }
 
 QVariant Context::Create( const QString& className ) {
-	if( className == "NetworkRequestHandler" ) {
+	if( className == "ProtocolHandler" ) {
 		return AddObjToJSContext( new ScriptNetworkRequestHandler );
 	} else {
 		error( "Cannot create object of type " + className );
@@ -487,7 +487,7 @@ QVariant Context::Create( const QString& className ) {
 }
 
 void Context::AddNetworkRequestHandler( const QString& scheme, QObject* handler ) {
-	INetworkRequestHandler* nrh = qobject_cast< ScriptNetworkRequestHandler* >( handler );
+	INetworkRequestHandler* nrh = dynamic_cast< INetworkRequestHandler*  >( handler );
 	if( !nrh ) {
 		error( "Invalid request handler type" );
 		return;

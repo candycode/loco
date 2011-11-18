@@ -256,6 +256,7 @@ public slots:
     bool isModified() { return webView_->isModified(); }
     //QList< QWebHistoryItem > history();
     void setHtml( const QString& html, const QString& baseUrl = "" ) { webView_->setHtml( html, QUrl( baseUrl ) ); }
+    void setBaseUrl( const QString& url ) { webView_->page()->mainFrame()->setUrl( url ); }
     void setZoomFactor( qreal zf ) { webView_->setZoomFactor( zf ); }
     qreal zoomFactor() const { return webView_->zoomFactor(); }
     void setTextSizeMultiplier( qreal tm ) { webView_->setTextSizeMultiplier( tm ); }

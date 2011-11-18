@@ -5,7 +5,39 @@
 
 namespace loco {
 
-QVariant FileSystem::fopen( const QString& fname, const QStringList& mode ) {
+QByteArray FileSystem::fread( const QString& fname ) const {
+    QFile f( fname );
+    f.open( QIODevice::ReadOnly );
+    QByteArray data;
+    if( f.error() != QFile::NoError ) {
+    	error( f.errorString() );
+    	return data;
+    }
+    data = f.readAll();
+    if( f.error() != QFile::NoError ) {
+       	error( f.errorString() );
+    }
+    return data;
+}
+bool FileSystem::fwrite( const QString& fname,
+		                 const QByteArray& data,
+		                 bool append ) const {
+	QFile f(fname);
+	f.open( ( append ? QIODevice::WriteOnly | QIODevice::Append : QIODevice::WriteOnly ) );
+	if( f.error() != QFile::NoError ) {
+	    error( f.errorString() );
+	    return false;
+	}
+    f.write( data );
+    if( f.error() != QFile::NoError ) {
+        error( f.errorString() );
+    	return false;
+    }
+    return true;
+}
+
+
+QVariant FileSystem::fopen( const QString& fname, const QStringList& mode ) const {
     if( GetContext() == 0 ) {
         error( "NULL Context" );
         return QVariant();
@@ -16,7 +48,7 @@ QVariant FileSystem::fopen( const QString& fname, const QStringList& mode ) {
     return obj;
 }
 
-QVariant FileSystem::dir( const QString& dir ) {    
+QVariant FileSystem::dir( const QString& dir ) const {
     if( GetContext() == 0 ) {
         error( "NULL Context" );
         return QVariant();
@@ -27,7 +59,7 @@ QVariant FileSystem::dir( const QString& dir ) {
     return obj;
 }
 
-QVariant FileSystem::watcher( const QString& path  ) {    
+QVariant FileSystem::watcher( const QString& path  ) const {
     if( GetContext() == 0 ) {
         error( "NULL Context" );
         return QVariant();

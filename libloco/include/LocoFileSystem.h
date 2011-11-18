@@ -22,9 +22,11 @@ public:
 
 public slots:
     
-    QVariant fopen( const QString& fname, const QStringList& mode );
-    QVariant dir( const QString& dirPath = "" );
-    QVariant watcher( const QString& path = "" );  
+    QByteArray fread( const QString& fname ) const;
+    bool fwrite( const QString& fname, const QByteArray& data, bool append = false ) const;
+    QVariant fopen( const QString& fname, const QStringList& mode ) const;
+    QVariant dir( const QString& dirPath = "" ) const;
+    QVariant watcher( const QString& path = "" ) const;
     bool copy( const QString& f1, const QString& f2 ) const { return QFile::copy( f1, f2); }
     bool fexists( const QString& f ) const { 
         return QFile::exists( f ) && QFileInfo( f ).isFile();
