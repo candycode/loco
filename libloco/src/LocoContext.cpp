@@ -9,6 +9,13 @@
 #include "LocoJSContext.h"
 #include "LocoDefaultJSInit.h"
 #include "LocoScriptNetworkRequestHandler.h"
+#ifdef LOCO_WKIT
+#include "LocoWebKitJSCore.h"
+#endif
+#ifdef LOCO_SCRIPT
+#include "LocoDefaultJS.h"
+#endif
+
 
 namespace loco {
 
@@ -389,8 +396,11 @@ void Context::AddJSStdObjects( IJSInterpreter* jsi ) {
 }
 
 QVariant Context::Eval( QString code, const QStringList& filters ) { 
-   code = ApplyFilter( code, filters );
-   if( !error() ) return jsInterpreter_->EvaluateJavaScript( code );
+   if( !filters.isEmpty() ) code = ApplyFilter( code, filters );
+   if( storeCode_ ) code_ = code;
+   if( !error() ) {
+       return jsInterpreter_->EvaluateJavaScript( code );
+   }
    else {
        jsInterpreter_->EvaluateJavaScript( jsErrCBack_ );
        return QVariant();
@@ -479,8 +489,29 @@ QVariant Context::LoadQtPlugin( QString filePath,
 
 QVariant Context::Create( const QString& className ) {
 	if( className == "ProtocolHandler" ) {
-		return AddObjToJSContext( new ScriptNetworkRequestHandler );
-	} else {
+		return AddObjToJSContext( new ScriptNetworkRequestHandler ); //lifetime managed by Javascript
+	}
+#ifdef LOCO_WKIT
+	else if( className == "JavaScriptCoreContext" ) {
+		Context* ctx = new Context();
+		JSContext* jsCtx = new JSContext( ctx );
+		ctx->setParent( jsCtx ); // javascript interpreter OWNS jsCtx
+		                         // jsCtx OWNS ctx
+		ctx->Init( new WebKitJSCore(), app_, cmdLine_ );
+		return AddObjToJSContext( jsCtx );
+	}
+#endif
+#ifdef LOCO_SCRIPT
+	else if( className == "QtScriptContext" ) {
+		Context* ctx = new Context();
+		JSContext* jsCtx = new JSContext( ctx );
+		ctx->setParent( jsCtx ); // javascript interpreter OWNS jsCtx
+		                         // jsCtx OWNS ctx
+		ctx->Init( new DefaultJS(), app_, cmdLine_ );
+		return AddObjToJSContext( jsCtx );
+	}
+#endif
+	else {
 		error( "Cannot create object of type " + className );
 		return QVariant();
 	}

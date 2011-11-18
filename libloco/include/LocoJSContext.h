@@ -7,6 +7,8 @@ namespace loco {
 // wraps Context exposing a subset of the features
 class JSContext : public Object {
     Q_OBJECT
+    Q_PROPERTY( QString code READ code )
+    Q_PROPERTY( bool storeCode WRITE storeCode )
 public:
     JSContext( Context* ctx ) : Object( 0, "LocoContext", "Loco/Context" ),
     ctx_( ctx )  {
@@ -14,8 +16,13 @@ public:
 		connect( ctx_, SIGNAL( JavaScriptConsoleMessage( const QString&, int, const QString& ) ),
 			     this, SIGNAL( javaScriptConsoleMessage( const QString&, int, const QString& ) ) );
     }
+    const QString& code() const { return ctx_->Code(); }
+    void storeCode( bool on ) { ctx_->SetStoreCode( on ); }
 // invocable from javascript
 public slots: // js interface
+    void addObject( QObject* obj, const QString& jsInstanceName, bool own = false ) {
+    	ctx_->AddQObjectToJSContext( obj, jsInstanceName, own );
+    }
     void addProtocolHandler( const QString& scheme, QObject* handler ) {
     	ctx_->AddNetworkRequestHandler( scheme, handler );
     }

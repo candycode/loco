@@ -78,6 +78,8 @@ public:
                const QStringList& cmdLine = QStringList(), Context* parent = 0 );
 // called from C++
 public:
+    const QString& Code() const { return code_; }
+    void SetStoreCode( bool on ) { storeCode_ = on; }
     void AddNetworkRequestHandler( const QString& scheme, QObject* handler );
     void SetEnableCustomNetRequestHandlers( bool yes ) {
     	netAccessMgr_->SetEnableCustomRequestHandlers( yes );
@@ -356,6 +358,8 @@ private:
     int maxNetRedirections_;
     QPointer< ObjectInfo > appInfo_;
     QStringList includePath_;
+    QString code_;
+    bool storeCode_;
 };
 
 }

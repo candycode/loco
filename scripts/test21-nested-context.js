@@ -1,4 +1,3 @@
-function(){
 try {
 
 var include = Loco.ctx.include,
@@ -14,20 +13,31 @@ var include = Loco.ctx.include,
     CURDIR = Loco.ctx.curDir(),
     WEBKIT = Loco.ctx.jsInterpreterName().indexOf( "webkit" ) >= 0, 
     err = function(msg) { throw msg; },
-    CONTEXT_TYPE = WEBKIT ? "JavaScriptCoreContext" : "QtScriptContext",
-    source = Loco.ctx.code; //this source code! 
+    CONTEXT_TYPE = WEBKIT ? "JavaScriptCoreContext" : "QtScriptContext";
 
 Loco.ctx.onError.connect( function( msg ) { print( msg ); } );
+Loco.ctx.javaScriptConsoleMessage.connect(
+ function( msg, line, src ) {
+   print( msg + " at line " + line );
+} );
 //==============================================================================
-  
-//<your code here>  
+
+var newCtx = Loco.ctx.create( CONTEXT_TYPE );
+newCtx.onError.connect( err );
+newCtx.javaScriptConsoleMessage.connect(
+ function( msg, line, src ) {
+   print( msg + " at line " + line );
+} );
+newCtx.storeCode = true;
+newCtx.addObject( newCtx, "ctx" );
+newCtx.addObject( Loco.console, "io" );
+newCtx.eval( "eval(ctx.code)" );
 
 //==============================================================================
-//exit(0); //FOR NON-GUI APPS ONLY
+exit(0); //FOR NON-GUI APPS ONLY
 
 } catch( e ) {
   if( e.message ) Loco.console.printerrln( e.message );
   else Loco.console.printerrln( e );
   exit( -1 );
 }
-})();    
