@@ -20,6 +20,12 @@ public:
     void storeCode( bool on ) { ctx_->SetStoreCode( on ); }
 // invocable from javascript
 public slots: // js interface
+    void kill() {
+    	ctx_->Eval( this->jsInstanceName() + "= undefined"  );
+    	ctx_->deleteLater();
+    	ctx_ = 0;
+    	this->deleteLater();
+    }
     void addObject( QObject* obj, const QString& jsInstanceName, bool own = false ) {
     	ctx_->AddQObjectToJSContext( obj, jsInstanceName, own );
     }

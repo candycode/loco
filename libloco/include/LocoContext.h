@@ -42,11 +42,10 @@
 
 namespace loco {
 
-typedef QMap< QString, Filter*  > Filters;
-typedef QList< QPluginLoader* > PluginLoaders;
+typedef QMap< QString, Filter* > Filters;
 typedef QList< Object* > JScriptObjCtxInstances; 
 
-typedef QMap< bool, QMap< QString, Object* > > URIObjectMap;
+typedef QMap< QString, Object* > URIObjectMap;
 typedef QMap< QString, Filter* > URIFilterMap;
 
 typedef QList< QPair< QRegExp, QStringList > > NameFilterMap;
@@ -91,12 +90,7 @@ public:
 	bool UnRegisterResources( const QString& path, const QString& rootPath = QString() ) {
 		return QResource::unregisterResource( path, rootPath );
 	}
-    Object* JSObjToPointer( const QVariantMap& jsObj ) {
-        NamePointerMap::const_iterator i = nameToPointer_.find( jsObj[ "jsInstanceName" ].toString() );
-        if( i == nameToPointer_.end() ) return 0;
-        return i.value();
-    }
-	void SetAddObjectsFromParentContext( bool yes ) { addParentObjs_ = yes; }
+   	void SetAddObjectsFromParentContext( bool yes ) { addParentObjs_ = yes; }
 	void SetParentContext( Context* pc ) { parent_ = pc; }
     QString GetJSInitCode() const { return jsInitGenerator_->GenerateCode(); }
     void AddNameFilterMapping( const QRegExp& rx, const QStringList& filterIds ) {
@@ -107,13 +101,8 @@ public:
     void SetAppInfo( ObjectInfo* ai ) { appInfo_ = ai; }
     // object ownership is transferred to context     
     void AddContextToJS(); 
+
     void AddJSStdObject( Object* obj, bool immediateAdd = false );    
-    ///@todo REVIEW FOR REMOVAL
-    void AddJSCtxObject( Object* obj, bool immediateAdd = false );
-    // call this method from factory objects willing to add new objects into
-    // the current context and have the object's lifetime managed by javascript
-    // NEVER add root objects from plugins because such objects must be deleted
-    // through the plugin loader's unload method
     QVariant AddObjToJSContext( Object* obj, bool ownedByJavascript = true );
 	// this method is intended to insert objects from other contexts
 	void AddQObjectToJSContext( QObject* obj, const QString& name, bool ownedByJavascript = false );
@@ -121,7 +110,6 @@ public:
         if( f->GetPluginLoader() == 0 && f->parent() == 0 ) f->setParent( this );
         filters_[ id ] = f;
     }
-    Object* Find( const QString& jsInstanceName ) const;
     void SetJSGlobalNameForContext( const QString& n ) {
         globalContextJSName_ = n;
     }
@@ -173,9 +161,7 @@ public:
  // attched to internal signals            
 private slots:
    
-    void RemoveJSCtxObject( QObject* o );
     void RemoveStdObject( QObject* o );
-    void RemoveScopeObject( QObject* o );
     void OnUnauthorizedNetworkAccess() {
         error( "Unauthorized network access attempted" );
     }    
@@ -183,9 +169,7 @@ private slots:
         error( "Unauthorized access to " + url + " attempted" ); 
     } 
     void InitJScript();
-    /// this slot can be called from child contexts to make objects
-    /// in the parent context available within the child context    
-    void AddJSCtxObjects( IJSInterpreter* jsi );
+
     /// Add javascript objects that need to be available at initialization time
     void AddJavaScriptObjects() {
         if( addParentObjs_ && parent_ != 0  ) {
@@ -193,8 +177,6 @@ private slots:
         }
 		AddJSStdObjects( jsInterpreter_ );
     }
-    /// Remove instance objects created during context operations
-    void RemoveInstanceObjects();
     void RemoveStdObjects();
     void RemoveFilters();	
     void OnJSContextCleared();
@@ -227,13 +209,6 @@ private slots:
 private:
     
     void ConnectErrCBack( Object* obj );
-    void EraseObjectFromMaps( Object* obj ) {
-        PointerNameMap::iterator n = pointerToName_.find( obj );
-        if( n != pointerToName_.end() ) {
-            nameToPointer_.erase( nameToPointer_.find( n.value() ) );
-            pointerToName_.erase( n );
-        } 
-    }
 
 friend class JSContext;
 
@@ -331,13 +306,7 @@ private:
    
 private:
     Filters filters_;
-    PluginLoaders stdPluginLoaders_;
-    PluginLoaders ctxPluginLoaders_;
-    PluginLoaders filterPluginLoaders_;    
     JScriptObjCtxInstances jscriptStdObjects_;
-    ///@todo REVIEW FOR REMOVAL
-    JScriptObjCtxInstances jscriptCtxInstances_;
-    JScriptObjCtxInstances instanceObjs_; 
     QString jsErrCBack_;
     URIObjectMap uriObjectMap_;
     URIFilterMap uriFilterMap_;
@@ -345,8 +314,6 @@ private:
     NameFilterMap nameFilterMap_;
     bool autoMapFilters_;
 	bool addParentObjs_;
-    NamePointerMap nameToPointer_;
-    PointerNameMap pointerToName_;
 private: 
     IJavaScriptInit* jsInitGenerator_; 
     QPointer< NetworkAccessManager > netAccessMgr_;
@@ -360,6 +327,7 @@ private:
     QStringList includePath_;
     QString code_;
     bool storeCode_;
+
 };
 
 }

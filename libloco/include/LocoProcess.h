@@ -150,7 +150,7 @@ public slots:
     void setStandardOutputFile( const QString& fileName, const QStringList& mode ) {
         p_.setStandardOutputFile( fileName, MapOpenMode( mode ) );
     }
-    void setStandardOutputProcess ( const QVariantMap& dest );
+    void setStandardOutputProcess ( QObject* );
     void setWorkingDirectory( const QString& dir ) { p_.setWorkingDirectory( dir ); }
 //    QProcess::ProcessState state() const
     bool waitForFinished( int msecs = 30000 ) { return p_.waitForFinished( msecs ); }

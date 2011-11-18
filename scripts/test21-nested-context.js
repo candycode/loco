@@ -19,7 +19,7 @@ Loco.ctx.onError.connect( function( msg ) { print( msg ); } );
 Loco.ctx.javaScriptConsoleMessage.connect(
  function( msg, line, src ) {
    print( msg + " at line " + line );
-} );
+ } );
 //==============================================================================
 
 var newCtx = Loco.ctx.create( CONTEXT_TYPE );
@@ -27,11 +27,11 @@ newCtx.onError.connect( err );
 newCtx.javaScriptConsoleMessage.connect(
  function( msg, line, src ) {
    print( msg + " at line " + line );
-} );
+ } );
 newCtx.storeCode = true;
 newCtx.addObject( newCtx, "ctx" );
 newCtx.addObject( Loco.console, "io" );
-newCtx.eval( "eval(ctx.code)" );
+newCtx.eval( "io.println(ctx.code)" );
 
 //==============================================================================
 exit(0); //FOR NON-GUI APPS ONLY

@@ -62,12 +62,6 @@ public:
 		connect( wp_, SIGNAL( JavaScriptConsoleMessage( const QString&, int, const QString& ) ),
 			     this, SIGNAL( JavaScriptConsoleMessage( const QString&, int, const QString& ) ) );
         wp_->setParent( this );
-        wp_->settings()->setAttribute( QWebSettings::LocalContentCanAccessFileUrls, true );
-        wp_->settings()->setAttribute( QWebSettings::XSSAuditingEnabled, false );
-        wp_->settings()->setAttribute( QWebSettings::LocalContentCanAccessRemoteUrls, true );
-		wp_->settings()->setAttribute( QWebSettings::JavascriptEnabled, true );
-		wp_->settings()->setAttribute( QWebSettings::DeveloperExtrasEnabled, true );
-
 	}
 	QVariant EvaluateJavaScript( const QString& code ) {
 		return wf_->evaluateJavaScript( code );

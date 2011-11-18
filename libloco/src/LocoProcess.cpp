@@ -3,19 +3,14 @@
 #include "LocoContext.h"
 
 namespace loco {
-void Process::setStandardOutputProcess ( const QVariantMap& dest ) {
+void Process::setStandardOutputProcess ( QObject* dest ) {
     if( GetContext() == 0 ) {
         error( "NULL Context" );
         return; 
     }
-    Object* obj = GetContext()->Find( dest[ "jsInstance" ].toString() );
-    if( obj == 0 ) {
-        error( "Process object not found" );
-        return;
-    } 
-    Process* p = qobject_cast< Process* >( obj );
+    Process* p = qobject_cast< Process* >( dest );
     if( p == 0 ) {
-        error( "Wrong object type: " + obj->type() );
+        error( "Wrong object type" );
         return; 
     }
     p_.setStandardOutputProcess( &p->GetProcess() );  

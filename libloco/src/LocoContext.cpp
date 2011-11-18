@@ -81,27 +81,11 @@ void Context::Init( IJSInterpreter* jsi, LocoQtApp* app, const QStringList& cmdL
 		     this, SIGNAL( JavaScriptConsoleMessage( const QString&, int, const QString& ) ) );
 	jsInterpreter_->Init();
 }
-
-Object* Context::Find( const QString& jsInstanceName ) const {
-    for( JScriptObjCtxInstances::const_iterator i = instanceObjs_.begin();
-         i != instanceObjs_.end(); ++i ) {
-        if( *i && (*i)->jsInstanceName() == jsInstanceName ) return *i;
-    }
-    for( JScriptObjCtxInstances::const_iterator i = jscriptStdObjects_.begin();
-         i != jscriptStdObjects_.end(); ++i ) {
-        if( *i && (*i)->jsInstanceName() == jsInstanceName ) return *i;
-    }
-    for( JScriptObjCtxInstances::const_iterator i = jscriptCtxInstances_.begin();
-         i != jscriptCtxInstances_.end(); ++i ) {
-        if( *i && (*i)->jsInstanceName() == jsInstanceName ) return *i;
-    }
-    return 0;
-}
     
  QVariant Context::LoadObject( const QString& uri,  //used as a regular file path for now
                                bool persistent ) { 
-    if( uriObjectMap_[ persistent ].find( uri ) != uriObjectMap_[ persistent ].end() ) {
-        Object* obj = uriObjectMap_[ persistent ][ uri ];
+    if( uriObjectMap_.find( uri ) != uriObjectMap_.end() ) {
+        Object* obj = uriObjectMap_[ uri ];
         return jsInterpreter_->EvaluateJavaScript( obj->jsInstanceName() );
     }
     QPluginLoader* pl = new QPluginLoader( uri );
@@ -119,27 +103,25 @@ Object* Context::Find( const QString& jsInstanceName ) const {
 		jsInterpreter_->EvaluateJavaScript( jsErrCBack_ );
 		return QVariant();
 	}
-	bool foreign = false;
-    Object* obj = qobject_cast< ::loco::Object* >( pl->instance() );
+	Object* obj = qobject_cast< ::loco::Object* >( qobj );
 	if( !obj ) {
-		foreign = true;
-		obj = new Object;
-		obj->SetPluginLoader( pl );
-		connect( qobj, SIGNAL( destroyed() ), obj, SLOT( deleteLater() ) );
+	    error( "Not a loco::Object, use loco::Context::LoadQtPlugin() method instead" );
+	    return QVariant();
 	}
 	obj->SetContext( this );
     obj->SetPluginLoader( pl );
+    obj->setParent( pl );
     connect( obj, SIGNAL( onError( const QString& ) ), this, SLOT( OnObjectError( const QString& ) ) );
-	if( persistent ) {
+    jsInterpreter_->AddObjectToJS( obj->jsInstanceName(), obj ); //lifetime managed by parent object/Qt
+    if( persistent ) {
+		pl->setParent( this );
 		jscriptStdObjects_.push_back( obj );
-		stdPluginLoaders_.push_back( pl );
+		uriObjectMap_[ uri ] = obj;
 	} else {
-		jscriptCtxInstances_.push_back( obj );
-		ctxPluginLoaders_.push_back( pl );
+		//adding the plugin loader as a javascript managed object with the created instance as a child
+		jsInterpreter_->AddObjectToJS( obj->jsInstanceName() + "__PluginLoader",
+				                       pl, QScriptEngine::ScriptOwnership );
 	}
-    uriObjectMap_[ persistent ][ uri ] = obj;
-	if( foreign ) jsInterpreter_->AddObjectToJS( obj->jsInstanceName(), qobj );
-	else jsInterpreter_->AddObjectToJS( obj->jsInstanceName(), obj );
     return jsInterpreter_->EvaluateJavaScript( obj->jsInstanceName() );
 }
 
@@ -234,20 +216,6 @@ void Context::AddJSStdObject( Object* obj, bool immediateAdd ) {
     }
 }
 
-
-///@todo REVIEW AddJSCtxObject for removal
-void Context::AddJSCtxObject( Object* obj, bool immediateAdd ) {
-    jscriptCtxInstances_.push_back( obj );
-    if( obj->GetContext() == 0 ) obj->SetContext( this );
-    if( obj->GetPluginLoader() == 0 && obj->parent() == 0 ) obj->setParent( this );
-    ConnectErrCBack( obj );
-    connect( obj, SIGNAL( destroyed( QObject* ) ), this, SLOT( RemoveJSCtxObject( QObject* ) ) );
-    if( immediateAdd ) {
-        jsInterpreter_->AddObjectToJS( obj->jsInstanceName(), obj );
-    }
-   
-}
-
 QVariant Context::AddObjToJSContext( Object* obj, bool ownedByJavascript ) {
     jsInterpreter_->AddObjectToJS( obj->jsInstanceName(),
                                    obj,
@@ -255,8 +223,6 @@ QVariant Context::AddObjToJSContext( Object* obj, bool ownedByJavascript ) {
                                      QScriptEngine::QtOwnership );
     obj->SetContext( this );
     ConnectErrCBack( obj );
-    connect( obj, SIGNAL( destroyed( QObject* ) ), this, SLOT( RemoveScopeObject( QObject* ) ) );
-    instanceObjs_.push_back( obj );
     return jsInterpreter_->EvaluateJavaScript( obj->jsInstanceName() );
 }
 
@@ -284,28 +250,11 @@ void Context::SetNetworkAccessManager( NetworkAccessManager* nam ) {
     }
 }
 
-void Context::RemoveJSCtxObject( QObject* o ) {
-    Object* obj = qobject_cast< Object* >( o );
-    JScriptObjCtxInstances::iterator i = 
-        std::find( jscriptCtxInstances_.begin(), jscriptCtxInstances_.end(), obj );
-    if( i != jscriptCtxInstances_.end() ) jscriptCtxInstances_.erase( i );
-    EraseObjectFromMaps( obj );
-}
-
 void Context::RemoveStdObject( QObject* o ) {
     Object* obj = qobject_cast< Object* >( o );
     JScriptObjCtxInstances::iterator i = 
         std::find( jscriptStdObjects_.begin(), jscriptStdObjects_.end(), obj );
     if( i != jscriptStdObjects_.end() ) jscriptStdObjects_.erase( i );
-    EraseObjectFromMaps( obj );
-}
-
-void Context::RemoveScopeObject( QObject* o ) {
-    Object* obj = qobject_cast< Object* >( o );
-    JScriptObjCtxInstances::iterator i = 
-        std::find( instanceObjs_.begin(), instanceObjs_.end(), obj );
-    if( i != instanceObjs_.end() ) instanceObjs_.erase( i ); 
-    EraseObjectFromMaps( obj ); 
 }
 
 void Context::InitJScript() {
@@ -318,68 +267,23 @@ void Context::InitJScript() {
 	}
 }
 
-    
-void Context::AddJSCtxObjects( IJSInterpreter* jsi ) {
-    for( JScriptObjCtxInstances::const_iterator i = jscriptCtxInstances_.begin();
-         i != jscriptCtxInstances_.end(); ++i ) {
-        if( (*i)->GetContext() == 0 ) (*i)->SetContext( this );
-        ConnectErrCBack( *i );
-        if( (*i)->GetPluginLoader() == 0 && (*i)->parent() == 0 ) (*i)->setParent( this );
-        jsi->AddObjectToJS( (*i)->jsInstanceName(), *i );  
-    }
-}
-
-/// Remove instance objects created during context operations
-void Context::RemoveInstanceObjects() {
-    for( JScriptObjCtxInstances::iterator i = jscriptCtxInstances_.begin();
-        i != jscriptCtxInstances_.end(); ++i ) {
-        if( (*i)->GetContext() == this ) (*i)->destroy();
-    }
-    for( PluginLoaders::iterator i = ctxPluginLoaders_.begin();
-        i != ctxPluginLoaders_.end(); ++i ) {
-        (*i)->unload(); // <- this call deletes the root object;
-                        //    the objects generated by the root object are
-                        //    garbage collected by the javascript environment
-        (*i)->deleteLater();
-    }
-    jscriptCtxInstances_.clear();
-    ctxPluginLoaders_.clear();
-    const bool TEMPORARY = false;
-    uriObjectMap_[ TEMPORARY ].clear();
-    instanceObjs_.clear();
-}
-
 void Context::RemoveStdObjects() {
     for( JScriptObjCtxInstances::iterator i = jscriptStdObjects_.begin();
         i != jscriptStdObjects_.end(); ++i ) {
         if( (*i)->GetContext() == this && (*i)->GetPluginLoader() == 0 && 
             ( (*i)->parent() == this || (*i)->parent() == 0 ) ) (*i)->destroy();
     }      
-    for( PluginLoaders::iterator i = stdPluginLoaders_.begin();
-        i != stdPluginLoaders_.end(); ++i ) {
-        (*i)->unload(); // <- delete root object
-        (*i)->deleteLater();
-    }
     jscriptStdObjects_.clear();
-    stdPluginLoaders_.clear();
-    const bool PERSISTENT = true;
-    uriObjectMap_[ PERSISTENT ].clear();
+    uriObjectMap_.clear();
 }    
 
 void Context::RemoveFilters() {
-    for( PluginLoaders::iterator i = filterPluginLoaders_.begin();
-         i != filterPluginLoaders_.end(); ++i ) {
-        (*i)->unload(); // deletes all root (created with instance()) objects
-        (*i)->deleteLater();
-    } 
     filters_.clear();
-    filterPluginLoaders_.clear();
     ResetNameFilterMap(); 
 }
 	
 void Context::OnJSContextCleared() {
-   	RemoveInstanceObjects();
-    RemoveFilters();
+   	RemoveFilters();
     AddJavaScriptObjects();
    	InitJScript();
    	emit JSContextCleared();
@@ -428,7 +332,8 @@ void Context::LoadFilter( const QString& id, const QString& uri ) {
         filters_[ id ] = lf;
         connect( lf, SIGNAL( onError( const QString& ) ), 
                  this, SLOT( OnFilterError( const QString& ) ) );
-        filterPluginLoaders_.push_back( pl );
+        lf->setParent( pl );
+        pl->setParent( this );
         uriFilterMap_[ uri ] = lf;
     }      
 }
