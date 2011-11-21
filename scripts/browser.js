@@ -55,6 +55,7 @@ try {
   var ww = Loco.gui.create( "WebWindow" );
   mainWindow.setCentralWidget( ww );
   ww.onError.connect( function( err ) { print( err ); } );
+  ww.addParentObjsToContext
   ww.addObjectToContext( mainWindow, "mainWindow" );
   ww.addObjectToContext( ww, "webWindow" );
   if( logRequests ) {
@@ -166,7 +167,6 @@ try {
   });
   mainWindow.setStatusBarText( "Loading..." );
   mainWindow.setWindowTitle( ctx.appName() );
-  // problem: with syncload it works, without the js object are not properly added 
   ww.load( URL, {username: userName, password: pwd} );
   if( !feed ) mainWindow.show(); 
 } catch(e) {

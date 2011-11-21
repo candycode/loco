@@ -116,13 +116,7 @@ public:
     const QString& GetJSGlobalNameForContext() const {
         return globalContextJSName_;
     }
-	void SetJSInitializer( IJavaScriptInit* jsi ) { 
-        if( jsInitGenerator_ != 0 && jsi == jsInitGenerator_ ) return;
-        jsInitGenerator_->deleteLater();
-        jsInitGenerator_ = jsi;
-    }
-	IJavaScriptInit* GetJSInitializer() const { return jsInitGenerator_; }      
-    void SetJSErrCBack( const QString& code,
+	void SetJSErrCBack( const QString& code,
                         const QStringList& filterIds = QStringList() ) {
         jsErrCBack_ = ApplyFilter( code, filterIds );
     }
@@ -262,17 +256,7 @@ private:
 						   const QString& jfun,
 						   const QString& jcode = "",
                            const QString& jerrfun = "",
-                           const QString& codePlaceHolder = "" ) {
-        if( !fileAccessMgr_->CheckAccess( uri ) ) {
-            error( "Access to " + uri + " not allowed" );
-            return;
-        }
-        Include( uri );
-        Filter* lf = new ScriptFilter( jsInterpreter_, jfun, jcode, jerrfun, codePlaceHolder );
-        connect( lf, SIGNAL( onError( const QString& ) ), 
-                 this, SLOT( OnFilterError( const QString& ) ) );
-        filters_[ id ] = lf;
-    }
+                           const QString& codePlaceHolder = "" );
     QStringList CmdLine() const { return cmdLine_; }
     void RegisterJSErrCBack( const QString& code, const QStringList& filters = QStringList() ) { 
         jsErrCBack_ = ApplyFilter( code, filters );

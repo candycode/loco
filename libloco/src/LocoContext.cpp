@@ -432,4 +432,21 @@ void Context::AddNetworkRequestHandler( const QString& scheme, QObject* handler 
 	}
 }
 
+void Context::LoadScriptFilter( const QString& id,
+		                        const QString& uri,
+						        const QString& jfun,
+						        const QString& jcode,
+                                const QString& jerrfun,
+                                const QString& codePlaceHolder ) {
+	if( !fileAccessMgr_->CheckAccess( uri ) ) {
+		error( "Access to " + uri + " not allowed" );
+		return;
+	}
+	Include( uri );
+	Filter* lf = new ScriptFilter( jsInterpreter_, jfun, jcode, jerrfun, codePlaceHolder );
+	connect( lf, SIGNAL( onError( const QString& ) ),
+			 this, SLOT( OnFilterError( const QString& ) ) );
+	filters_[ id ] = lf;
+}
+
 }

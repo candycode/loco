@@ -7,8 +7,6 @@
 #include <QMap>
 #include <QStringList>
 
-#include "LocoFile.h"
-#include "LocoDir.h"
 #include "LocoObject.h"
 
 
@@ -21,7 +19,7 @@ public:
    FileSystem() : Object( 0, "LocoFileSystem", "Loco/System/FileSystem" ) {}
 
 public slots:
-    
+    QVariant tmpFile( const QString& = QString() ) const;
     QByteArray fread( const QString& fname ) const;
     bool fwrite( const QString& fname, const QByteArray& data, bool append = false ) const;
     QVariant fopen( const QString& fname, const QStringList& mode ) const;

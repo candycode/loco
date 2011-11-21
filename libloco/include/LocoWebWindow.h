@@ -12,6 +12,7 @@
 #include <QtWebKit/QWebSettings>
 #include <QtWebKit/QWebElementCollection>
 #include <QtWebKit/QWebElement>
+#include <QtWebKit/QWebInspector>
 #include <QtGui/QCursor>
 
 
@@ -129,6 +130,11 @@ private slots:
     void PreLoadCBack() { ctx_.Eval( preLoadCBack_ ); }
 
 public slots:
+    void openInspector() {
+    	QWebInspector* wi = new QWebInspector( webView_ );
+    	wi->setPage( webView_->page() );
+    	wi->show();
+    }
 	void setPreLoadCBack( const QString& cback ) { preLoadCBack_ = cback; }
 	void addObjectToContext( QObject* obj, const QString& jsName, bool own = false ) {
 		ctx_.AddQObjectToJSContext( obj, jsName, own );

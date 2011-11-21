@@ -2,6 +2,10 @@
 #include "LocoContext.h"
 #include "LocoFileSystem.h"
 #include "LocoFSWatcher.h"
+#include "LocoTempFile.h"
+#include "LocoFile.h"
+#include "LocoDir.h"
+#include "LocoFileAccessManager.h"
 
 namespace loco {
 
@@ -19,6 +23,7 @@ QByteArray FileSystem::fread( const QString& fname ) const {
     }
     return data;
 }
+
 bool FileSystem::fwrite( const QString& fname,
 		                 const QByteArray& data,
 		                 bool append ) const {
@@ -35,7 +40,6 @@ bool FileSystem::fwrite( const QString& fname,
     }
     return true;
 }
-
 
 QVariant FileSystem::fopen( const QString& fname, const QStringList& mode ) const {
     if( GetContext() == 0 ) {
@@ -104,5 +108,30 @@ QVariantMap FileSystem::MapPermissions( QFile::Permissions fp ) const {
     pm[ "world" ] = sl;      
     return pm;
 }      
+
+QVariant FileSystem::tmpFile( const QString& templateName ) const {
+    if( GetContext() == 0 ) {
+	    error( "NULL Context" );
+	    return QVariant();
+	}
+    if( GetContext()->GetFileAccessManager() == 0 ) {
+        error( "FileAccessManager not available, aborting open operation" );
+    	return QVariant();
+    }
+    TempFile* f = new TempFile( templateName );
+    const FileAccessManager* fm = GetContext()->GetFileAccessManager();
+    if( !fm->CheckAccess( f->fileName(), QIODevice::ReadWrite ) ) {
+        error( "Not authorized to access file " + f->fileName() );
+    	return QVariant();
+    }
+	QVariant obj = GetContext()->AddObjToJSContext( f );
+	if( !f->open() ) {
+		delete f;
+		error( "Cannot open temporary file " + f->fileName() );
+		return QVariant();
+	}
+	return obj;
+}
+
 
 }

@@ -31,7 +31,8 @@ newCtx.javaScriptConsoleMessage.connect(
 newCtx.storeCode = true;
 newCtx.addObject( newCtx, "ctx" );
 newCtx.addObject( Loco.console, "io" );
-newCtx.eval( "io.println(ctx.code)" );
+//newCtx.eval( "io.println(ctx.code)" );
+newCtx.eval( "if (true) {" );
 
 //==============================================================================
 exit(0); //FOR NON-GUI APPS ONLY
