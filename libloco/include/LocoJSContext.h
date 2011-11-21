@@ -15,6 +15,7 @@ public:
         SetDestroyable( false );
 		connect( ctx_, SIGNAL( JavaScriptConsoleMessage( const QString&, int, const QString& ) ),
 			     this, SIGNAL( javaScriptConsoleMessage( const QString&, int, const QString& ) ) );
+		connect( ctx_, SIGNAL( JSContextCleared() ), this, SIGNAL( javaScriptContextCleared() ) );
     }
     const QString& code() const { return ctx_->Code(); }
     void storeCode( bool on ) { ctx_->SetStoreCode( on ); }
@@ -172,6 +173,7 @@ public slots: // js interface
     }
 signals:
 	void javaScriptConsoleMessage( const QString&, int, const QString& );
+	void javaScriptContextCleared();
 private slots:
     //forward errors received from Context,
     friend class Context;

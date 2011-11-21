@@ -283,8 +283,7 @@ void Context::RemoveFilters() {
 }
 	
 void Context::OnJSContextCleared() {
-   	RemoveFilters();
-    AddJavaScriptObjects();
+   	AddJavaScriptObjects();
    	InitJScript();
    	emit JSContextCleared();
 }
