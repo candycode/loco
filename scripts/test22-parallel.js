@@ -27,27 +27,27 @@ for( i = 0; i != 100; ++i ) array.push(i);
 var storage = ctx.data();
 storage.data = {"array": array};
 var runner = Loco.sys.runner();
+runner.go.connect( function(){print( "go it");});
 var futures = [];
 var contexts = [];
 var thread = 
 "function x2( datain ) { \
-    console.println('!'); \
     var start = datain.id * datain.span, \
         end = start + datain.span - 1; \
     for( var i = start; i != end; ++i ) { \
-      console.println( datain.id ); \
       storage.data.array[ i ] = 2 * storage.data.array[ i ]; \
     } \
     return true; \
 };";
 
-var MAX_THREADS = 1;
+var MAX_THREADS = 3;
 for( i = 0; i != MAX_THREADS; ++i ) {
-  contexts.push( ctx.create( "JavaScriptCoreContext" ) );
-  contexts[ i ].addObject( Loco.console, "console" ); 
-  contexts[ i ].addObject( storage, "storage" );
-  contexts[ i ].eval( thread );
-  futures[ i ] = runner.run( "x2( {id:" + i + ", span:" + 25 +"});true;", contexts[ i ] );
+  var p = contexts.push( ctx.create( "JavaScriptCoreContext" ) ) - 1;
+  print( p );
+  contexts[ p ].addObject( Loco.console,  "console");
+  contexts[ p ].addObject( storage, "storage" );
+  contexts[ p ].eval( thread );
+  futures.push( runner.run( "x2( {id:" + i + ", span:" + 25 +"});true;", contexts[ p ] ) );
 }
 var done = futures[ 0 ].result;
 for( i = 1; i != futures.length; ++i ) {

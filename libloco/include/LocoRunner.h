@@ -34,15 +34,19 @@ public:
     Runner() : Object( 0, "LocoRunner", "/loco/sys" ) {}
 public slots:
     QVariant run( const QString& code, QObject* context ) {
+		context->moveToThread( QThread::currentThread() );
     	F = QtConcurrent::run( *this, &Runner::execute, code, qobject_cast< JSContext* >( context ) );
     	FutureWrapper* fw = new FutureWrapper( F );
     	return GetContext()->AddObjToJSContext( fw );
     }
+signals:
+	void go();
 private:
     QVariant execute( const QString& code, JSContext* ctx ) {
-    	ctx->setParent( 0 );
-    	ctx->moveToThread( QThread::currentThread() );
-        return ctx->eval( "console.print('ciao ciao')" );
+    	emit go();
+		//ctx->setParent( 0 );
+    	//ctx->moveToThread( QThread::currentThread() );
+        return ctx->eval( code );
     }
     QFuture< QVariant > F;
 };

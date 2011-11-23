@@ -17,12 +17,12 @@ namespace loco {
 namespace {
 int GetCpuCount() {
     int cpuCount = 1;
-
-#if defined(Q_OS_WIN32) || defined(Q_OS_WIN64)
+#if defined(Q_OS_WIN)
     {
-	    SYSTEM_INFO    si;
-	    GetSystemInfo(&si);
-	    cpuCount = si.dwNumberOfProcessors;
+		//SYSTEM_INFO si;
+	    //GetSystemInfo(&si);
+	    //cpuCount = si.dwNumberOfProcessors;
+		cpuCount = 0;
     }
 #elif defined(Q_OS_UNIX) && !defined(Q_OS_MACX)
     cpuCount = sysconf(_SC_NPROCESSORS_ONLN);

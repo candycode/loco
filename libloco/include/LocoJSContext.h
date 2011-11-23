@@ -8,7 +8,7 @@ namespace loco {
 class JSContext : public Object {
     Q_OBJECT
     Q_PROPERTY( QString code READ code )
-    Q_PROPERTY( bool storeCode WRITE storeCode )
+    Q_PROPERTY( bool storeCode READ storeCode WRITE storeCode )
 public:
     JSContext( Context* ctx ) : Object( 0, "LocoContext", "Loco/Context" ),
     ctx_( ctx )  {
@@ -19,6 +19,7 @@ public:
     }
     const QString& code() const { return ctx_->Code(); }
     void storeCode( bool on ) { ctx_->SetStoreCode( on ); }
+	bool storeCode() const { return true; } 
 // invocable from javascript
 public slots: // js interface
     QVariant data( const QVariantMap& d = QVariantMap() ) const { return ctx_->Data( d ); }
