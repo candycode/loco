@@ -18,7 +18,7 @@
 #ifdef LOCOPLAY_WKIT
 #include <LocoWebKitJSCore.h>
 #else
-#include <LocoDefaultJS.h>
+#include <LocoQScriptInterpreter.h>
 #endif
 #ifdef LOCOPLAY_GUI
 #include <LocoGUI.h>
@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
 #ifdef LOCOPLAY_WKIT
 		app.SetInterpreter( new WebKitJSCore ); // app owns interpreter
 #else
-		app.SetInterpreter( new DefaultJS );
+		app.SetInterpreter( new QScriptInterpreter );
 #endif
 
 #ifdef LOCOPLAY_CONSOLE

@@ -91,6 +91,31 @@ public slots:
         if( !pluginLoader_ ) { setParent( 0 ); deleteLater(); }
         else { pluginLoader_->unload(); }
     }
+    // invoking this slot from Javascript allows to send messages across
+    // contexts without resorting to eval:
+    // /*PARENT CONTEXT*/
+    // var webWindow = ...
+    // webWindow.event.connect( function(e, window) {
+    //                            print(e);
+    //                            window.sendMessage( {"bk-color": red } );
+    //                          } );
+    // webWindow.addObjectToContext( "thisWindow", webWindow );
+    // webWindow.setPreLoadCBack( // or add a <script> in the web page
+    //   "... \
+    //    thisWindow.messageReceived.connect( function( msg ) { \
+    //      if( msg['bk-color'] ) changeBkColor( msg['bk-color'] ); \
+    //    }" );
+    // /*CHILD CONTEXT INSIDE A WEB PAGE*/
+    // <a href="javascript:thisWindow.triggerEvent( "Link clicked" )>click</a>
+    void sendMessage( const QVariant& data, QObject* sender ) {
+    	emit messageReceived( data, sender );
+    }
+    void triggerEvent( const QVariant& data ) {
+    	emit event( data, this );
+    }
+signals:
+    void event( const QVariant&, QObject* /*sender*/ );
+    void messageReceived( const QVariant&, QObject* /*sender*/ );
 private:
     QString FormatEWLMsg( const QString& msg ) const {
         return type_ + " " + jsInstanceName_ + ": " + msg; 

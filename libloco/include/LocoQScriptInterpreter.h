@@ -14,7 +14,7 @@
 
 namespace loco {
 
-class DefaultJS : public IJSInterpreter {
+class QScriptInterpreter : public IJSInterpreter {
 	Q_OBJECT
 public:
 	QVariant EvaluateJavaScript( const QString& code ) {
