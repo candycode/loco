@@ -15,7 +15,7 @@
 #ifdef LOCO_SCRIPT
 #include "LocoDefaultJS.h"
 #endif
-
+#include "LocoDataType.h"
 
 namespace loco {
 
@@ -447,5 +447,10 @@ void Context::LoadScriptFilter( const QString& id,
 			 this, SLOT( OnFilterError( const QString& ) ) );
 	filters_[ id ] = lf;
 }
+
+QVariant Context::Data( const QVariantMap& data ) {
+	return AddObjToJSContext( new DataType( data ) );
+}
+
 
 }

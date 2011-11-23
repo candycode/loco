@@ -114,7 +114,6 @@ public slots:
             return pid;
 
     }
-
     QVariantMap env() const {
         QProcessEnvironment pe = QProcessEnvironment::systemEnvironment();
         QStringList e = pe.toStringList();
@@ -131,6 +130,8 @@ public slots:
 	  sleepMutex_.lock();
       sleepWCond_.wait( &sleepMutex_, ms );   // two seconds
     }
+	int cpuCount() const;
+	QVariant runner() const;
 private:
 	mutable QMutex sleepMutex_;
 	mutable QWaitCondition sleepWCond_;

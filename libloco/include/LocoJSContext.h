@@ -21,6 +21,7 @@ public:
     void storeCode( bool on ) { ctx_->SetStoreCode( on ); }
 // invocable from javascript
 public slots: // js interface
+    QVariant data( const QVariantMap& d = QVariantMap() ) const { return ctx_->Data( d ); }
     void kill() {
     	ctx_->Eval( this->jsInstanceName() + "= undefined"  );
     	ctx_->deleteLater();

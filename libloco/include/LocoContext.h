@@ -77,6 +77,7 @@ public:
                const QStringList& cmdLine = QStringList(), Context* parent = 0 );
 // called from C++
 public:
+    QVariant Data( const QVariantMap& data );
     const QString& Code() const { return code_; }
     void SetStoreCode( bool on ) { storeCode_ = on; }
     void AddNetworkRequestHandler( const QString& scheme, QObject* handler );

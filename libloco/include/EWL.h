@@ -12,6 +12,7 @@ class EWL : public QObject {
 	Q_OBJECT
 public:
     EWL( bool autoDeleteEntries = false ) : autoDelete_( autoDeleteEntries ) {}
+    EWL( const EWL& ewl ) : autoDelete_( ewl.autoDelete_ ) {}
     virtual ~EWL() {}
 public slots:
     QString lastError() const { 

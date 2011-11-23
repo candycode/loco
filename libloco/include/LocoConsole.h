@@ -14,7 +14,6 @@ class Console : public Object {
 
 public:
     Console() : Object( 0, "LocoConsole", "Loco/IO/Console" ) {}
-
 public slots:
 	void print( const QString& s) const { std::cout << s.toAscii().constData(); }
 	void println( const QString& s ) const { print( s ); std::cout << std::endl; }
