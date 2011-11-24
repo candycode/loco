@@ -11,7 +11,6 @@
 #include "LocoProcess.h"
 #include "LocoEventLoop.h"
 #include "LocoContext.h"
-#include "LocoRunner.h"
 
 namespace loco {
 namespace {
@@ -66,14 +65,6 @@ int GetCpuCount() {
 	}
 	int System::cpuCount() const {
 		return GetCpuCount();
-	}
-
-	QVariant System::runner() const {
-		if( GetContext() == 0 ) {
-		    error( "NULL Context" );
-		    return QVariant();
-		}
-		return GetContext()->AddObjToJSContext( new Runner );
 	}
 
 }

@@ -2,6 +2,7 @@
 //#SRCHEADER
 
 #include <cstdlib> //for dupenv (win), putenv, getenv
+#include <ctime> //clock
 
 #include <QString>
 #include <QStringList>
@@ -11,6 +12,7 @@
 #include <QProcessEnvironment>
 #include <QMutex>
 #include <QWaitCondition>
+#include <QThread>
 
 #include "LocoObject.h"
 
@@ -18,7 +20,7 @@ namespace loco {
 
 class System : public Object {
     Q_OBJECT
-
+    Q_PROPERTY( quint64 CLOCKS_PER_SECOND READ clocksPerSecond )
 public:
    System() : Object( 0, "LocoSystem", "Loco/System/System" ) {}
 
@@ -128,10 +130,12 @@ public slots:
 	QVariant eventLoop() const;
 	void sleep( int ms ) const {
 	  sleepMutex_.lock();
-      sleepWCond_.wait( &sleepMutex_, ms );   // two seconds
+      sleepWCond_.wait( &sleepMutex_, ms );
     }
 	int cpuCount() const;
-	QVariant runner() const;
+	quint64 threadId() const { return quint64( QThread::currentThreadId() ); }
+	quint64 clock() const { return quint64( ::clock() ); }
+	quint64 clocksPerSecond() const { return CLOCKS_PER_SEC; }
 private:
 	mutable QMutex sleepMutex_;
 	mutable QWaitCondition sleepWCond_;

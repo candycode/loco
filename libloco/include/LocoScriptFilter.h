@@ -6,10 +6,6 @@
 #include "LocoIJSInterpreter.h"
 #include "LocoFilter.h"
 
-
-///@todo remove
-#include <iostream>
-
 namespace loco {
 
 class ScriptFilter : public Filter {

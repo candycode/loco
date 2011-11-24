@@ -17,9 +17,11 @@ public:
 			     this, SIGNAL( javaScriptConsoleMessage( const QString&, int, const QString& ) ) );
 		connect( ctx_, SIGNAL( JSContextCleared() ), this, SIGNAL( javaScriptContextCleared() ) );
     }
+    Context* GetContext() { return ctx_; } //used only within the library, not exposed to JS
+    //property accessors
     const QString& code() const { return ctx_->Code(); }
     void storeCode( bool on ) { ctx_->SetStoreCode( on ); }
-	bool storeCode() const { return true; } 
+	bool storeCode() const { return ctx_->GetStoreCode(); }
 // invocable from javascript
 public slots: // js interface
     QVariant data( const QVariantMap& d = QVariantMap() ) const { return ctx_->Data( d ); }

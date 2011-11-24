@@ -1,5 +1,9 @@
 #pragma once
 //#SRCHEADER
+
+///\todo replace std::cerr with exceptions ?
+#include <iostream>
+
 #include <QString>
 #include <QVariant>
 #include <QPointer>
@@ -8,9 +12,6 @@
 #include <QtWebKit/QWebSettings>
 
 #include "LocoIJSInterpreter.h"
-
-///@todo remove
-#include <iostream>
 
 namespace loco {
 

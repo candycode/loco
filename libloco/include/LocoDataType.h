@@ -2,20 +2,20 @@
 //#SRCHEADER
 
 #include "LocoObject.h"
-#include <QVariantMap>
+#include <QVariant>
 
 namespace loco {
 
 class DataType : public Object {
     Q_OBJECT
-	Q_PROPERTY( QVariantMap data READ data WRITE data )
+	Q_PROPERTY( QVariant data READ data WRITE data )
 public:
-    DataType( const QVariantMap& data = QVariantMap() )
+    DataType( const QVariant& data = QVariantMap() )
         : Object( 0, "LocoDataType", "/loco/data" ), data_( data ) {}
-    const QVariantMap& data() const { return data_; }
-    void data( const QVariantMap& d ) { data_ = d; }
+    const QVariant& data() const { return data_; }
+    void data( const QVariant& d ) { data_ = d; }
 private:
-    QVariantMap data_;
+    QVariant data_;
 };
 
 }

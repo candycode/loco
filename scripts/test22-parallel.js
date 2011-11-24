@@ -32,6 +32,7 @@ var futures = [];
 var contexts = [];
 var thread = 
 "function x2( datain ) { \
+    console.println( '!' ); \
     var start = datain.id * datain.span, \
         end = start + datain.span - 1; \
     for( var i = start; i != end; ++i ) { \
@@ -40,20 +41,18 @@ var thread =
     return true; \
 };";
 
-var MAX_THREADS = 3;
+var MAX_THREADS = 4;
 for( i = 0; i != MAX_THREADS; ++i ) {
   var p = contexts.push( ctx.create( "JavaScriptCoreContext" ) ) - 1;
-  print( p );
+  print( "CONTEXT: " + p );
   contexts[ p ].addObject( Loco.console,  "console");
   contexts[ p ].addObject( storage, "storage" );
   contexts[ p ].eval( thread );
   futures.push( runner.run( "x2( {id:" + i + ", span:" + 25 +"});true;", contexts[ p ] ) );
 }
-var done = futures[ 0 ].result;
-for( i = 1; i != futures.length; ++i ) {
-  done && futures[ i ].result;
-}
-print( "done = " + done );
+
+//while( !futures[ 0 ].finished() );
+print( storage.data.array[ 4 ] );
 //==============================================================================
 //exit(0); //FOR NON-GUI APPS ONLY
 

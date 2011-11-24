@@ -9,11 +9,13 @@
 #include "LocoJSContext.h"
 #include "LocoDefaultJSInit.h"
 #include "LocoScriptNetworkRequestHandler.h"
+#include "LocoContextThread.h"
+
 #ifdef LOCO_WKIT
 #include "LocoWebKitJSCore.h"
 #endif
 #ifdef LOCO_SCRIPT
-#include "LocoDefaultJS.h"
+#include "LocoQScriptInterpreter.h"
 #endif
 #include "LocoDataType.h"
 
@@ -411,10 +413,15 @@ QVariant Context::Create( const QString& className ) {
 		JSContext* jsCtx = new JSContext( ctx );
 		ctx->setParent( jsCtx ); // javascript interpreter OWNS jsCtx
 		                         // jsCtx OWNS ctx
-		ctx->Init( new DefaultJS(), app_, cmdLine_ );
+		ctx->Init( new QScriptInterpreter(), app_, cmdLine_ );
 		return AddObjToJSContext( jsCtx );
 	}
 #endif
+	else if( className == "ContextThread" ) {
+		ContextThread* ct = new ContextThread();
+		AddQObjectToJSContext( ct, ct->JSInstanceName() );
+		return jsInterpreter_->EvaluateJavaScript( ct->JSInstanceName() );
+	}
 	else {
 		error( "Cannot create object of type " + className );
 		return QVariant();

@@ -40,15 +40,14 @@ endif()
 if( LOCO_WKIT )
   set( QT_DONT_USE_QTGUI OFF )
   set( QT_USE_QTWEBKIT ON )
-  if( NOT LOCO_JS_SYNTAX_CHECKER )  
-    set( QT_USE_QTSCRIPT OFF )
-  endif()  
-  set( LOCO_SCRIPT OFF )
   set( LOCO_GUI ON )
   add_definitions( -DLOCO_GUI -DLOCO_WKIT ) 
 else()
-  set( QT_USE_QTSCRIPT ON )
   set( LOCO_SCRIPT ON )
+endif()
+if( LOCO_SCRIPT )
+  set( QT_USE_QTSCRIPT ON )
+  add_definitions( -DLOCO_SCRIPT ) 
 endif()
 if( LOCO_CONSOLE )
   add_definitions( -DLOCO_CONSOLE ) 
@@ -116,7 +115,7 @@ set( MOC_HEADERS
   ${LINC}/LocoNetworkAccessManager.h ${LINC}/LocoApp.h ${LINC}/LocoObjectInfo.h ${LINC}/LocoIJSInterpreter.h
   ${LOCO_WKIT_MOC_HEADERS} ${LOCO_GUI_MOC_HEADERS}
   ${LOCO_SCRIPT_MOC_HEADERS} ${LOCO_JS_SYNTAX_CHECKER_MOC_HEADERS}
-  ${LINC}/LocoScriptNetworkRequestHandler.h ${LINC}/LocoRunner.h ${LINC}/LocoDataType.h ) 
+  ${LINC}/LocoScriptNetworkRequestHandler.h ${LINC}/LocoContextThread.h ${LINC}/LocoDataType.h ) 
 
 QT4_WRAP_CPP( MOC_SRCS ${MOC_HEADERS} ) 
 

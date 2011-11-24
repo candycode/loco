@@ -73,13 +73,14 @@ public:
     Context( Context* parent = 0 );
     Context( IJSInterpreter* jsi, LocoQtApp* app, const QStringList& cmdLine,
              Context* parent = 0 );
-    void Init( IJSInterpreter* jsi, LocoQtApp* app = 0, 
-               const QStringList& cmdLine = QStringList(), Context* parent = 0 );
+    void Init( IJSInterpreter* jsi, LocoQtApp* app = 0,
+    		   const QStringList& cmdLine = QStringList(), Context* parent = 0 );
 // called from C++
 public:
     QVariant Data( const QVariantMap& data );
     const QString& Code() const { return code_; }
     void SetStoreCode( bool on ) { storeCode_ = on; }
+    bool GetStoreCode() const { return storeCode_; }
     void AddNetworkRequestHandler( const QString& scheme, QObject* handler );
     void SetEnableCustomNetRequestHandlers( bool yes ) {
     	netAccessMgr_->SetEnableCustomRequestHandlers( yes );
