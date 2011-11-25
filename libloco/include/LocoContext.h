@@ -77,7 +77,9 @@ public:
     		   const QStringList& cmdLine = QStringList(), Context* parent = 0 );
 // called from C++
 public:
-    QVariant Data( const QVariantMap& data );
+    bool SetAllowInterrupt( bool yes ) { return jsInterpreter_->SetAllowInterrupt( yes ); }
+    bool GetAllowInterrupt() const { return jsInterpreter_->GetAllowInterrupt(); }
+    QVariant Data( const QVariant& data );
     const QString& Code() const { return code_; }
     void SetStoreCode( bool on ) { storeCode_ = on; }
     bool GetStoreCode() const { return storeCode_; }

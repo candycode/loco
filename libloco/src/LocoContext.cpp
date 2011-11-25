@@ -455,7 +455,7 @@ void Context::LoadScriptFilter( const QString& id,
 	filters_[ id ] = lf;
 }
 
-QVariant Context::Data( const QVariantMap& data ) {
+QVariant Context::Data( const QVariant& data ) {
 	return AddObjToJSContext( new DataType( data ) );
 }
 

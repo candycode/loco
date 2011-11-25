@@ -1,10 +1,12 @@
 #pragma once
 //#SRCHEADER
+#include <QObject>
 #include <QString>
 #include <QVariant>
 #include <QPointer>
 #include <QtWebKit/QWebPage>
 #include <QtWebKit/QWebFrame>
+#include "LocoWebPage.h"
 
 #include "LocoIJSInterpreter.h"
 
@@ -32,6 +34,13 @@ public:
 		wf_ = wp_->mainFrame();
 		connect( wf_,  SIGNAL( javaScriptWindowObjectCleared() ),
 			     this, SIGNAL( JavaScriptContextCleared() ) );
+	}
+	bool SetAllowInterrupt( bool yes ) {
+		qobject_cast< WebPage* >( wp_ )->SetAllowInterruptJavaScript( yes );
+		return true;
+	}
+	bool GetAllowInterrupt() const {
+		return qobject_cast< WebPage* >( wp_ )->GetAllowInterruptJavaScript();
 	}
 signals:
 	void JavaScriptContextCleared(); // = javaScriptWindowObjectCleared()

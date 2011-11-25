@@ -37,6 +37,8 @@ public:
 		emit JavaScriptContextCleared(); 
 	}
 	QString Name() const { return "qtscript"; }
+	bool SetAllowInterrupt( bool ) { return false; }
+	bool GetAllowInterrupt() const { return false; }
 signals:
 	void JavaScriptContextCleared();
     void JavaScriptConsoleMessage( const QString& /*text*/, int /*line*/, const QString& /*source id*/ );

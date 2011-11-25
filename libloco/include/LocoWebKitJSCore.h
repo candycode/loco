@@ -18,13 +18,15 @@ namespace loco {
 class JSCoreWebPage : public QWebPage {
     Q_OBJECT
 public:
-	JSCoreWebPage( QObject* parent = 0 ) : QWebPage( parent ) {}
+	JSCoreWebPage( QObject* parent = 0 ) : QWebPage( parent ), allowInterrupt_( true ) {}
 protected:
 	void javaScriptConsoleMessage( const QString& t, int l, const QString& s ) {
 		QWebPage::javaScriptConsoleMessage( t, l, s );
 		emit JavaScriptConsoleMessage( t, l, s );
 	}
 public:
+	void SetAllowInterrupt( bool yes ) { allowInterrupt_ = yes; }
+	bool GetAllowInterrupt() const { return allowInterrupt_; }
 	bool supportsExtension( Extension extension ) const { 
 	    if( extension == QWebPage::ErrorPageExtension ) { 
 		    return true; 
@@ -47,9 +49,15 @@ public:
 
         return false;
     }
-
+public slots:
+    bool shouldInterruptJavaScript() {
+    	if( !allowInterrupt_ ) return false;
+    	return QWebPage::shouldInterruptJavaScript();
+    }
 signals:
 	void JavaScriptConsoleMessage( const QString&, int, const QString& );
+private:
+	bool allowInterrupt_;
 };
 
 
@@ -76,9 +84,8 @@ public:
 	}
 	void Init() {}
 	QString Name() const { return "webkit-js-core"; }
-    ~WebKitJSCore() {
-        QObject* p = parent();
-    }
+	bool SetAllowInterrupt( bool yes ) { wp_->SetAllowInterrupt( yes ); return true; }
+	bool GetAllowInterrupt() const { return wp_->GetAllowInterrupt(); }
 signals:
 	void JavaScriptContextCleared(); // = javaScriptWindowObjectCleared()
 	void JavaScriptConsoleMessage( const QString, int, const QString& );

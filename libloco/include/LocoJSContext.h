@@ -24,7 +24,9 @@ public:
 	bool storeCode() const { return ctx_->GetStoreCode(); }
 // invocable from javascript
 public slots: // js interface
-    QVariant data( const QVariantMap& d = QVariantMap() ) const { return ctx_->Data( d ); }
+    bool setAllowInterrupt( bool yes ) { return ctx_->SetAllowInterrupt( yes ); }
+    bool getAllowInterrupt() const { return ctx_->GetAllowInterrupt(); }
+    QVariant data( const QVariant& d = QVariant() ) const { return ctx_->Data( d ); }
     void kill() {
     	ctx_->Eval( this->jsInstanceName() + "= undefined"  );
     	ctx_->deleteLater();
@@ -182,8 +184,6 @@ private slots:
     //forward errors received from Context,
     friend class Context;
     void ForwardError( const QString& err ) { error( err ); }
-
-
 private:
     QPointer< Context > ctx_;
 

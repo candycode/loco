@@ -17,6 +17,8 @@ public:
 	virtual void AddObjectToJS( const QString& name, QObject* obj ) = 0;
 	virtual void Init() = 0;
 	virtual QString Name() const = 0; //used to pass information on type and version e.g. QtScript vs Webkit JS core
+	virtual bool SetAllowInterrupt( bool  ) = 0; //returns false if not supported
+	virtual	bool GetAllowInterrupt() const = 0; //always return false if not supported
 	virtual ~IJSInterpreter() {}
 signals:
 	/*virtual*/ void JavaScriptConsoleMessage( const QString& /*text*/, int /*line*/, const QString& /*source id*/ );

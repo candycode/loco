@@ -38,7 +38,7 @@ function createThreads( numThreads, storage ) {
     threadContext = ctx.create( "QtScriptContext" );
     threadContext.addObject( Loco.console, "terminal" );
     threadContext.addObject( storage, "storage" );
-    threadContext.eval( "var inarray = storage.data.array" );
+    threadContext.eval( "var inarray = storage.data.array.splice(0)" );
     threadContext.addObject( Loco.sys, "sys" );
     threadContext.onError.connect( err );
     var p = threads.push( ctx.create( "ContextThread" ) ) - 1;
@@ -55,8 +55,9 @@ function createArray( size, f ) {
 }
 
 var i = 0;
-var array = createArray( 4096 * 4096, function( v ){ return 2 * v; } );
-var NUM_THREADS = 2;
+var SIZE = 4096 * 4096;
+var array = createArray( SIZE, function( v ){ return 2 * v; } );
+var NUM_THREADS = 4;
 var storage = ctx.data();
 storage.data = {"array": array};
 var threads = createThreads( NUM_THREADS, storage );
@@ -68,13 +69,13 @@ print( "Main thread id: " + Loco.sys.threadId() );
 var threadFun =
 "function( datain ) { \
   var clocks = sys.clock(); \
-  var outarray = new Array( datain.id.span ); \
+  var outarray = new Array( datain.span ); \
   var start = datain.id * datain.span, \
       end = start + datain.span - 1; \
   for( var i = start, j = 0; i != end; ++i, ++j ) { \
     outarray[ j ] = 2 * inarray[ i ]; \
   } \
-  me.data  = outarray; \
+  me.data = outarray; \
   return ( sys.clock() - clocks ) / sys.CLOCKS_PER_SECOND; \
 }";
 
