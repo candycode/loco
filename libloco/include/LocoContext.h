@@ -77,6 +77,7 @@ public:
     		   const QStringList& cmdLine = QStringList(), Context* parent = 0 );
 // called from C++
 public:
+    const QString& LastReadURI() const { return lastReadURI_; }
     bool SetAllowInterrupt( bool yes ) { return jsInterpreter_->SetAllowInterrupt( yes ); }
     bool GetAllowInterrupt() const { return jsInterpreter_->GetAllowInterrupt(); }
     QVariant Data( const QVariant& data );
@@ -315,7 +316,7 @@ private:
     QStringList includePath_;
     QString code_;
     bool storeCode_;
-
+    QString lastReadURI_; // identifier of last read file or URL
 };
 
 }

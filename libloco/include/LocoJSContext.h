@@ -24,6 +24,9 @@ public:
 	bool storeCode() const { return ctx_->GetStoreCode(); }
 // invocable from javascript
 public slots: // js interface
+    int netReadTimeout() const { return ctx_->GetNetReadTimeout(); }
+    void setNetReadTimeout( int timeout ) { ctx_->SetNetReadTimeout( timeout ); }
+    QString uri() const { return ctx_->LastReadURI().isEmpty() ? appDir() :  ctx_->LastReadURI(); }
     bool setAllowInterrupt( bool yes ) { return ctx_->SetAllowInterrupt( yes ); }
     bool getAllowInterrupt() const { return ctx_->GetAllowInterrupt(); }
     QVariant data( const QVariant& d = QVariant() ) const { return ctx_->Data( d ); }

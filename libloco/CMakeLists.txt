@@ -115,7 +115,8 @@ set( MOC_HEADERS
   ${LINC}/LocoNetworkAccessManager.h ${LINC}/LocoApp.h ${LINC}/LocoObjectInfo.h ${LINC}/LocoIJSInterpreter.h
   ${LOCO_WKIT_MOC_HEADERS} ${LOCO_GUI_MOC_HEADERS}
   ${LOCO_SCRIPT_MOC_HEADERS} ${LOCO_JS_SYNTAX_CHECKER_MOC_HEADERS}
-  ${LINC}/LocoScriptNetworkRequestHandler.h ${LINC}/LocoContextThread.h ${LINC}/LocoDataType.h ) 
+  ${LINC}/LocoScriptNetworkRequestHandler.h ${LINC}/LocoContextThread.h 
+  ${LINC}/LocoDataType.h ${LINC}/LocoContextThreadLoop.h ) 
 
 QT4_WRAP_CPP( MOC_SRCS ${MOC_HEADERS} ) 
 

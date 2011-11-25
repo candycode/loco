@@ -10,6 +10,7 @@
 #include "LocoDefaultJSInit.h"
 #include "LocoScriptNetworkRequestHandler.h"
 #include "LocoContextThread.h"
+#include "LocoContextThreadLoop.h"
 
 #ifdef LOCO_WKIT
 #include "LocoWebKitJSCore.h"
@@ -158,7 +159,10 @@ QByteArray Context::ReadUrl( const QString& url, QSet< QUrl > redirects ) {
         redirects.insert( QUrl( url ) );
         return ReadUrl( possibleRedirectUrl.toString(), redirects );
     }
-    else return reply->readAll();
+    else {
+    	lastReadURI_ = reply->url().toString();
+        return reply->readAll();
+    }
 }
 
 QByteArray Context::ReadFile( QString filePath ) {
@@ -192,6 +196,7 @@ QByteArray Context::ReadFile( QString filePath ) {
         error( file.errorString() );
         return QByteArray();
     }
+    lastReadURI_ = filePath;
     return b;
 }      
 
@@ -421,8 +426,11 @@ QVariant Context::Create( const QString& className ) {
 		ContextThread* ct = new ContextThread();
 		AddQObjectToJSContext( ct, ct->JSInstanceName() );
 		return jsInterpreter_->EvaluateJavaScript( ct->JSInstanceName() );
-	}
-	else {
+	} else if( className == "ContextThreadLoop" ) {
+		ContextThreadLoop* ct = new ContextThreadLoop();
+		AddQObjectToJSContext( ct, ct->JSInstanceName() );
+		return jsInterpreter_->EvaluateJavaScript( ct->JSInstanceName() );
+	} else {
 		error( "Cannot create object of type " + className );
 		return QVariant();
 	}

@@ -46,12 +46,7 @@ public:
     QWebPluginFactory* GetWebPluginFactory() const { return page()->pluginFactory(); } 
     void SetPageSize( int w, int h ) { page()->setViewportSize( QSize( w, h ) ); }
     QSize PageSize() const { return page()->viewportSize(); }
-    void SaveSnapshot( const QString& filePath, int quality = -1 ) const {
-        QPixmap p( page()->viewportSize() );
-       	QPainter painter( &p );
-        page()->mainFrame()->render( &painter, QWebFrame::ContentsLayer );
-        p.save( filePath, 0, quality );
-    }
+    void SaveSnapshot( const QString& filePath, int quality = -1 ) const;
     QPixmap Snapshot() const {
 	    QPixmap p( page()->viewportSize() );
 	    QPainter painter( &p );
@@ -59,19 +54,7 @@ public:
 	    return p;
     }
     QString SavePDF( const QString& filePath, const QVariantMap& options = QVariantMap() ) const;
-    bool SyncLoad( const QUrl& url, int timeout ) {
-        QEventLoop loop;
-    	QObject::connect( this, SIGNAL( loadFinished( bool ) ), this, SLOT( OnLoadFinished( bool ) ) );
-    	syncLoadOK_ = false;
-       	load( url );
-        // soft real-time guarantee: kill network request if the total time is >= timeout
-    	QTimer::singleShot( timeout, &loop, SLOT( quit() ) );
-    	// Execute the event loop here, now we will wait here until readyRead() signal is emitted
-    	// which in turn will trigger event loop quit.
-    	loop.exec();
-    	QObject::disconnect( this, SIGNAL( loadFinished( bool ) ), this, SLOT( OnLoadFinished( bool ) ) );
-    	return syncLoadOK_;
-    }
+    bool SyncLoad( const QUrl& url, int timeout );
     bool SyncLoad( const QString& url, int timeout ) {
     	return SyncLoad( QUrl( TranslateUrl( url ) ), timeout );
     }
@@ -118,32 +101,8 @@ private:
     	else if( urlString.startsWith( '/' ) ) return QUrl( "file://" + urlString );
     	else return QUrl( "file://" + QDir::currentPath() + "/" + urlString );
     }
-    void AddToUrlQuery( QUrl& url, const QVariantMap& q ) {
-        for( QVariantMap::const_iterator i = q.begin(); i != q.end(); ++i ) {
-        	if( i.value().type() != QVariant::List ) {
-    	        url.addQueryItem( i.key(), i.value().toString() );
-        	} else {
-        		QVariantList m = i.value().toList();
-        		for( QVariantList::const_iterator k = m.begin(); k != m.end(); ++k ) {
-        			url.addQueryItem( i.key(), ( *k ).toString() );
-        		}
-        	}
-    	}
-    }
-    QUrl ConfigureURL( const QString& urlString, const QVariantMap& opt ) {
-    	QUrl url( TranslateUrl( urlString ) );
-    	if( opt.contains( "query_delimiters" ) ) {
-    		url.setQueryDelimiters( opt[ "query_delimiters" ].toList().at( 0 ).toChar().toAscii(),
-    				                opt[ "query_delimiters" ].toList().at( 1 ).toChar().toAscii() );
-    	}
-		if( opt.contains( "username" ) ) url.setUserName( opt[ "username" ].toString() );
-		if( opt.contains( "password" ) ) url.setPassword( opt[ "password" ].toString() );
-		if( opt.contains( "port" ) ) url.setPort( opt[ "port" ].toInt() );
-		if( !opt.contains( "query" ) ) return url;
-		QVariantMap q = opt[ "query" ].toMap();
-		AddToUrlQuery( url, q );
-		return url;
-    }
+    void AddToUrlQuery( QUrl& url, const QVariantMap& q );
+    QUrl ConfigureURL( const QString& urlString, const QVariantMap& opt );
 protected:
 
 	void closeEvent( QCloseEvent* e ) {

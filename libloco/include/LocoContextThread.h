@@ -6,7 +6,6 @@
 #include <QVariant>
 #include <QStringList>
 
-#include "LocoContext.h"
 #include "LocoJSContext.h"
 
 namespace loco {
@@ -44,7 +43,6 @@ private:
     QStringList filters_;
     Object obj_;
     QVariant data_;
-    mutable bool threadSet_;
     mutable quint64 threadId_;
 };
 
