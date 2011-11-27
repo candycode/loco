@@ -57,7 +57,7 @@ function createArray( size, f ) {
 var i = 0;
 var SIZE = 4096 * 4096;
 var array = createArray( SIZE, function( v ){ return 2 * v; } );
-var NUM_THREADS = 4;
+var NUM_THREADS = 8;
 var storage = ctx.data();
 storage.data = {"array": array};
 var threads = createThreads( NUM_THREADS, storage );
@@ -79,7 +79,7 @@ var threadFun =
   return ( sys.clock() - clocks ) / sys.CLOCKS_PER_SECOND; \
 }";
 
-
+print( "Number of logical processors: " + Loco.sys.cpuCount() );
 var start = Loco.sys.clock();
 for( i = 0; i != NUM_THREADS; ++i ) {
   threads[ i ].eval( "(" + threadFun + ")" + "("+"{id:"+i+",span:"+SPAN+"}"+")" );
@@ -87,7 +87,7 @@ for( i = 0; i != NUM_THREADS; ++i ) {
 
 barrier( threads );
 var elapsed = ( Loco.sys.clock() - start ) / Loco.sys.CLOCKS_PER_SECOND; 
-print( elapsed );
+print( NUM_THREADS + " threads - elapsed time: " + elapsed );
 
 for( i = 0; i != NUM_THREADS; ++i ) {
   print( "Thread " + i + "(" + threads[ i ].id + ")\t elapsed time: " + threads[ i ].result + "\tarray[0] = " + threads[ i ].data[ 0 ] );
@@ -98,10 +98,11 @@ var me = {};
 var inarray = storage.data.array;
 var sys = Loco.sys;
 var elapsed = ctx.eval( "(" + threadFun + ")" + "("+"{id:"+0+",span:"+inarray.length+"}"+")" );
+print( "\nSingle thread elapsed time: " + elapsed );
 for( i = 0; i != NUM_THREADS; ++i ) {
-  print( me.data[ SPAN * i ] );
+  print( "array[" + SPAN * i + "] = " +  me.data[ SPAN * i ] );
 } 
-print( "Elapsed: " + elapsed );
+
 
 //==============================================================================
 exit(0); //FOR NON-GUI APPS ONLY
