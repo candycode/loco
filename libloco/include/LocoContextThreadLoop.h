@@ -21,7 +21,7 @@ class ContextThreadLoop : public QThread {
 public:
     ContextThreadLoop() : obj_( 0, "LocoContextThreadLock", "/loco/sys/thread" ), threadId_( 0 ), exit_( false )  {}
     void run() {
-    	threadId_ = currentThreadId();
+    	threadId_ = reinterpret_cast< quint64 >( currentThreadId() );
     	dataMutex_.lock();
     	while( true ) {
     	    evalMutex_.lock();

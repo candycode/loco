@@ -18,7 +18,7 @@ class ContextThread : public QThread {
 public:
     ContextThread() : obj_( 0, "LocoContextThread", "/loco/sys/thread" ), threadId_( 0 )  {}
     void run() {
-    	threadId_ = currentThreadId();
+    	threadId_ = reinterpret_cast< quint64 >( currentThreadId() );
         result_ = ctx_->eval( code_, filters_ );
     }
     QString JSInstanceName() const { return obj_.jsInstanceName(); }

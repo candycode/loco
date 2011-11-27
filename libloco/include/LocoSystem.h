@@ -132,7 +132,7 @@ public slots:
 	  sleepMutex_.lock();
       sleepWCond_.wait( &sleepMutex_, ms );
     }
-	int cpuCount() const;
+	int cpuCount() const { return QThread::idealThreadCount(); }
 	quint64 threadId() const { return quint64( QThread::currentThreadId() ); }
 	quint64 clock() const { return quint64( ::clock() ); }
 	quint64 clocksPerSecond() const { return CLOCKS_PER_SEC; }
