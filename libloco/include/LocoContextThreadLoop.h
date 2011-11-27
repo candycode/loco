@@ -21,19 +21,20 @@ class ContextThreadLoop : public QThread {
 public:
     ContextThreadLoop() : obj_( 0, "LocoContextThreadLock", "/loco/sys/thread" ), threadId_( 0 ), exit_( false )  {}
     void run() {
+		dataMutex_.lock();
     	threadId_ = reinterpret_cast< quint64 >( currentThreadId() );
-    	dataMutex_.lock();
-    	while( true ) {
-    	    evalMutex_.lock();
-    	    startEvaluation_.wait( &evalMutex_ );
+		QMutex evalMutex;
+		while( true ) {
+    	    evalMutex.lock();
+    	    startEvaluation_.wait( &evalMutex );
     	    if( exit_ ) {
-    	    	evalMutex_.unlock();
+    	    	evalMutex.unlock();
     	    	break;
     	    }
     	    dataMutex_.tryLock();
     	    result_ = ctx_->eval( code_, filters_ );
     	    dataMutex_.unlock();
-    	    evalMutex_.unlock();
+    	    evalMutex.unlock();
     	}
     }
     QString JSInstanceName() const { return obj_.jsInstanceName(); }
@@ -68,7 +69,6 @@ private:
     void start() { QThread::start(); }
 private:
     QWaitCondition startEvaluation_;
-    mutable QMutex evalMutex_;
     mutable QMutex dataMutex_;
     bool exit_;
     QPointer< JSContext > ctx_;
