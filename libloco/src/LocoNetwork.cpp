@@ -4,6 +4,7 @@
 #include <QNetworkRequest>
 #include <QNetworkReply>
 #include <QTimer>
+#include <QBuffer>
 
 #include "LocoNetwork.h"
 #include "LocoContext.h"
@@ -80,6 +81,49 @@ QVariantMap Http::head( const QString& urlString, int timeout, const QVariantMap
     reply[ "headers" ] = headers;
     return reply;
 }
+
+
+QVariantMap Http::request( const QString& urlString,
+	                       const QByteArray& verb,
+    		               int timeout,
+	                       const QVariantMap& opt,
+	                       const QByteArray& data ) {
+	QEventLoop loop;
+	QVariantMap reply;
+	QUrl url = ConfigureURL( urlString, opt );
+	QObject::connect( nam_, SIGNAL( finished( QNetworkReply*) ), &loop, SLOT( quit() ) );
+	// soft real-time guarantee: kill network request if the total time is >= timeout
+	QTimer::singleShot( timeout, &loop, SLOT( quit() ) );
+	QNetworkRequest request;
+	request.setUrl( url );
+	if( opt.contains( "headers" ) ) ConfigureHeaders( request, opt[ "headers" ].toMap() );
+	QBuffer datain;
+	datain.setData( data );
+	QNetworkReply* nr = nam_->sendCustomRequest( request, verb, &datain );
+	// Execute the event loop here, now we will wait here until readyRead() signal is emitted
+	// which in turn will trigger event loop quit.
+	loop.exec();
+	if( nr->error() != QNetworkReply::NoError ) {
+		error( nr->errorString() );
+		return reply;
+	}
+	if( !nr->isFinished() ) {
+		error( "Network request timeout" );
+		return reply;
+	}
+	reply[ "content" ] = nr->readAll();
+	QVariantMap headers;
+	typedef QList< QByteArray > HEADERS;
+	HEADERS rawHeaders = nr->rawHeaderList();
+	for( HEADERS::const_iterator i = rawHeaders.begin(); i != rawHeaders.end(); ++i ) {
+		if( nr->hasRawHeader( *i ) ) {
+			headers[ QString( *i ) ] = QString( nr->rawHeader( *i ) );
+		}
+	}
+	reply[ "headers" ] = headers;
+	return reply;
+}
+
 
 QVariantMap Http::post( const QString& urlString,
 		                int timeout,

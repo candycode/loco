@@ -25,6 +25,11 @@ public slots:
     		          const QByteArray& data,
     		          const QVariantMap& opt = QVariantMap() );
     QVariantMap head( const QString& urlString, int timeout, const QVariantMap& opt = QVariantMap() );
+    QVariantMap request( const QString& urlString,
+	                     const QByteArray& verb,
+    		             int timeout,
+	                     const QVariantMap& opt = QVariantMap(),
+	                     const QByteArray& data = QByteArray() );
 private:
     QPointer< NetworkAccessManager > nam_;
 };
