@@ -73,18 +73,42 @@ var threadFun =
   return ( sys.clock() - clocks ) / sys.CLOCKS_PER_SECOND; \
 }";
 
-for( i = 0; i != NUM_THREADS; ++i ) {
-  threads[ i ].startLoop();
-}
+// explicitly start loops
+//for( i = 0; i != NUM_THREADS; ++i ) {
+//  print( threads[ i ].running() );
+//  threads[ i ].startLoop(); // guarantees that the thread starts and waits at the wait condition 
+//  print( threads[ i ].running() );
+//}
 
+// start asynchronous evaluation on mutliple threads
+// startLoop() is automatically called if thread not yet started
 for( i = 0; i != NUM_THREADS; ++i ) {
   threads[ i ].eval( "(" + threadFun + ")" + "("+"{id:"+i+",span:"+SPAN+"}"+")" );
 }
 
+// explicitly sync
+//for( i = 0; i != NUM_THREADS; ++i ) {
+//  threads[ i ].sync();
+//}
+
+// future-like behavior: synchronization performed if/when required at data access time
+var outarray = new Array( NUM_THREADS );
+var times = new Array( NUM_THREADS );
+for( i = 0; i != NUM_THREADS; ++i ) {
+  outarray[ i ] = threads[ i ].data[ 0 ];
+  times[ i ]    =  threads[ i ].result;
+}
+ 
 for( i = 0; i != NUM_THREADS; ++i ) {
   print( "Thread " + i + "(" + threads[ i ].id + ")\t elapsed time: " + 
-         threads[ i ].result + "\tarray[0] = " + threads[ i ].data[ 0 ] );
-} 
+         times[ i ] + "\tarray[0] = " + outarray[ i ] );
+}
+
+// stop threads
+//for( i = 0; i != NUM_THREADS; ++i ) {
+//  //stop thread i: wait up to 5000 micro seconds (5 ms) for the thread to stop
+//  if( !threads[ i ].stopLoop( 5000 ) ) throw "Error stopping thread " + i;
+//}
 
 // recreate environment found in threads
 var me = {};

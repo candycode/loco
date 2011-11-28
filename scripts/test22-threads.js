@@ -38,7 +38,7 @@ function createThreads( numThreads, storage ) {
     threadContext = ctx.create( "QtScriptContext" );
     threadContext.addObject( Loco.console, "terminal" );
     threadContext.addObject( storage, "storage" );
-    threadContext.eval( "var inarray = storage.data.array.splice(0)" );
+    threadContext.eval( "var inarray = storage.data.array;/*.splice(0)*/" );
     threadContext.addObject( Loco.sys, "sys" );
     threadContext.onError.connect( err );
     var p = threads.push( ctx.create( "ContextThread" ) ) - 1;
@@ -57,7 +57,7 @@ function createArray( size, f ) {
 var i = 0;
 var SIZE = 4096 * 4096;
 var array = createArray( SIZE, function( v ){ return 2 * v; } );
-var NUM_THREADS = 8;
+var NUM_THREADS = 4;
 var storage = ctx.data();
 storage.data = {"array": array};
 var threads = createThreads( NUM_THREADS, storage );
@@ -89,9 +89,18 @@ barrier( threads );
 var elapsed = ( Loco.sys.clock() - start ) / Loco.sys.CLOCKS_PER_SECOND; 
 print( NUM_THREADS + " threads - elapsed time: " + elapsed );
 
+// future-like behavior: synchronization performed if/when required at data access time
+var outarray = new Array( NUM_THREADS );
+var times = new Array( NUM_THREADS );
 for( i = 0; i != NUM_THREADS; ++i ) {
-  print( "Thread " + i + "(" + threads[ i ].id + ")\t elapsed time: " + threads[ i ].result + "\tarray[0] = " + threads[ i ].data[ 0 ] );
-} 
+  outarray[ i ] = threads[ i ].data[ 0 ];
+  times[ i ]    =  threads[ i ].result;
+}
+ 
+for( i = 0; i != NUM_THREADS; ++i ) {
+  print( "Thread " + i + "(" + threads[ i ].id + ")\t elapsed time: " + 
+         times[ i ] + "\tarray[0] = " + outarray[ i ] );
+}
 
 // recreate environment found in threads
 var me = {};
