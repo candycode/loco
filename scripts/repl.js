@@ -2,7 +2,7 @@ try {
 
 var buffer = "",
     line = "",
-    checker = Loco.syntaxchecker,
+    checker = Loco.syntaxChecker,
     print = Loco.console.println,
     history = [],
     evalResult;
