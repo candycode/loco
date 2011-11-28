@@ -21,40 +21,45 @@ class ContextThreadLoop : public QThread {
 public:
     ContextThreadLoop() : obj_( 0, "LocoContextThreadLock", "/loco/sys/thread" ), threadId_( 0 ), exit_( false )  {}
     void run() {
-		dataMutex_.lock();
-    	threadId_ = reinterpret_cast< quint64 >( currentThreadId() );
-		QMutex evalMutex;
+		threadId_ = quint64( currentThreadId() );
 		while( true ) {
-    	    evalMutex.lock();
-    	    startEvaluation_.wait( &evalMutex );
+    	    evalMutex_.lock();
+    	    startEvaluation_.wait( &evalMutex_ );
+    	    // this is to guarantee that the evalMutex has been acquired before eval() returns
+    	    evaluationStarted_.wakeOne();
     	    if( exit_ ) {
-    	    	evalMutex.unlock();
+    	    	evalMutex_.unlock();
     	    	break;
     	    }
-    	    dataMutex_.tryLock();
     	    result_ = ctx_->eval( code_, filters_ );
-    	    dataMutex_.unlock();
-    	    evalMutex.unlock();
+    	    evalMutex_.unlock();
     	}
     }
     QString JSInstanceName() const { return obj_.jsInstanceName(); }
     QVariant GetResult() const {
-    	QMutexLocker ml( &dataMutex_ );
+    	QMutexLocker ml( &evalMutex_ );
     	const QVariant result = result_;
     	return result;
     }
     quint64 GetThreadId() const { return threadId_; }
     void SetData( const QVariant& d ) { data_ = d; }
     QVariant GetData() const {
-    	QMutexLocker ml( &dataMutex_ );
+    	QMutexLocker ml( &evalMutex_ );
     	const QVariant data = data_;
     	return data;
     }
 public slots:
    void eval( const QString& code, const QStringList& filters = QStringList() ) {
+	    evalMutex_.lock();
 	    code_ = code;
     	filters_ = filters;
+    	evalMutex_.unlock();
+    	QMutexLocker ml( &evalStartMutex_ );
+    	//start evaluation
     	startEvaluation_.wakeOne();
+    	//wait for confirmation that evaluation has started and that
+    	//evalMutex_ has been acquired by worker thread
+    	evaluationStarted_.wait( &evalStartMutex_ );
     }
     void setContext( QObject* ctx ) {
     	ctx_ = qobject_cast< JSContext* >( ctx );
@@ -62,14 +67,16 @@ public slots:
     void startLoop() { exit_ = false; start(); }
     void stopLoop() { exit_ = true; startEvaluation_.wakeOne(); }
     void sync() {
-    	dataMutex_.lock();
-    	dataMutex_.unlock();
+    	evalMutex_.lock();
+    	evalMutex_.unlock();
     }
 private:
     void start() { QThread::start(); }
 private:
     QWaitCondition startEvaluation_;
-    mutable QMutex dataMutex_;
+    QWaitCondition evaluationStarted_;
+    mutable QMutex evalStartMutex_;
+    mutable QMutex evalMutex_;
     bool exit_;
     QPointer< JSContext > ctx_;
     QVariant result_;

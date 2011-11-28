@@ -31,7 +31,7 @@ function createThreads( numThreads, storage ) {
     threadContext.addObject( Loco.console, "terminal" );
     threadContext.addObject( storage, "storage" );
     threadContext.addObject( Loco.sys, "sys" );
-    threadContext.eval( "var inarray = storage.data.array.splice(0)" );
+    threadContext.eval( "var inarray = storage.data.array;/*.splice(0)*/" );
     threadContext.onError.connect( err );
     var p = threads.push( ctx.create( "ContextThreadLoop" ) ) - 1;
     threads[ p ].setContext( threadContext );
@@ -56,7 +56,9 @@ var threads = createThreads( NUM_THREADS, storage );
 var SPAN = array.length / NUM_THREADS;
 
 
+print( "Number of logical processors: " + Loco.sys.cpuCount() );
 print( "Main thread id: " + Loco.sys.threadId() );
+print( threads.length + " threads" );
 
 var threadFun =
 "function( datain ) { \
@@ -88,11 +90,12 @@ for( i = 0; i != NUM_THREADS; ++i ) {
 var me = {};
 var inarray = storage.data.array;
 var sys = Loco.sys;
+print( "\nsingle thread" );
 var elapsed = ctx.eval( "(" + threadFun + ")" + "("+"{id:"+0+",span:"+inarray.length+"}"+")" );
 for( i = 0; i != NUM_THREADS; ++i ) {
-  print( me.data[ SPAN * i ] );
+  print( "array[" + SPAN * i + "] = " + me.data[ SPAN * i ] );
 } 
-print( "Elapsed: " + elapsed );
+print( "elapsed time: " + elapsed );
 
 //==============================================================================
 exit(0); //FOR NON-GUI APPS ONLY
