@@ -21,10 +21,24 @@ Loco.ctx.javaScriptConsoleMessage.connect(
  } );
 //==============================================================================
 
-// YOUR CODE HERE
+var http = Loco.net.create( "Http" );
+var reply = http.get( "http://www.marinij.com", 10000 );
+var headers = "";
+for( var h in reply.headers ) {
+  headers +=  h + ": ";
+  if( reply.headers[ h ] ) headers += reply.headers[ h ];
+  headers += "\n";
+}
+if( headers.length > 0 ) fwrite( "test24-output-headers.txt", headers );
+fwrite( "test24-output.html", reply.content );
+if( Loco.gui ) {
+  var ww = Loco.gui.create( "WebWindow" );
+  ww.load( "test24-output.html" ); 
+  ww.show();
+}
 
 //==============================================================================
-//exit(0); //FOR NON-GUI APPS ONLY
+if( !Loco.gui ) exit(0);
 
 } catch( e ) {
   if( e.message ) Loco.console.printerrln( e.message );

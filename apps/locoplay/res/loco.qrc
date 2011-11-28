@@ -9,6 +9,8 @@
   <file>biwascheme/biwascheme-min.js</file>
   <file>browser.js</file>
   <file>rccexec.js</file>
+  <file>json2.js</file>
+  <file>JsonXml.js</file>
 </qresource>
 <qresource prefix="/loco">
   <file alias="main">main.js</file>

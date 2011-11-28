@@ -14,8 +14,10 @@ class DefaultJSInit : public IJavaScriptInit {
 public:
     DefaultJSInit( Context* ctx ) : ctx_( ctx ) {
         dictionary_[ "Context"    ] = "ctx";
-        dictionary_[ "FileSystem"] = "fs";
-        dictionary_[ "System"     ] = "sys";  
+        dictionary_[ "FileSystem" ] = "fs";
+        dictionary_[ "System"     ] = "sys";
+        dictionary_[ "Network"    ] = "net";
+        dictionary_[ "GUI"        ] = "gui";
     }
     void SetContext( Context* ctx ) { ctx_ = ctx; }    
     QString GenerateCode( bool append = false ) const {
@@ -60,7 +62,10 @@ private:
             QString cap = r.cap( 1 );
             Dictionary::const_iterator i = dictionary_.find( cap );
             if( i != dictionary_.end() ) return i.value();
-            else return cap.toLower(); 
+            else {
+            	cap[ 0 ] = cap[ 0 ].toLower();
+            	return cap;
+            }
         }
         else return n; 
     }

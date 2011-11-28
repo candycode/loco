@@ -116,17 +116,19 @@ set( MOC_HEADERS
   ${LOCO_WKIT_MOC_HEADERS} ${LOCO_GUI_MOC_HEADERS}
   ${LOCO_SCRIPT_MOC_HEADERS} ${LOCO_JS_SYNTAX_CHECKER_MOC_HEADERS}
   ${LINC}/LocoScriptNetworkRequestHandler.h ${LINC}/LocoContextThread.h 
-  ${LINC}/LocoDataType.h ${LINC}/LocoContextThreadLoop.h ) 
+  ${LINC}/LocoDataType.h ${LINC}/LocoContextThreadLoop.h
+  ${LINC}/LocoNetwork.h ) 
 
 QT4_WRAP_CPP( MOC_SRCS ${MOC_HEADERS} ) 
 
 # Lib 
 set( SRCS ${LSRC}/LocoObject.cpp  ${LOCO_FSYSTEM_SRCS} ${LOCO_WKIT_SRCS} ${LSRC}/LocoApp.cpp
      ${LOCO_SYSTEM_SRCS} ${LOCO_GUI_SRCS} ${LSRC}/LocoContext.cpp ${LSRC}/LocoNetworkAccessManager.cpp
-     ${LSRC}/LocoScriptFilter.cpp )    
+     ${LSRC}/LocoScriptFilter.cpp ${LSRC}/LocoNetwork.cpp ${LSRC}/LocoURLUtility.cpp )    
     
 set( SRCS_INCLUDE ${MOC_HEADERS} ${LOCO_WKIT_HEADERS} ${LOCO_FSYSTEM_INCLUDE} 
-     ${LINC}/LocoDefaultJSInit.h ${LINC}/LocoApp.h ${LINC}/LocoINetworkRequestHandler.h )
+     ${LINC}/LocoDefaultJSInit.h ${LINC}/LocoApp.h ${LINC}/LocoINetworkRequestHandler.h
+     ${LINC}/LocoURLUtility.h )
 
 ####CONFIGURE LIBRARY
 if(LOCO_DYNAMIC)

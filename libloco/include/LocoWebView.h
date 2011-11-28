@@ -19,6 +19,8 @@
 #include <QDir>
 
 #include "LocoWebPage.h"
+#include "LocoURLUtility.h"
+
 
 class QWebPluginFactory;
 
@@ -95,16 +97,8 @@ private slots:
     	emit onFrameCreated( wf );
     }
 	void OnActionTriggered( QWebPage::WebAction, bool );
-private:
-    QUrl TranslateUrl( const QString& urlString ) {
-    	if( urlString.contains( "://" ) ) return QUrl( urlString );
-    	else if( urlString.startsWith( '/' ) ) return QUrl( "file://" + urlString );
-    	else return QUrl( "file://" + QDir::currentPath() + "/" + urlString );
-    }
-    void AddToUrlQuery( QUrl& url, const QVariantMap& q );
-    QUrl ConfigureURL( const QString& urlString, const QVariantMap& opt );
-protected:
 
+protected:
 	void closeEvent( QCloseEvent* e ) {
 		QWebView::closeEvent( e );
 		emit closing();

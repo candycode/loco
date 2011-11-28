@@ -22,6 +22,9 @@ public slots:
     QVariant tmpFile( const QString& = QString() ) const;
     QByteArray fread( const QString& fname ) const;
     bool fwrite( const QString& fname, const QByteArray& data, bool append = false ) const;
+    bool fwrite( const QString& fname, const QString& data, bool append = false ) const {
+    	return this->fwrite( fname, QByteArray( data.toAscii() ), append );
+    }
     QVariant fopen( const QString& fname, const QStringList& mode ) const;
     QVariant dir( const QString& dirPath = "" ) const;
     QVariant watcher( const QString& path = "" ) const;

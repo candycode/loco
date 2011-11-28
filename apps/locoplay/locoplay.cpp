@@ -27,6 +27,7 @@
 #ifdef LOCOPLAY_JS_SYNTAX_CHECKER
 #include <LocoJSSyntaxChecker.h>
 #endif
+#include <LocoNetwork.h>
 
 #include <LocoAppConfig.h>
 
@@ -83,6 +84,7 @@ int main(int argc, char *argv[])
 #ifdef LOCOPLAY_NETWORK
 		app.SetAllowNetAccess( true );
 		app.SetFilterNetRequests( false );
+		app.AddModuleToJS( new Network );
 #endif
 #ifdef LOCO_WKIT
 		const QString& CS = ":/coffee/coffee-script.js";

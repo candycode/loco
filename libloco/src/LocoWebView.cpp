@@ -228,35 +228,6 @@ bool WebView::SyncLoad( const QUrl& url, int timeout ) {
 	return syncLoadOK_;
 }
 
-void WebView::AddToUrlQuery( QUrl& url, const QVariantMap& q ) {
-	for( QVariantMap::const_iterator i = q.begin(); i != q.end(); ++i ) {
-		if( i.value().type() != QVariant::List ) {
-			url.addQueryItem( i.key(), i.value().toString() );
-		} else {
-			QVariantList m = i.value().toList();
-			for( QVariantList::const_iterator k = m.begin(); k != m.end(); ++k ) {
-				url.addQueryItem( i.key(), ( *k ).toString() );
-			}
-		}
-	}
-}
-
-QUrl WebView::ConfigureURL( const QString& urlString, const QVariantMap& opt ) {
-	QUrl url( TranslateUrl( urlString ) );
-	if( opt.contains( "query_delimiters" ) ) {
-		url.setQueryDelimiters( opt[ "query_delimiters" ].toList().at( 0 ).toChar().toAscii(),
-								opt[ "query_delimiters" ].toList().at( 1 ).toChar().toAscii() );
-	}
-	if( opt.contains( "username" ) ) url.setUserName( opt[ "username" ].toString() );
-	if( opt.contains( "password" ) ) url.setPassword( opt[ "password" ].toString() );
-	if( opt.contains( "port" ) ) url.setPort( opt[ "port" ].toInt() );
-	if( !opt.contains( "query" ) ) return url;
-	QVariantMap q = opt[ "query" ].toMap();
-	AddToUrlQuery( url, q );
-	return url;
-}
-
-
 }
 /*
 QPrinter::A0	5	841 x 1189 mm
