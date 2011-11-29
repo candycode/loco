@@ -1,7 +1,14 @@
-#profile
-  .left.column
-    #date= print_date() + " is " + Date()
-    #address= current_user.address
-  .right.column
-    #email= current_user.email
-    #bio= current_user.bio
+!!! XHTML 5
+!!! strict
+%html{ xmlns: "http://www.w3.org/1999/xhtml" }
+  %head
+    %title Sample haml template
+  %body
+    .profile
+      .left.column
+        #date= print_date() + Date()
+        #address= current_user.address
+      .right.column
+        #email= current_user.email
+        #bio= current_user.bio
+        %strong{class: "code", id: "message"} Hello, World!

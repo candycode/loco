@@ -20,12 +20,16 @@ Loco.ctx.javaScriptConsoleMessage.connect(
    print( msg + " at line " + line );
  } );
 //==============================================================================
-include(":/json2.js");
-include("../filters/haml.js");
-print_date = function () { return "today";};
-var current_user = { address: "my address", email: "e@ma.il", bio: "bio" };
-var ww = Loco.gui.create( "WebWindow" );
-ww.setHtml( Haml.render( Loco.ctx.read( "test25-haml.haml" ) ) );
+
+include(':/json2.js');
+include('../filters/haml.js');
+print_date = function () { return 'today: ';};
+var ww = Loco.gui.create( 'WebWindow' );
+var hamlText = Loco.ctx.read( 'test25-haml.haml' );
+var current_user = { address: 'my address', email: 'e@ma.il', bio: 'bio', hamlCode: hamlText };
+ww.setAttributes( {DeveloperExtrasEnabled: true} );                  
+ww.setEnableContextMenu( true );
+ww.setHtml( Haml.render( hamlText ) );
 ww.show();
 
 //==============================================================================
