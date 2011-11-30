@@ -69,12 +69,14 @@ public:
     Network() : Object( 0, "LocoNetwork", "/Loco/Network" ) {}
 public slots:
     QVariant create( const QString& );
-    qint64 tcpSend( int socket, const QByteArray& data ) {
-    	tcpSocket_.reset();
-    	tcpSocket_.setSocketDescriptor( socket );
-    	return tcpSocket_.write( data );
+	int tcpSend( int socket, const QString& data ) {
+		QTcpSocket tcpSocket;
+    	tcpSocket.setSocketDescriptor( socket );		
+		qint64 n = tcpSocket.write( data.toAscii() );
+		tcpSocket.flush();
+		return int( n );
     }
-    QByteArray tcpRead( int socket ) {
+    QByteArray tcpRecv( int socket ) {
     	tcpSocket_.reset();
         tcpSocket_.setSocketDescriptor( socket );
         return tcpSocket_.readAll();

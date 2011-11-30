@@ -29,7 +29,8 @@ function fortune() {
                   "You might have mail.",
                   "You cannot kill time without injuring eternity.",
                   "Computers are not intelligent. They only think they are."];
-  //net.tcpSend( socket, fortunes[ Math.random() * fortunes.length ] );
+  
+  net.tcpSend( socket, fortunes[ Math.floor( Math.random() * fortunes.length ) ] );  
 };
 
 include( "cmdline2json.js" );
@@ -39,16 +40,18 @@ var cmdLine = cmdLineToJSON( Loco.ctx.commandLine );
 if( !cmdLine[ "-port" ] ) throw "Error '-port' required";
 if( cmdLine[ "-server" ] ) {
   var tcpServer = Loco.net.create( "tcp-server" );
-  if( !tcpServer.listen( "127.0.0.1", cmdLine[ "-port" ]  ) ) throw "Listen error";
   tcpServer.connectionRequest.connect( function( socket ) {
-      print( "connected" );
-      var thread = Loco.sys.create( "ContextThread" );
-      thread.addObject( Loco.net, "net" );
-      thread.context = Loco.ctx.create( "QtScriptContext" );
-      thread.context.eval( "socket = " + socket );
+      var thread = Loco.ctx.create( "ContextThread" );
+      var context = Loco.ctx.create( "QtScriptContext" );
+      context.addObject( Loco.net, "net" );
+      context.addObject( Loco.console, "terminal" );
+      context.eval( "socket = " + socket + ";" );
+      thread.setContext( context );
       thread.execute( fortune );
-    } );
-    print( "Listening on port " + cmdLine[ "-port" ] ); 
+      //thread.eval( "(" + fortune.toString() + ")()" );
+  } );
+  if( !tcpServer.listen( cmdLine[ "-port" ]  ) ) throw "Listen error";
+  print( "Listening on port " + cmdLine[ "-port" ] ); 
 } else {
     /*var tcp = Loco.net.create( "tcp-socket" );
     tcp.connectTo( "localhost", cmdLine[ "-port" ], "read" );

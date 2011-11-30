@@ -41,8 +41,8 @@ public slots:
     void setContext( QObject* ctx ) {
     	ctx_ = qobject_cast< JSContext* >( ctx );
     }
-    void execute( const QString& code, const QStringList& filters = QStringList() ) {
-    	eval( code, filters );
+    void execute( const QString& f ) {
+    	eval( "(" + f + ")()" );
     }
     bool sync( unsigned long usTimeout = -1) { return wait( usTimeout ); }
 private:
