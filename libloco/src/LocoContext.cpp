@@ -73,7 +73,7 @@ void Context::Init( IJSInterpreter* jsi, LocoQtApp* app, const QStringList& cmdL
     
     
     connect( jsInterpreter_.data(), SIGNAL( JavaScriptContextCleared() ),
-         this, SLOT( OnJSContextCleared() ) );
+             this, SLOT( OnJSContextCleared() ) );
 
     // all objects are set as children of this context and will therefore be
     // automatically deleted when the context is destroyed
