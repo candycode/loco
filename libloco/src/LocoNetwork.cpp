@@ -169,7 +169,13 @@ QVariant Network::create( const QString& name ) {
 		if( !GetContext()->GetNetworkAccessManager() ) throw std::runtime_error( "NULL Network Access Manager" );
         Http* http = new Http( qobject_cast< NetworkAccessManager* >( GetContext()->GetNetworkAccessManager() ) );
 		return GetContext()->AddObjToJSContext( http );
-	} else {
+	} else if( name == "tcp-server" ) {
+       TcpServer* tcp = new TcpServer;
+       return GetContext()->AddObjToJSContext( tcp );
+	} /*else if( name == "tcp-socket" ) {
+	   TcpSocket* tcp = new TcpSocket;
+	   return GetContext()->AddObjToJSContext( tcp );
+	}*/ else {
 		error( "Unknown type " + name );
 		return QVariant();
 	}

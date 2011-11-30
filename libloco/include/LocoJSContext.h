@@ -9,7 +9,7 @@ class JSContext : public Object {
     Q_OBJECT
     Q_PROPERTY( QString code READ code )
     Q_PROPERTY( bool storeCode READ storeCode WRITE storeCode )
-    Q_PROPERTY( QStringList cmdLine READ cmdLine )
+    Q_PROPERTY( QStringList commandLine READ cmdLine )
 public:
     JSContext( Context* ctx ) : Object( 0, "LocoContext", "Loco/Context" ),
     ctx_( ctx )  {

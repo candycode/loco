@@ -5,6 +5,8 @@
 #include <QVariant>
 #include <QVariantMap>
 #include <QPointer>
+#include <QTcpServer>
+#include <QTcpSocket>
 
 #include "LocoObject.h"
 #include "LocoNetworkAccessManager.h"
@@ -34,12 +36,51 @@ private:
     QPointer< NetworkAccessManager > nam_;
 };
 
+class TcpSocketServer : public QTcpServer {
+	Q_OBJECT
+protected:
+	void incomingConnection( int socket ) {
+		emit connectionRequest( socket );
+	}
+signals:
+	void connectionRequest( int );
+};
+
+class TcpServer : public Object {
+    Q_OBJECT
+public:
+    TcpServer() : Object( 0, "LocoTcpServer", "/Loco/Network/Sockets" ) {
+    	connect( &tcpServer_, SIGNAL( connectionRequest( int ) ), this, SIGNAL( connectionRequest( int ) ) );
+    }
+public slots:
+    bool listen( quint16 port, const QString& address = "any" ) {
+    	///\todo use 'address' parameter
+        return tcpServer_.listen( QHostAddress::Any, port );
+    }
+signals:
+    void connectionRequest( int socket );
+private:
+    TcpSocketServer tcpServer_;
+};
+
 class Network : public Object {
     Q_OBJECT
 public:
     Network() : Object( 0, "LocoNetwork", "/Loco/Network" ) {}
 public slots:
     QVariant create( const QString& );
+    qint64 tcpSend( int socket, const QByteArray& data ) {
+    	tcpSocket_.reset();
+    	tcpSocket_.setSocketDescriptor( socket );
+    	return tcpSocket_.write( data );
+    }
+    QByteArray tcpRead( int socket ) {
+    	tcpSocket_.reset();
+        tcpSocket_.setSocketDescriptor( socket );
+        return tcpSocket_.readAll();
+    }
+private:
+    QTcpSocket tcpSocket_;
 };
 
 }

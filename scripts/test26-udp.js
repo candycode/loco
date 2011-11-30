@@ -1,5 +1,3 @@
-//loco test0-cmdline.js -first first -second s1 -second s2 -third 1 2 3
-
 try {
 var include = Loco.ctx.include,
     print = Loco.console.println,
@@ -22,22 +20,36 @@ Loco.ctx.javaScriptConsoleMessage.connect(
    print( msg + " at line " + line );
  } );
 //==============================================================================
-include("cmdline2json.js");
-var cmdLine = cmdLineToJSON( Loco.ctx.commandLine );
-for( var c in cmdLine ) {
-  Loco.console.print( c + ": " );
-  var values = cmdLine[ c ];
-  for( var i = 0; i != values.length; ++i ) Loco.console.print( values[ i ] + " " );
-  print(); 
+include( "cmdline2json.js" );
+var cmdLine = cmdLinetoJson( Loco.ctx.cmdLine );
+if( !cmdLine[ "-port" ] ) throw "Error '-port' required";
+var udp = Loco.net.create( "udp-socket" );
+var ack = "";
+if( cmdLine[ "-server" ] ) {
+  udp.bind( "localhost", cmdLine[ "-port" ], "DefaultForPlatform" );
+  udp.recv.connect( function( data, sender, senderPort ) {
+      print( data );
+      udp.send( "ok" );
+    } );
+} else {
+  while( true ) {
+    udp.send( readLine(), "localhost", cmdLine[ "-port" ] );
+    ack = udp.recv( "localhost", cmdLine[ "-port" ] );  
+  }
+  // OR
+  //udp.connect( "localhost", cmdLine[ "-port" ], "write" );
+  //while( true ) {
+  //  udp.send( readLine() );
+  //  ack = udp.recv();
+  //  if( ack !== 'ok' ) throw "Communication error";  
+  //}
 }
 //==============================================================================
-exit(0); //FOR NON-GUI APPS ONLY
+//exit(0); //FOR NON-GUI, NON-NETWORK-SERVER APPS ONLY
 
 } catch( e ) {
   if( e.message ) Loco.console.printerrln( e.message );
   else Loco.console.printerrln( e );
   exit( -1 );
 }
-
-
 
