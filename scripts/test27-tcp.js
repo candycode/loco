@@ -42,18 +42,16 @@ if( cmdLine[ "-server" ] ) {
   tcpServer.connectionRequest.connect( function( socket ) {
       var thread = Loco.ctx.create( "ContextThread" );
       thread.autoDestroy = true; 
-      var context = Loco.ctx.create( "QtScriptContext" );
+      thread.context = Loco.ctx.create( "QtScriptContext" );
       // net module must be copied inside the child context
       // to guarantee that sockets are created inside the child
       // context, if only a reference is passed then the created
       // objects live inside the parent (this) context
-      context.addNewObject( Loco.net, "net" );
-      context.addObject( Loco.console, "terminal" );
-      context.addObject( thread, "thisThread" );
-      context.eval( "socket = " + socket + ";" );
-      thread.setContext( context );
-
-      thread.eval( "(" + fortune.toString() + ")()" );
+      thread.context.addNewObject( Loco.net, "net" );
+      thread.context.addObject( Loco.console, "terminal" );
+      thread.context.addObject( thread, "thisThread" );
+      thread.context.eval( "socket = " + socket + ";" );
+      thread.execute( fortune );
   } );
   if( !tcpServer.listen( cmdLine[ "-port" ]  ) ) throw "Listen error";
   print( "Listening on port " + cmdLine[ "-port" ] ); 

@@ -85,11 +85,11 @@ public:
 public slots:
     QByteArray read( quint64 maxSize ) { return socket_->read( maxSize ); }
     void write( QString& data ) { socket_->write( data.toAscii(), data.toAscii().length() ); }
-    quint64 bytesAvailable() const { socket_->bytesAvailable(); }
-    quint64 bytesToWrite() const { socket_->bytesToWrite(); }
+    quint64 bytesAvailable() const { return socket_->bytesAvailable(); }
+    quint64 bytesToWrite() const { return socket_->bytesToWrite(); }
     bool isOpen() const { return socket_->isOpen(); }
     bool waitForRecv( int msTimeout ) {
-    	socket_->waitForReadyRead( msTimeout );
+    	return socket_->waitForReadyRead( msTimeout );
     }
     void setSocketDescriptor( int s ) {
     	socket_->setSocketDescriptor( s );
