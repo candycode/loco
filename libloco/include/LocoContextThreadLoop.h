@@ -18,8 +18,10 @@ class ContextThreadLoop : public QThread {
     Q_PROPERTY( QVariant result READ GetResult )
     Q_PROPERTY( QVariant data READ GetData WRITE SetData )
     Q_PROPERTY( quint64 id READ GetThreadId )
+    Q_PROPERTY( bool autoDestroy READ AutoDestroy WRITE SetAutoDestroy )
 public:
-    ContextThreadLoop() : obj_( 0, "LocoContextThreadLoop", "/loco/sys/thread" ), threadId_( 0 ), exit_( false )  {}
+    ContextThreadLoop() : obj_( 0, "LocoContextThreadLoop", "/loco/sys/thread" ),
+        threadId_( 0 ), exit_( false ), autoDestroy_( false )  {}
     void run() {
 		threadId_ = quint64( currentThreadId() );
 		bool first = true;
@@ -55,6 +57,16 @@ public:
     	const QVariant data = data_;
     	return data;
     }
+    void SetAutoDestroy( bool on ) {
+		if( on ) {
+			connect( this, SIGNAL( finished() ), this, SLOT( deleteLater() ) );
+			autoDestroy_ = true;
+		} else {
+			disconnect( this, SIGNAL( finished() ), this, SLOT( deleteLater() ) );
+			autoDestroy_ = false;
+		}
+	}
+	bool AutoDestroy() const { return autoDestroy_; }
 public slots:
    void eval( const QString& code, const QStringList& filters = QStringList() ) {
 	    if( !running() ) startLoop();
@@ -111,6 +123,7 @@ private:
     Object obj_;
     QVariant data_;
     mutable quint64 threadId_;
+    bool autoDestroy_;
 };
 
 }

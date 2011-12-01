@@ -172,10 +172,10 @@ QVariant Network::create( const QString& name ) {
 	} else if( name == "tcp-server" ) {
        TcpServer* tcp = new TcpServer;
        return GetContext()->AddObjToJSContext( tcp );
-	} /*else if( name == "tcp-socket" ) {
+	} else if( name == "tcp-socket" ) {
 	   TcpSocket* tcp = new TcpSocket;
 	   return GetContext()->AddObjToJSContext( tcp );
-	}*/ else {
+	} else {
 		error( "Unknown type " + name );
 		return QVariant();
 	}

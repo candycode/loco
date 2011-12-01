@@ -21,7 +21,16 @@ Loco.ctx.javaScriptConsoleMessage.connect(
  } );
 //==============================================================================
 
+// this function is parsed and executed in a separate child context
+// inside a separate thread
 function fortune() {
+  terminal.println( "Thread " + thisThread.id ); 
+  terminal.println( "connected" );
+  var tcpSocket = net.create( "tcp-socket" );
+  tcpSocket.socket = socket;
+  terminal.println( "  remote host: " + tcpSocket.peerAddress );
+  terminal.println( "  port:        " + tcpSocket.peerPort );   
+  // taken from Qt's 'fortune' sample code
   var fortunes = ["You've been leading a dog's life. Stay off the furniture.",
                   "You've got to think about tomorrow.",
                   "You will be surprised by a loud noise.",
@@ -29,8 +38,9 @@ function fortune() {
                   "You might have mail.",
                   "You cannot kill time without injuring eternity.",
                   "Computers are not intelligent. They only think they are."];
-  
-  net.tcpSend( socket, fortunes[ Math.floor( Math.random() * fortunes.length ) ] );  
+  tcpSocket.send( fortunes[ Math.floor( Math.random() * fortunes.length ) ] );
+  tcpSocket.flush();
+  tcpSocket.close();
 };
 
 include( "cmdline2json.js" );
@@ -40,26 +50,30 @@ var cmdLine = cmdLineToJSON( Loco.ctx.commandLine );
 if( !cmdLine[ "-port" ] ) throw "Error '-port' required";
 if( cmdLine[ "-server" ] ) {
   var tcpServer = Loco.net.create( "tcp-server" );
+  var arr = new ArrayBuffer( 256 );
+  var v = new Float32Array( arr );
+  v[ 0 ] = 0.123234;
+  tcpServer.testArrayBuffer( v );
   tcpServer.connectionRequest.connect( function( socket ) {
       var thread = Loco.ctx.create( "ContextThread" );
+      thread.autoDestroy = true; 
       var context = Loco.ctx.create( "QtScriptContext" );
       context.addObject( Loco.net, "net" );
       context.addObject( Loco.console, "terminal" );
+      context.addObject( thread, "thisThread" );
       context.eval( "socket = " + socket + ";" );
       thread.setContext( context );
       thread.execute( fortune );
-      //thread.eval( "(" + fortune.toString() + ")()" );
   } );
   if( !tcpServer.listen( cmdLine[ "-port" ]  ) ) throw "Listen error";
   print( "Listening on port " + cmdLine[ "-port" ] ); 
 } else {
-    /*var tcp = Loco.net.create( "tcp-socket" );
-    tcp.connectTo( "localhost", cmdLine[ "-port" ], "read" );
-    print( tcp.recv() );
-    tcp.disconnectFromHost();*/
+    var tcp = Loco.net.create( "tcp-socket" );
+    tcp.connectTo( "localhost", cmdLine[ "-port" ], 3000, "r" );
+    tcp.close();
 }
 //==============================================================================
-//exit(0); //FOR NON-GUI, NON-NETWORK-SERVER APPS ONLY
+if( !cmdLine[ "-server" ] ) exit(0); //FOR NON-GUI, NON-NETWORK-SERVER APPS ONLY
 
 } catch( e ) {
   if( e.message ) Loco.console.printerrln( e.message );
