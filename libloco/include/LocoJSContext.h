@@ -40,6 +40,20 @@ public slots: // js interface
     void addObject( QObject* obj, const QString& jsInstanceName, bool own = false ) {
     	ctx_->AddQObjectToJSContext( obj, jsInstanceName, own );
     }
+    void addNewObject( QObject* qobj, const QString& jsInstanceName ) {
+    	Object* obj = dynamic_cast< Object* >( qobj );
+    	if( !obj ) {
+    		error( "loco::Object instance required" );
+    		return;
+    	}
+    	if( !obj->cloneable() ) {
+    		error( "Object cannot be copied" );
+    		return;
+    	}
+    	obj = obj->Clone();
+    	obj->SetJSInstanceName( jsInstanceName );
+        ctx_->AddObjToJSContext( obj );
+    }
     void addProtocolHandler( const QString& scheme, QObject* handler ) {
     	ctx_->AddNetworkRequestHandler( scheme, handler );
     }

@@ -24,6 +24,7 @@ class Object : public EWL {
     Q_PROPERTY( QString name READ name WRITE setName )
     Q_PROPERTY( QString type READ type )
     Q_PROPERTY( QString jsInstance READ jsInstanceName )
+    Q_PROPERTY( bool cloneable READ cloneable )
 public:    
     Object( Context* c = 0, 
 		    const QString& n = "LocoObject",
@@ -39,6 +40,7 @@ public:
         setObjectName( jsInstanceName_ ); //choose unique name for Qt object instance
         if( info_ != 0 ) info_->setParent( this );                   
     }
+    virtual Object* Clone() const { return 0; }
     QVariant JSInstance() const;
     virtual void Init( const QVariantMap& ) {}
 	const QString& GetModule() const { return module_; }  
@@ -80,6 +82,7 @@ public:
     static void SetObjNamePrefix( const QString& p ) { objNamePrefix_ = p; }
     static void SetObjNameSuffix( const QString& s ) { objNameSuffix_ = s; }      
 public slots:
+    virtual bool cloneable() const { return false; }
 	ObjectInfo* info() const { return info_; }
     void destroy() {
         //global objects set from Context must never be destroyed

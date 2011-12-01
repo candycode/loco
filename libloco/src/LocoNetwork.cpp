@@ -174,7 +174,10 @@ QVariant Network::create( const QString& name ) {
        return GetContext()->AddObjToJSContext( tcp );
 	} else if( name == "tcp-socket" ) {
 	   TcpSocket* tcp = new TcpSocket;
-	   return GetContext()->AddObjToJSContext( tcp );
+	   return GetContext()->AddObjToJSContext( tcp, false );
+	} else if( name == "udp-socket" ) {
+	   UdpSocket* tcp = new UdpSocket;
+	   return GetContext()->AddObjToJSContext( tcp, false );
 	} else {
 		error( "Unknown type " + name );
 		return QVariant();

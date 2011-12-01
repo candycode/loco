@@ -109,7 +109,7 @@ public:
 
     void AddJSStdObject( Object* obj, bool immediateAdd = false );    
     QVariant AddObjToJSContext( Object* obj, bool ownedByJavascript = true );
-	// this method is intended to insert objects from other contexts
+    // this method is intended to insert objects from other contexts
 	void AddQObjectToJSContext( QObject* obj, const QString& name, bool ownedByJavascript = false );
     void AddFilter( const QString& id, Filter* f ) { 
         if( f->GetPluginLoader() == 0 && f->parent() == 0 ) f->setParent( this );
