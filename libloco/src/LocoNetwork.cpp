@@ -188,3 +188,152 @@ QVariant Network::create( const QString& name ) {
 }
 
 }
+
+/*
+ * #include <QApplication>
+#include <QSslSocket>
+#include <QDebug>
+
+int main( int argc, char **argv )
+{
+    QApplication app( argc, argv );
+
+    QSslSocket socket;
+    socket.connectToHostEncrypted( "bugs.kde.org", 443 );
+
+    if ( !socket.waitForEncrypted() ) {
+        qDebug() << socket.errorString();
+        return 1;
+    }
+
+    socket.write( "GET / HTTP/1.1\r\n" \
+                  "Host: bugs.kde.org\r\n" \
+                  "Connection: Close\r\n\r\n" );
+    while ( socket.waitForReadyRead() ) {
+        qDebug() <<  socket.readAll().data();
+    };
+
+    qDebug() << "Done";
+
+    return 0;
+}
+ */
+
+/*
+ * #include "Socket.h"
+#include "Socket.h"
+
+Socket::Socket( QObject *parent )
+:
+	QSslSocket( parent ),
+{
+	setLocalCertificate( ":ssl.pem" );
+	setPrivateKey( ":ssl.pem" );
+	connectToHostEncrypted( m_host, m_port );
+}
+#ifndef SOCKET_H
+#ifndef SOCKET_H
+#define SOCKET_H
+
+#include <QSslSocket>
+
+class Socket: public QSslSocket
+{
+	Q_OBJECT
+
+public:
+	Socket( QObject *parent = 0 );
+};
+
+#endif
+#include "server.h"
+#include "server.h"
+
+#include "server_client.h"
+
+Server::Server( QObject *parent )
+	:QTcpServer( parent )
+{
+	listen( QHostAddress::Any, 12345 );
+}
+
+void Server::incomingConnection( int socketDescriptor )
+{
+	new Client( socketDescriptor, this );
+}
+#ifndef SERVER_H
+#ifndef SERVER_H
+#define SERVER_H
+
+#include <QTcpServer>
+
+class Server : public QTcpServer
+{
+	Q_OBJECT
+
+public:
+	Server( QObject *parent = 0 );
+
+protected:
+	void incomingConnection( int socketDescriptor );
+};
+
+#endif
+
+#include "server_client.h"
+#include "server_client.h"
+
+Client::Client( int socketDescriptor, QObject *parent )
+	: QSslSocket( parent )
+{
+	connect( this, SIGNAL(disconnected()), SLOT(deleteLater()) );
+	connect( this, SIGNAL(sslErrors(QList<QSslError>)),
+			SLOT(sslErrors(QList<QSslError>)) );
+
+	if( !setSocketDescriptor( socketDescriptor ) )
+	{
+		deleteLater();
+		return;
+	}
+
+	setLocalCertificate( "ssl.pem" );
+	setPrivateKey( "ssl.pem" );
+	startServerEncryption();
+}
+
+void Client::sslErrors( const QList<QSslError> &errors )
+{
+	foreach( const QSslError &error, errors )
+	{
+		switch( error.error() )
+		{
+		case QSslError::NoPeerCertificate: ignoreSslErrors(); break;
+		default:
+			qWarning( "CLIENT SSL: error %s", qPrintable(error.errorString()) );
+			disconnect(); return;
+		}
+	}
+}
+#ifndef CLIENT_H
+#ifndef CLIENT_H
+#define CLIENT_H
+
+#include <QSslSocket>
+
+class Client: public QSslSocket
+{
+	Q_OBJECT
+
+public:
+	Client( int socketDescriptor, QObject *parent );
+
+private slots:
+	void sslErrors( const QList<QSslError> &err );
+};
+
+#endif
+ */
+
+
+
+

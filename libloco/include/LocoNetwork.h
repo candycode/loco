@@ -256,7 +256,6 @@ public slots:
 		else socket_->connectToHostEncrypted( host, port, om );
 		if( !socket_->waitForEncrypted( msTimeout ) ) {
 			Object::error( socket_->errorString() );
-			return;
 		}
 	}
 	void ignoreSSLErrors() { socket_->ignoreSslErrors(); }
