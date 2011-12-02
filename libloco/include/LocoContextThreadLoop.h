@@ -67,6 +67,8 @@ public:
 		}
 	}
 	bool AutoDestroy() const { return autoDestroy_; }
+signals:
+	void notify( const QVariant& ); //connect to this signal to receive notifications from thread
 public slots:
    void eval( const QString& code, const QStringList& filters = QStringList() ) {
 	    if( !running() ) startLoop();

@@ -84,8 +84,8 @@ public:
 	QString LocalAddress() const { return socket_->localAddress().toString(); }
 	quint16 LocalPort() const { return socket_->localPort(); }
 public slots:
-    QByteArray read( quint64 maxSize ) { return socket_->read( maxSize ); }
-    void write( QString& data ) { socket_->write( data.toAscii(), data.toAscii().length() ); }
+    QByteArray read( qint64 maxSize ) { return socket_->read( maxSize ); }
+    void write( const QString& data ) { socket_->write( data.toAscii(), data.toAscii().length() ); }
     quint64 bytesAvailable() const { return socket_->bytesAvailable(); }
     quint64 bytesToWrite() const { return socket_->bytesToWrite(); }
     bool isOpen() const { return socket_->isOpen(); }
@@ -114,6 +114,7 @@ public slots:
     bool atEnd() const { return socket_->atEnd(); }
     void close() { socket_->close(); }
     void flush() { socket_->flush(); }
+	QString errorMsg() const { return socket_->errorString(); }
 private slots:
     void OnSocketError() {
     	Object::error( socket_->errorString() );
@@ -267,6 +268,9 @@ public slots:
 	}
 	bool isConnected() const {
 		return socket_->state() == QAbstractSocket::ConnectedState;
+	}
+	bool waitForEncrypted( int msTimeout ) {
+	    return socket_->waitForEncrypted( msTimeout );
 	}
 signals:
     void connected();

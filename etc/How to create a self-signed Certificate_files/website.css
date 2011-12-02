@@ -1,0 +1,252 @@
+/*
+ * ===================================================
+ * website.css
+ *
+ * StyleSheet for WebSite of AKADIA
+ *
+ * Author:  Martin Zahn
+ * Updated: 12.01.2000
+ * ===================================================
+ */
+
+body {
+    background-color:           #ffffff;
+    font-family:                Verdana,Arial,Helvetica,sans-serif,Sans Serif;
+    font-size:                  10pt;
+    color:                      #000000;
+    text-decoration:            none;
+}
+
+/*
+ **********************************
+ * LINKS
+ **********************************
+*/
+
+/* normal link */
+a:link {
+    font-family:                Verdana,Arial,Helvetica,sans-serif,Sans Serif;
+    text-decoration:            underline;
+    color:                      Black;
+}
+
+/* link when clicked */
+a:active {
+    font-family:                Verdana,Arial,Helvetica,sans-serif,Sans Serif;
+    text-decoration:            underline;
+    color:                      Black;
+}
+
+/* visited link */
+a:visited {
+    font-family:                Verdana,Arial,Helvetica,sans-serif,Sans Serif;
+    text-decoration:            underline;
+    color:                      Black;
+}
+/* Hovered link */
+a:hover {
+    color:                      #2B9F6D
+}
+
+
+/*
+ **********************************
+ * HEADINGS
+ **********************************
+*/
+
+/* heading level 1 */
+h1 {
+    font-family:                Verdana,Arial,Helvetica,sans-serif,Sans Serif;
+    font-size:                  150%;
+    font-weight:                bold;
+    color:                      Black;
+    margin-top:                 0;
+}
+
+/* heading level 2 */
+h2 {
+    font-family:                Verdana,Arial,Helvetica,sans-serif,Sans Serif;
+    font-size:                  115%;
+    font-weight:                bold;
+    color:                      Black;
+    margin-top:                 0;
+}
+
+/* heading level 3 */
+h3 {
+    font-family:                Verdana,Arial,Helvetica,sans-serif,Sans Serif;
+    font-size:                  100%;
+    font-weight:                bold;
+    color:                      Black;
+    margin-top:                 0;
+}
+
+/* heading level 4 */
+h4 {
+    font-family:                Verdana,Arial,Helvetica,sans-serif,Sans Serif;
+    font-size:                  90%;
+    font-weight:                bold;
+    color:                      Black;
+    margin-top:                 0;
+}
+
+/* heading level 5 */
+h5 {
+    font-family:                Verdana,Arial,Helvetica,sans-serif,Sans Serif;
+    font-size:                  85%;
+    font-weight:                bold;
+    color:                      Black;
+    margin-top:                 0;
+}
+
+/*
+ **********************************
+ * PARAGRAPHS
+ **********************************
+*/
+
+/* Default paragraph */
+p {
+    font-family:                Verdana,Arial,Helvetica,sans-serif,Sans Serif;
+    font-size:                  10pt;
+    color:                      Black;
+}
+
+/* Normal paragraph */
+p.normal {
+    font-family:                Verdana,Arial,Helvetica,sans-serif,Sans Serif;
+    font-size:                  10pt;
+    color:                      Black;
+}
+
+/* Verdana paragraph */
+p.verdana {
+    font-family:                Verdana;
+    font-size:                  10pt;
+    color:                      Black;
+}
+
+/* Courier New paragraph */
+p.courier {
+    font-family:                Courier New,Courier;
+    font-size:                  10pt;
+    color:                      Black;
+}
+
+/* Header paragraph */
+p.header {
+    font-family:                Verdana,Arial,Helvetica,sans-serif,Sans Serif;
+    font-size:                  10pt;
+    font-weight:                bold;
+    color:                      Black;
+}
+
+/* Header paragraph */
+p.big {
+    font-family:                Verdana,Arial,Helvetica,sans-serif,Sans Serif;
+    font-size:                  12pt;
+    font-weight:                bold;
+    color:                      Black;
+}
+
+/* Small paragraph */
+p.small {
+    font-family:                Verdana,Arial,Helvetica,sans-serif,Sans Serif;
+    font-size:                  8pt;
+    color:                      Black;
+}
+
+/* Footer paragraph */
+p.footer {
+    font-family:                Verdana,Arial,Helvetica,sans-serif,Sans Serif;
+    font-size:                  8pt;
+    border-top-width:           1;
+    border-left-width:          1;
+    border-color:               Black;
+}
+
+/*
+ **********************************
+ * Lists
+ **********************************
+*/
+
+/* No-Margin Definition List */
+dt.nom {
+    font-family:                Verdana,Arial,Helvetica,sans-serif,Sans Serif;
+    font-size:                  10pt;
+    color:                      Black;
+}
+
+/* NoMargin Definition List indent */
+dd.ind {
+    font-family:                Verdana,Arial,Helvetica,sans-serif,Sans Serif;
+    font-size:                  10pt;
+    color:                      Black;
+    margin-left:                .5in;
+}
+
+/* Standard Definition List */
+dl {
+    font-size:                  10pt;
+    font-family:                Verdana,Arial,Helvetica,sans-serif,Sans Serif;
+}
+
+/* Standard List */
+li {
+    font-size:                  10pt;
+    font-family:                Verdana,Arial,Helvetica,sans-serif,Sans Serif;
+    color:                      Black;
+}
+
+/* Unordered List */
+ul {
+    font-family:                Verdana,Arial,Helvetica,sans-serif,Sans Serif;
+    font-size:                  10pt;
+    color:                      Black;
+    list-style-image:           url(http://www.akadia.com/img/ulcircle.gif);
+    list-style-type:            circle;
+    list-style-position:        outside;
+}
+
+/* Ordered List */
+ol {
+    font-family:                Verdana,Arial,Helvetica,sans-serif,Sans Serif;
+    font-size:                  10pt;
+    color:                      Black;
+    list-style-position:        outside;
+}
+
+/*
+ **********************************
+ * INPUT in Forms
+ **********************************
+*/
+input {
+    font-family:                Verdana,Arial,Helvetica,sans-serif,Sans Serif;
+    font-size:                  10pt;
+    color:                      Black;
+}
+
+/*
+ **********************************
+ * TABLES
+ **********************************
+*/
+
+/* default table cell */
+td {
+    font-family:                Verdana,Arial,Helvetica,sans-serif,Sans Serif;
+    font-size:                  10pt;
+    color:                      Black;
+
+}
+/* header table cell */
+th {
+    font-family:                Verdana,Arial,Helvetica,sans-serif,Sans Serif;
+    font-size:                  10pt;
+    font-weight:                bold;
+    color:                      Black;
+
+}

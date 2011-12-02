@@ -44,6 +44,8 @@ public:
     void SetInput( const QVariant& i ) { input_ = i; }
     void SetContext( QObject* ctx ) { ctx_ = qobject_cast< JSContext* >( ctx ); }
     QObject* GetContext() const { return ctx_; }
+signals:
+	void notify( const QVariant& ); //connect to this signal to receive notifications from thread
 public slots:
     void eval( const QString& code, const QStringList& filters = QStringList() ) {
     	code_ = code;
