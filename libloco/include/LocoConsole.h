@@ -11,7 +11,6 @@ namespace loco {
 
 class Console : public Object {
     Q_OBJECT
-
 public:
     Console() : Object( 0, "LocoConsole", "Loco/IO/Console" ) {}
 public slots:

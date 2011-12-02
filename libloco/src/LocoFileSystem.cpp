@@ -133,5 +133,10 @@ QVariant FileSystem::tmpFile( const QString& templateName ) const {
 	return obj;
 }
 
+QVariant FileSystem::stdIn() const {
+    File* f = new File;
+    if( !f->Open( stdin, QFile::ReadOnly ) ) return QVariant();
+    return GetContext()->AddObjToJSContext( f );
+}
 
 }

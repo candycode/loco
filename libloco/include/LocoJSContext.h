@@ -25,6 +25,7 @@ public:
 	bool storeCode() const { return ctx_->GetStoreCode(); }
 // invocable from javascript
 public slots: // js interface
+    void yeld() { ctx_->Yeld(); }
     int netReadTimeout() const { return ctx_->GetNetReadTimeout(); }
     void setNetReadTimeout( int timeout ) { ctx_->SetNetReadTimeout( timeout ); }
     QString uri() const { return ctx_->LastReadURI().isEmpty() ? appDir() :  ctx_->LastReadURI(); }

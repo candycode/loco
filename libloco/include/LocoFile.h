@@ -16,8 +16,15 @@ class File : public Object {
     Q_OBJECT
 
 public:
-   File() : Object( 0, "LocoFile", "Loco/IO/File" ) {}
-
+   File() : Object( 0, "LocoFile", "Loco/IO/File" ) {
+	   connect( &file_, SIGNAL( readyRead() ), this, SIGNAL( readyRead() ) );
+	   connect( &file_, SIGNAL( bytesWritten( qint64 ) ), this, SIGNAL( bytesWritten( qint64 ) ) );
+	   connect( &file_, SIGNAL( readChannelFinished() ), this, SIGNAL( readChannelFinished() ) );
+	   connect( &file_, SIGNAL( aboutToClose() ), this, SIGNAL( aboutToClose() ) );
+   }
+   bool Open( FILE* handle, QFile::OpenMode mode ) {
+	   return file_.open( handle, mode );
+   }
 public slots:
 
 	bool open( const QString& filePath, const QStringList& mode ) {
@@ -54,11 +61,15 @@ public slots:
     QString readAll() { return file_.readAll(); }
     QByteArray readAllBytes() { return file_.readAll(); }  
     bool flush() { return file_.flush(); }
-
+    bool waitForReadyRead( int msTimeout ) { return file_.waitForReadyRead( msTimeout ); }
+    bool waitForBytesWritten( int msTimeout ) { return file_.waitForBytesWritten( msTimeout ); }
+signals:
+    void readyRead();
+    void bytesWritten( qint64 );
+    void readChannelFinished();
+    void aboutToClose();
 private:
-    
     static QIODevice::OpenMode MapOpenMode( const QStringList& mode );
-       
 private:
     QFile file_;
     char charBuf_;

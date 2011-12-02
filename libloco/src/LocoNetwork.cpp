@@ -176,8 +176,11 @@ QVariant Network::create( const QString& name ) {
 	   TcpSocket* tcp = new TcpSocket;
 	   return GetContext()->AddObjToJSContext( tcp, false );
 	} else if( name == "udp-socket" ) {
-	   UdpSocket* tcp = new UdpSocket;
-	   return GetContext()->AddObjToJSContext( tcp, false );
+	   UdpSocket* udp = new UdpSocket;
+	   return GetContext()->AddObjToJSContext( udp, false );
+	} else if( name == "tcp-ssl-socket" ) {
+	   SslSocket* ssl = new SslSocket;
+	   return GetContext()->AddObjToJSContext( ssl, false );
 	} else {
 		error( "Unknown type " + name );
 		return QVariant();

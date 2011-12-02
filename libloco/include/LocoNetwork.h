@@ -8,6 +8,7 @@
 #include <QTcpServer>
 #include <QTcpSocket>
 #include <QUdpSocket>
+#include <QSslSocket>
 
 #include "LocoObject.h"
 #include "LocoNetworkAccessManager.h"
@@ -197,12 +198,14 @@ public slots:
     }
     bool hasData() const { return socket_->hasPendingDatagrams(); }
     qint64 dataSize() const { return socket_->pendingDatagramSize(); }
-    void sendTo( const QString& data, const QString& host, quint16 port ) {
+    qint64 sendTo( const QString& data, const QString& host, quint16 port ) {
     	QByteArray ba = data.toAscii();
-    	qint64 sent = socket_->writeDatagram( ba.data(), ba.size(), QHostAddress( host ), port );
-    	while( sent < ba.size() ) {
-    		sent += socket_->writeDatagram( ba.data() + sent, ba.size() - sent, QHostAddress( host ), port );
+    	QHostAddress h( host );
+    	qint64 sent = socket_->writeDatagram( ba.data(), ba.size(), h, port );
+    	while( sent < ba.size() && sent > 0 ) {
+    		sent += socket_->writeDatagram( ba.data() + sent, ba.size() - sent, h, port );
     	}
+    	return sent;
     }
     QString recvFrom( const QString& host, quint16 port ) {
     	QByteArray dout;
@@ -219,6 +222,63 @@ public slots:
     }
 private:
 	QUdpSocket* socket_;
+};
+
+class SslSocket : public Socket {
+	Q_OBJECT
+public:
+	SslSocket() : Socket( "LocoSslSocket" ), socket_( new QSslSocket ) {
+	    socket_->setParent( this );
+	    Socket::SetSocket( socket_ );
+	    connect( socket_, SIGNAL( connected() ), this, SIGNAL( connected() ) );
+	    connect( socket_, SIGNAL( disconnected() ), this, SIGNAL( disconnected() ) );
+	    connect( socket_, SIGNAL( encrypted() ), this, SIGNAL( encrypted() ) );
+	    connect( socket_, SIGNAL( encryptedBytesWritten( qint64 ) ), this, SIGNAL( encryptedBytesWritten( qint64 ) ) );
+	}
+public slots:
+
+    void startServerEncryption( int msTimeout ) {
+    	socket_->startServerEncryption();
+    	socket_->waitForEncrypted( msTimeout );
+    }
+
+	void connectTo( const QString& host,
+					quint16 port,
+					int msTimeout,
+					const QString& m = "rw",
+					const QString& sslPeerName = QString() ) { //use a different host name for cert. validation)
+		QIODevice::OpenMode om = 0;
+		if( m == "r" ) om = QIODevice::ReadOnly;
+		else if( m == "w" ) om = QIODevice::WriteOnly;
+		else if( m == "rw" || m == "wr" ) om = QIODevice::ReadWrite;
+		else Object::error( "Unknown open mode identifier " + m );
+		if( sslPeerName.isEmpty() ) socket_->connectToHostEncrypted( host, port, sslPeerName, om );
+		else socket_->connectToHostEncrypted( host, port, om );
+		if( !socket_->waitForEncrypted( msTimeout ) ) {
+			Object::error( socket_->errorString() );
+			return;
+		}
+	}
+	void ignoreSSLErrors() { socket_->ignoreSslErrors(); }
+	void disconnect( int msTimeout ) {
+		socket_->disconnectFromHost();
+		if( !socket_->waitForDisconnected( msTimeout ) ) {
+			Object::error( socket_->errorString() );
+		}
+	}
+	bool isConnected() const {
+		return socket_->state() == QAbstractSocket::ConnectedState;
+	}
+signals:
+    void connected();
+    void disconnected();
+    void encrypted();
+    void encryptedBytesWritten ( qint64 );
+    //void modeChanged ( QSslSocket::SslMode mode )
+    //void peerVerifyError ( const QSslError & error )
+    //void sslErrors ( const QList<QSslError> & errors )
+private:
+	QSslSocket* socket_;
 };
 
 

@@ -19,6 +19,7 @@ public:
    FileSystem() : Object( 0, "LocoFileSystem", "Loco/System/FileSystem" ) {}
 
 public slots:
+    QVariant stdIn() const;
     QVariant tmpFile( const QString& = QString() ) const;
     QByteArray fread( const QString& fname ) const;
     bool fwrite( const QString& fname, const QByteArray& data, bool append = false ) const;

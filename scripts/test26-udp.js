@@ -11,12 +11,11 @@ Loco.ctx.javaScriptConsoleMessage.connect(
  function( msg, line, src ) {
    print( msg + " at line " + line );
  } );
-
-//change logic:
-// 1) try to send 'ready' message to other host
-// 2) if (1) fails start listening
 //==============================================================================
 include( "cmdline2json.js" );
+var handShakeCompleted = false;
+var ACK = "-ack-";
+var START = "-start-";
 var cmdLine = cmdLineToJSON( Loco.ctx.commandLine );
 var host, inport, outport;
 if( !cmdLine[ "-inport" ] ) throw "Error '-inport' required";
@@ -27,13 +26,26 @@ if( !cmdLine[ "-host" ] ) throw "Error '-host' required";
 else host = cmdLine[ "-host" ];
 var udp = Loco.net.create( "udp-socket" );
 udp.readyRead.connect( function() {
-    print( udp.recvFrom( host, inport ) ); 
-    udp.sendTo( readline(), host, outport );
+   var msg = udp.recvFrom( host, inport );
+   if( !handShakeCompleted ) {      
+      if( msg === START ) {
+        udp.sendTo( ACK, host, outport );
+        handShakeCompleted = true;                   
+      } else if( msg === ACK ) {
+        handShakeCompleted = true;
+        print( "Connected, waiting for message" );
+        udp.sendTo( "hello", host, outport );
+       } else {
+        throw "Wrong handshake protocol: " + 
+               ACK + " or " + START + " expected, " + msg + " received"; 
+      }      
+    } else {
+      print( "> " + msg );
+      udp.sendTo( readline(), host, outport );
+    }
   } ); 
 udp.bind( "127.0.0.1", inport );
-if( cmdLine[ "-talk-first" ] ) {
-  udp.sendTo( readline(), host, outport );
-}
+udp.sendTo( START, host, outport );
 //==============================================================================
 //exit(0); //FOR NON-GUI, NON-NETWORK-SERVER APPS ONLY
 } catch( e ) {
