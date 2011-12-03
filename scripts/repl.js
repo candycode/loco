@@ -8,11 +8,23 @@ var buffer = "",
     evalResult;
 print( "\nLoCO JavaScript REPL - enter ':quit' to exit\n" );
 Loco.ctx.onError.connect( function( msg ) { print( msg ); } );
+
+function readLine() {
+  var line = "";
+  var c = "";
+  while( true ) {
+    c =  Loco.console.getChar();
+    if( c === "\n" ) break;
+    line += c;
+  }
+  return line;
+}
+
 while( true ) {
   while( !buffer || checker.incomplete( buffer ) ) {
     if( !buffer ) Loco.console.print( "> " );
     else Loco.console.print( ">>> " );
-    line = Loco.console.readLine();
+    line = readLine();
     if( line === ":quit" ) Loco.ctx.exit( 0 );
     else if( line ) buffer += "\n" + line;
   }

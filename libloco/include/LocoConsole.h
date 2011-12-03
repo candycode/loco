@@ -24,6 +24,7 @@ public slots:
 	QString read() const { std::string s; std::cin >> s; return QString( s.c_str() ); }
 	QString readLine() const { std::string s; std::getline( std::cin, s ); return QString( s.c_str() ); }
 	int getc() const { return std::cin.get(); }
+	QString getChar() const { return char( getc() ); }
 	void ungetc() const { std::cin.unget(); }
 	bool end() const { return std::cin.eof(); }
 	void flush()  const { std::cout.flush(); std::cerr.flush(); }

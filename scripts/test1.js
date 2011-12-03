@@ -8,3 +8,4 @@ for( v in e ) {
     Loco.console.println( e[ v ] );
 }
 Loco.console.println("QT VERSION: " + Loco.sys.qtVersion());
+Loco.ctx.exit(0);

@@ -299,6 +299,7 @@ public:
 public slots:
     QVariant create( const QString& );
     bool cloneable() const { return true; }
+	bool ssl() const { return QSslSocket::supportsSsl(); }
 };
 
 }

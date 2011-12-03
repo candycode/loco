@@ -39,7 +39,7 @@ try {
     if( Loco.ctx.os() !== "MAC")  
       sw.setWindowStyle( ["dialog","modal-hint"] );
     else {
-      sw.setParentWindow( Loco.webWindow );
+      sw.setParentWindow( Loco.mainWindow );
       sw.setWindowStyle( ["drawer"] );
     }  
     sw.setHtml( html );
@@ -72,7 +72,7 @@ try {
                 cmdParam : "http://www.nyt.com";  
 
 // create main window  
-  var ww = Loco.gui.create( "WebMainWindow" );
+  var ww = Loco.gui.create( "WebWindow" );
   ww.setName( "webWindow" ); 
   ww.addParentObjectsToJS(); // add objects in this context to web page context
   ww.addSelfToJSContext();   // add web page to its own context
@@ -103,24 +103,28 @@ try {
               }'; 
 
  // setup main window 
-  ww.setMenu( menu );
+  var mw = Loco.gui.create( "MainWindow" );
+  mw.name = "mainWindow";
+  mw.setMenu( menu );
+  mw.setCentralWidget( ww );
+
   ww.setAttributes( {DeveloperExtrasEnabled: true,
                      LocalContentCanAccessFileUrls: true,
                      LocalContentCanAccessRemoteUrls: true } );
   ww.setEnableContextMenu( true );
-  ww.loadProgress.connect( function( i ) { ww.setStatusBarText( i + "%" ); } );
+  ww.loadProgress.connect( function( i ) { mw.setStatusBarText( i + "%" ); } );
   ww.keyPress.connect( function( k, m, c ) { 
                          if( k === LocoKey.F11 ) ww.showNormal();
                        } );
   ww.setPreLoadCBack( jsFilter + wrap );
   ww.loadFinished.connect( function( ok ) { 
-    if( ok ) ww.eval("Loco.webWindow.setStatusBarText('DONE');");
+    if( ok ) mw.setStatusBarText( 'DONE' );
     else Loco.gui.errorDialog( "Error loading page" );
   });
-  ww.setStatusBarText( "Loading..." );
-  ww.setWindowTitle( ctx.appName() ); 
+  mw.setStatusBarText( "Loading..." );
+  mw.setWindowTitle( ctx.appName() ); 
   ctx.onError.connect( function( err ) { Loco.gui.criticalDialog( "Error", err ); ctx.exit( -1 ); } );
-  ww.show(); 
+  mw.show(); 
   ww.load(WEBSITE);
   
 } catch(e) {

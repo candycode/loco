@@ -63,6 +63,7 @@ public slots:
             return "";
         #endif
     }
+	QString qtVersion() const { return qVersion(); }
     bool hasGUI() const {
         #if defined( Q_WS_WIN )
             return true;

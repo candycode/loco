@@ -28,8 +28,10 @@ socket.write( "GET / HTTP/1.1\r\n"+
               "Connection: Close\r\n\r\n" );
 var data = "";
 while( socket.waitForReadyRead( 5000 ) ) data += socket.readAll();
-print( data );
-exit( 0 ); //results in QWaitCondition error
+var suffixLength = 5;
+print( data.slice(0,data.length-suffixLength) ); //remove non printable chars
+print( "done" );
+//exit( 0 ); //results in QWaitCondition error do not activate loop (-nl for locoplay)
 //==============================================================================
 //exit(0); //FOR NON-GUI, NON-NETWORK APPS ONLY
 

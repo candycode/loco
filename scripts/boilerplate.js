@@ -24,12 +24,15 @@ Loco.ctx.javaScriptConsoleMessage.connect(
 // YOUR CODE HERE
 
 //==============================================================================
-//exit(0); //FOR NON-GUI APPS ONLY
+//invoke exit() event loop has not been started, quit otherwise
+//locoplay: event loop is created by default, to disable invoke with -nl flag:
+//locoplay -nl ...
+//exit(0); 
 
 } catch( e ) {
   if( e.message ) Loco.console.printerrln( e.message );
   else Loco.console.printerrln( e );
-  exit( -1 );
+  exit( -1 ); // will generate WaitCondition error message if messag loop active
 }
 
 
