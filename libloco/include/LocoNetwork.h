@@ -89,7 +89,11 @@ public slots:
     quint64 bytesAvailable() const { return socket_->bytesAvailable(); }
     quint64 bytesToWrite() const { return socket_->bytesToWrite(); }
     bool isOpen() const { return socket_->isOpen(); }
-    bool waitForRecv( int msTimeout ) {
+    ///\todo remove
+	bool waitForRecv( int msTimeout ) {
+    	return socket_->waitForReadyRead( msTimeout );
+    }
+	bool waitForReadyRead( int msTimeout ) {
     	return socket_->waitForReadyRead( msTimeout );
     }
     void setSocketDescriptor( int s ) {
@@ -111,6 +115,7 @@ public slots:
     	socket_->waitForReadyRead( msTimeout );
     	return socket_->readAll();
     }
+	QString readAll() const { return socket_->readAll(); }
     bool atEnd() const { return socket_->atEnd(); }
     void close() { socket_->close(); }
     void flush() { socket_->flush(); }
@@ -253,7 +258,7 @@ public slots:
 		else if( m == "w" ) om = QIODevice::WriteOnly;
 		else if( m == "rw" || m == "wr" ) om = QIODevice::ReadWrite;
 		else Object::error( "Unknown open mode identifier " + m );
-		if( sslPeerName.isEmpty() ) socket_->connectToHostEncrypted( host, port, sslPeerName, om );
+		if( !sslPeerName.isEmpty() ) socket_->connectToHostEncrypted( host, port, sslPeerName, om );
 		else socket_->connectToHostEncrypted( host, port, om );
 		if( !socket_->waitForEncrypted( msTimeout ) ) {
 			Object::error( socket_->errorString() );

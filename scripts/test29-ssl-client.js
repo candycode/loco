@@ -22,13 +22,16 @@ Loco.ctx.javaScriptConsoleMessage.connect(
 //==============================================================================
 var socket = Loco.net.create( "tcp-ssl-socket" );
 socket.connectTo( "bugs.kde.org", 443, 5000 );
-//if ( !socket.waitForEncrypted( 5000 ) ) throw socket.errorMsg();
-socket.write( "GET / HTTP/1.1\r\n \
-               Host: bugs.kde.org\r\n \
-               Connection: Close\r\n\r\n" );
-while ( socket.waitForRecv( 5000 ) ) print( socket.read( 4096 ) );
+//if ( !socket.waitForEncrypted( 50000 ) ) throw socket.errorMsg();
+socket.write( "GET / HTTP/1.1\r\n"+
+              "Host: bugs.kde.org\r\n"+
+              "Connection: Close\r\n\r\n" );
+var data = "";
+while( socket.waitForReadyRead( 5000 ) ) data += socket.readAll();
+print( data );
+exit( 0 ); //results in QWaitCondition error
 //==============================================================================
-//exit(0); //FOR NON-GUI APPS ONLY
+//exit(0); //FOR NON-GUI, NON-NETWORK APPS ONLY
 
 } catch( e ) {
   if( e.message ) Loco.console.printerrln( e.message );
