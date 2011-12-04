@@ -8,7 +8,7 @@ try {
  
   var ww = Loco.gui.create( "WebWindow" );
   printWkitConfig( ww.getAttributes() );
-  ww.setAddParentObjectsToJS( true );
+  ww.addParentObjectsToJS( true );
   ww.load("http://www.geek.com");
   ww.show();
 } catch(e) {

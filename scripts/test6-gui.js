@@ -24,18 +24,18 @@ try {
         }
       },
       "Test": {
-        "Parent context": {
-          "cback"  : "terminal.println('hello')",
+        "Object from parent context": {
+          "cback"  : "ww.eval( 'terminal.println(\"hello from child context\")' )",
           "tooltip": "Call parent context",
-          "status" : "Call a parent context's function"
+          "status" : "Call a parent context's method"
         }
       }   
     };
  
   
-  var ww = Loco.gui.create( "Webindow" );
+  var ww = Loco.gui.create( "WebWindow" );
   ww.addObjectToContext( ww, "webWindow" );
-  ww.eval( "alert(" + printWkitConfig( ww.getAttributes() + ")" );
+  ww.addObjectToContext( Loco.console, "terminal" )
   var mw = Loco.gui.create( "MainWindow" );
   mw.setCentralWidget( ww );
   mw.setMenu( menu );
@@ -46,25 +46,16 @@ try {
       Loco.console.println( "Key pressed: " + k  );
      } ); 
   ww.loadStarted.connect( function() { ww.eval("var MyGlobal='MyGlobal'"); } );
-  ww.loadFinished.connect( function( ok ) { 
-    if( ok ) {
-      var html = '\
-      <html><head></head><body> \
-      <h1>DONE!!!</h1>   \
-      </body></html>';
-      ww.setStatusBarText( "DONE" );
-      ww.eval( 'webWindow.showFullScreen()' );  
-      ww.eval( "gui.infoDialog( 'Frame name', webWindow.frameName() )");
-      ww.eval( "terminal.println(MyGlobal)" );
-    } 
+  ww.loadFinished.connect( function( ok ) {
+      mw.setStatusBarText( "DONE" );
   } );
   ww.selectionChanged.connect( function() {
     Loco.console.println( ww.selectedText() );  
   } );
-  ww.setStatusBarText( "Loading..." );
+  mw.setStatusBarText( "Loading..." );
   mw.setWindowTitle( ctx.appName() ); 
   ctx.onError.connect( function( err ) { Loco.gui.criticalDialog( "Error", err ); ctx.exit( -1 ); } );
-  ww.show(); 
+  mw.show(); 
   ww.load("http://www.nyt.com");
   
 } catch(e) {
