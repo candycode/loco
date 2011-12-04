@@ -28,8 +28,7 @@ try {
   print( jsonToString( json ) );
   Loco.ctx.exit( 0 );
 
-  
-// create main window  
+ // create main window  
   var ww = Loco.gui.create( "WebWindow" );
  // setup main window 
   ww.setAttributes( {LocalContentCanAccessFileUrls: true,

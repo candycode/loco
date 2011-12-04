@@ -116,9 +116,9 @@ public:
 
     WebView* GetWebView() const { return webView_; }
 
-    void SetWebPluginFactory( ::QWebPluginFactory* wpf ) { webView_->page()->setPluginFactory( wpf ); }
+    void SetWebPluginFactory( QWebPluginFactory* wpf ) { webView_->page()->setPluginFactory( wpf ); }
 
-    ::QWebPluginFactory* GetWebPluginFactory() const { return webView_->page()->pluginFactory(); }
+    QWebPluginFactory* GetWebPluginFactory() const { return webView_->page()->pluginFactory(); }
 
 private slots:
     void JavaScriptContextCleared() {
@@ -138,6 +138,22 @@ public slots:
 	void setPreLoadCBack( const QString& cback ) { preLoadCBack_ = cback; }
 	void addObjectToContext( QObject* obj, const QString& jsName, bool own = false ) {
 		ctx_.AddQObjectToJSContext( obj, jsName, own );
+		ctxObjects_.push_back( ObjectEntry( obj, jsName, own ) );
+	}
+	void addNewObjectToContext( QObject* qobj, const QString& jsName, bool own = false ) {
+		// duplicate from JSContext, move into Context
+		Object* obj = dynamic_cast< Object* >( qobj );
+    	if( !obj ) {
+    		error( "loco::Object instance required" );
+    		return;
+    	}
+    	if( !obj->cloneable() ) {
+    		error( "Object cannot be copied" );
+    		return;
+    	}
+    	obj = obj->Clone();
+    	obj->SetJSInstanceName( jsName );
+        ctx_.AddQObjectToJSContext( obj, jsName, own );
 		ctxObjects_.push_back( ObjectEntry( obj, jsName, own ) );
 	}
 	void resetObject() { ctxObjects_.clear(); }

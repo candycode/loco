@@ -18,9 +18,9 @@ class GUI : public Object {
 
 public:
    GUI() : Object( 0, "LocoGUI", "Loco/GUI" ) {}
-
+   GUI* Clone() const { return new GUI; }
 public slots:
-    
+	bool cloneable() const { return true; }
     QVariant create( const QString& name, const QVariantMap& params = QVariantMap() ) const;
     QVariantMap desktopGeometry( int screen = -1 ) {
         const QDesktopWidget dw;

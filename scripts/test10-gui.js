@@ -35,11 +35,12 @@ try {
       html += "<li>" + format( entries[ e ], e ) + "</li>";
     }
     html += "</ol></body></html>";
-    var sw = Loco.gui.create( "WebWindow" );
-    if( Loco.ctx.os() !== "MAC")  
-      sw.setWindowStyle( ["dialog","modal-hint"] );
-    else {
-      sw.setParentWindow( Loco.mainWindow );
+    var sw = gui.create( "WebWindow" );
+    if( Loco.wctx.os() !== "MAC")  {
+      sw.setParentWindow( mainWindow );
+      sw.setWindowStyle( ["dialog"] );
+    } else {
+      sw.setParentWindow( mainWindow );
       sw.setWindowStyle( ["drawer"] );
     }  
     sw.setHtml( html );
@@ -50,7 +51,7 @@ try {
   var menu = {
     "Log" : {
       "Show trace": {
-          "cback"  : showTrace.toString() + "\nshowTrace();",
+          "cback"  : 'ww.eval( "showTrace()" )',
           "tooltip": "Show trace",
           "status" : "Show call trace",
           "icon"   : ""
@@ -73,13 +74,10 @@ try {
 
 // create main window  
   var ww = Loco.gui.create( "WebWindow" );
-  ww.setName( "webWindow" ); 
-  ww.addParentObjectsToJS(); // add objects in this context to web page context
-  ww.addSelfToJSContext();   // add web page to its own context
+  ww.addObjectToContext( ww, "webWindow" );
+  ww.addObjectToContext( Loco.gui, "gui" );
  
-  //ww.setMask( "../res/mask.png" ); 
-  //ww.setWindowOpacity( 0.3 );
-
+ 
 // code to add tracing wrappers to every global javascript function 
   var jsFilter = 'var Wrapper = { wrap: function(that, v) { \
                     var f = that[ v ]; \
@@ -91,7 +89,7 @@ try {
                     } \
                   }, \
                   log: [] \
-                 };';
+                 };\n';
   var wrap = 'for( v in this ) { \
                 try { \
                   if( typeof this[ v ] === "function" ) { \
@@ -100,12 +98,14 @@ try {
                 } catch( e ) { \
                   Loco.console.println( "Cannot wrap " + v + " -- " + e ); \
                 } \
-              }'; 
+              };\n'; 
 
  // setup main window 
   var mw = Loco.gui.create( "MainWindow" );
-  mw.name = "mainWindow";
+  //mw.setMask( "./mask.png" ); 
+  //mw.setWindowOpacity( 0.3 );
   mw.setMenu( menu );
+  ww.addObjectToContext( mw, "mainWindow" );
   mw.setCentralWidget( ww );
 
   ww.setAttributes( {DeveloperExtrasEnabled: true,
@@ -116,7 +116,7 @@ try {
   ww.keyPress.connect( function( k, m, c ) { 
                          if( k === LocoKey.F11 ) ww.showNormal();
                        } );
-  ww.setPreLoadCBack( jsFilter + wrap );
+  ww.setPreLoadCBack( jsFilter + wrap + showTrace.toString() );
   ww.loadFinished.connect( function( ok ) { 
     if( ok ) mw.setStatusBarText( 'DONE' );
     else Loco.gui.errorDialog( "Error loading page" );

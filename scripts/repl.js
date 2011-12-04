@@ -9,6 +9,10 @@ var buffer = "",
 print( "\nLoCO JavaScript REPL - enter ':quit' to exit\n" );
 Loco.ctx.onError.connect( function( msg ) { print( msg ); } );
 
+//String.fromCharCode(code1[,code2,[...]])
+//String.chadCodeAt
+//String.toIntArray (unicode representation)
+
 function readLine() {
   var line = "";
   var c = "";
