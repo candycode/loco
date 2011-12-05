@@ -1,4 +1,15 @@
-// IN PROGRESS!, need to configure key and cert
+//key, certificate generated with the following command line:
+// openssl req -x509 -nodes -days 365 -newkey rsa:1024 -keyout \
+// test28-key.pem -out test28-cert.pem
+/*
+Country Name (2 letter code) [AU]:CH
+State or Province Name (full name) [Some-State]:Zuerich
+Locality Name (eg, city) []:Zuerich
+Organization Name (eg, company) [Internet Widgits Pty Ltd]:LoCO
+Organizational Unit Name (eg, section) []:loco-test
+Common Name (eg, YOUR name) []:loco
+Email Address []:loco@locojs.net
+*/
 
 try {
 var include = Loco.ctx.include,
@@ -13,15 +24,28 @@ Loco.ctx.javaScriptConsoleMessage.connect(
  } );
 //==============================================================================
 // this function is parsed and executed in a separate child context
-// inside a separate thread
-function fortune() {
-  terminal.println( "Thread " + thisThread.id ); 
-  terminal.println( "connected" );
+// from within a separate thread
+function encryptedFortune() {
+  var p = terminal.println;
+  p( "\n\n=========================================\n\n" );
+  p( "Thread " + thisThread.id ); 
+  p( "connected" );
   var tcpSocket = net.create( "tcp-ssl-socket" );
-  tcpSocket.setSocketDescriptor( socket );
-  tcpSocket.startServerEncryption( 3000 );
-  terminal.println( "  remote host: " + tcpSocket.peerAddress );
-  terminal.println( "  port:        " + tcpSocket.peerPort );
+  if( !tcpSocket.setSocketDescriptor( socket ) ) {
+    p( "Cannot create socket" );
+    return;
+  }
+  p( "Setting certificate:\n" );
+  tcpSocket.setLocalCertificateFromFile( "test28-ssl/test28-cert.pem" );
+  p( tcpSocket.getLocalCertificate() );
+  p( "Setting key:\n" );
+  tcpSocket.setPrivateKeyFromFile( "test28-ssl/test28-key.pem", "rsa" );
+  p( tcpSocket.getPrivateKey() );
+  tcpSocket.encrypted.connect( function() { p("ENCRYPTED"); } );
+  tcpSocket.startServerEncryption( 1 );
+  if( tcpSocket.isConnected() ) p( "Created encrypted connection" );
+  p( "  remote host: " + tcpSocket.peerAddress );
+  p( "  port:        " + tcpSocket.peerPort );
   // taken from Qt's 'fortune' sample code
   var fortunes = ["You've been leading a dog's life. Stay off the furniture.",
                   "You've got to think about tomorrow.",
@@ -30,9 +54,16 @@ function fortune() {
                   "You might have mail.",
                   "You cannot kill time without injuring eternity.",
                   "Computers are not intelligent. They only think they are."];
-  tcpSocket.send( fortunes[ Math.floor( Math.random() * fortunes.length ) ] );
-  tcpSocket.flush();
-  tcpSocket.close();
+  
+  //tcpSocket.send( fortunes[ Math.floor( Math.random() * fortunes.length ) ] );
+  // above line equivalent to following two
+  tcpSocket.write( fortunes[ Math.floor( Math.random() * fortunes.length ) ] );
+  tcpSocket.waitForBytesWritten( 2000 );
+
+  p("Message sent to client");
+  
+  tcpSocket.close(); //will flush
+ 
 };
 
 include( "cmdline2json.js" );
@@ -53,20 +84,23 @@ if( cmdLine[ "-server" ] ) {
       thread.context.addNewObject( Loco.net, "net" );
       thread.context.addObject( Loco.console, "terminal" );
       thread.context.addObject( thread, "thisThread" );
-      thread.context.eval( "socket = " + socket + ";" );
-      thread.execute( fortune );
+      thread.context.eval( "socket = " + socket );
+      thread.execute( encryptedFortune ); //.toString() automatically called
   } );
   if( !tcpServer.listen( cmdLine[ "-port" ]  ) ) throw "Listen error";
   print( "Listening on port " + cmdLine[ "-port" ] ); 
 } else {
     var tcp = Loco.net.create( "tcp-ssl-socket" );
-    tcp.connectTo( "localhost", cmdLine[ "-port" ], 3000 );
-    print( tcp.recv( 3000 ) );
+    //tcp.ignoreSSLErrors(); //should not be needed
+    // without a proper configuration you'll get: 
+    //"The host name did not match any of the valid hosts for this certificate"
+    tcp.setPeerVerifyMode( "none" );
+    tcp.connectTo( "127.0.0.1", cmdLine[ "-port" ], 2000 );
+    print( tcp.readAll() );
     tcp.close();
+    exit( 0 );
 }
 //==============================================================================
-if( !cmdLine[ "-server" ] ) exit(0); //FOR NON-GUI, NON-NETWORK-SERVER APPS ONLY
-
 } catch( e ) {
   if( e.message ) Loco.console.printerrln( e.message );
   else Loco.console.printerrln( e );

@@ -17,7 +17,7 @@ function readLine() {
   var line = "";
   var c = "";
   while( true ) {
-    c =  Loco.console.getChar();
+    c =  String.fromCharCode( Loco.console.getc() );
     if( c === "\n" ) break;
     line += c;
   }

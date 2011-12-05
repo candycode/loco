@@ -31,9 +31,8 @@ while( socket.waitForReadyRead( 5000 ) ) data += socket.readAll();
 var suffixLength = 5;
 print( data.slice(0,data.length-suffixLength) ); //remove non printable chars
 print( "done" );
-//exit( 0 ); //results in QWaitCondition error do not activate loop (-nl for locoplay)
 //==============================================================================
-//exit(0); //FOR NON-GUI, NON-NETWORK APPS ONLY
+exit(0); //if event loop not active
 
 } catch( e ) {
   if( e.message ) Loco.console.printerrln( e.message );

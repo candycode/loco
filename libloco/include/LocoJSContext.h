@@ -11,7 +11,7 @@ class JSContext : public Object {
     Q_PROPERTY( bool storeCode READ storeCode WRITE storeCode )
     Q_PROPERTY( QStringList commandLine READ cmdLine )
 public:
-    JSContext( Context* ctx ) : Object( 0, "LocoContext", "Loco/Context" ),
+    JSContext( Context* ctx ) : Object( 0, "LocoContext", "/Loco/Context" ),
     ctx_( ctx )  {
         SetDestroyable( false );
 		connect( ctx_, SIGNAL( JavaScriptConsoleMessage( const QString&, int, const QString& ) ),

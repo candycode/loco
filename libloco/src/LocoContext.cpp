@@ -229,6 +229,7 @@ QVariant Context::AddObjToJSContext( Object* obj, bool ownedByJavascript ) {
                                    ownedByJavascript ? QScriptEngine::ScriptOwnership :
                                      QScriptEngine::QtOwnership );
     obj->SetContext( this );
+    ConnectErrCBack( obj );
     return jsInterpreter_->EvaluateJavaScript( obj->jsInstanceName() );
 }
 

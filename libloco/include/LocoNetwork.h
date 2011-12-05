@@ -9,6 +9,11 @@
 #include <QTcpSocket>
 #include <QUdpSocket>
 #include <QSslSocket>
+#include <QStringList>
+#include <QList>
+#include <QSslError>
+#include <QSslKey>
+#include <QSslCertificate>
 
 #include "LocoObject.h"
 #include "LocoNetworkAccessManager.h"
@@ -68,7 +73,7 @@ private:
 class Socket : public Object {
 	Q_OBJECT
 	Q_PROPERTY( int socket READ getSocketDescriptor WRITE setSocketDescriptor )
-	Q_PROPERTY( QString errorString READ ErrorString );
+	Q_PROPERTY( QString errorMessage READ ErrorString );
 	Q_PROPERTY( QString peerName READ PeerName )
 	Q_PROPERTY( QString peerAddress READ PeerAddress )
 	Q_PROPERTY( quint16 peerPort READ PeerPort )
@@ -96,8 +101,8 @@ public slots:
 	bool waitForReadyRead( int msTimeout ) {
     	return socket_->waitForReadyRead( msTimeout );
     }
-    void setSocketDescriptor( int s ) {
-    	socket_->setSocketDescriptor( s );
+    bool setSocketDescriptor( int s ) {
+    	return socket_->setSocketDescriptor( s );
     }
     int getSocketDescriptor() const { return socket_->socketDescriptor(); }
     quint64 send( const QString& data ) {
@@ -109,6 +114,9 @@ public slots:
     	return s;
     }
     bool waitForSend( int msTimeout ) {
+    	return socket_->waitForBytesWritten( msTimeout );
+    }
+    bool waitForBytesWritten( int msTimeout ) {
     	return socket_->waitForBytesWritten( msTimeout );
     }
     QString recv( int msTimeout ) {
@@ -232,6 +240,7 @@ private:
 
 class SslSocket : public Socket {
 	Q_OBJECT
+	Q_PROPERTY( QStringList sslErrors READ SSLErrors )
 public:
 	SslSocket() : Socket( "LocoSslSocket" ), socket_( new QSslSocket ) {
 	    socket_->setParent( this );
@@ -241,16 +250,50 @@ public:
 	    connect( socket_, SIGNAL( encrypted() ), this, SIGNAL( encrypted() ) );
 	    connect( socket_, SIGNAL( encryptedBytesWritten( qint64 ) ), this, SIGNAL( encryptedBytesWritten( qint64 ) ) );
 	}
+	QStringList SSLErrors() const {
+		QStringList el;
+        const QList< QSslError > errors = socket_->sslErrors();
+        for( QList< QSslError >::const_iterator i = errors.begin();
+        	 i != errors.end(); ++i	) {
+        	el << i->errorString();
+        }
+        return el;
+	}
 public slots:
+    void setLocalCertificate( const QString& cert ) {
+    	socket_->setLocalCertificate( QSslCertificate( cert.toAscii() ) );
+    }
+    void setLocalCertificateFromFile( const QString& certFile ) {
+       	socket_->setLocalCertificate( certFile );
+    }
+    void setPrivateKey( const QString& key, const QString& algo ) {
+    	if( algo.toLower() == "rsa" ) {
+    	    socket_->setPrivateKey( key.toAscii(), QSsl::Rsa );
+    	} else if( algo.toLower() == "dsa" ) {
+    		socket_->setPrivateKey( key.toAscii(), QSsl::Dsa );
+    	} else {
+    		Object::error( "Unknown algorithm -- " + algo );
+    	}
+    }
+    void setPrivateKeyFromFile( const QString& filePath, const QString& algo ) {\
+    	if( algo.toLower() == "rsa" ) {
+			socket_->setPrivateKey( filePath, QSsl::Rsa );
+		} else if( algo.toLower() == "dsa" ) {
+			socket_->setPrivateKey( filePath, QSsl::Dsa );
+		} else {
+			Object::error( "Unknown algorithm -- " + algo );
+		}
 
+    }
+    QString getPrivateKey() const { return socket_->privateKey().toPem().constData(); }
+    QString getLocalCertificate() const { return socket_->localCertificate().toPem().constData(); }
     void startServerEncryption( int msTimeout ) {
     	socket_->startServerEncryption();
     	socket_->waitForEncrypted( msTimeout );
     }
-
 	void connectTo( const QString& host,
 					quint16 port,
-					int msTimeout,
+					int msTimeout = -1, //non blocking by default
 					const QString& m = "rw",
 					const QString& sslPeerName = QString() ) { //use a different host name for cert. validation)
 		QIODevice::OpenMode om = 0;
@@ -259,8 +302,8 @@ public slots:
 		else if( m == "rw" || m == "wr" ) om = QIODevice::ReadWrite;
 		else Object::error( "Unknown open mode identifier " + m );
 		if( !sslPeerName.isEmpty() ) socket_->connectToHostEncrypted( host, port, sslPeerName, om );
-		else socket_->connectToHostEncrypted( host, port, om );
-		if( !socket_->waitForEncrypted( msTimeout ) ) {
+		else socket_->connectToHostEncrypted( host, port, QIODevice::ReadWrite );
+		if( msTimeout > 0 && !socket_->waitForEncrypted( msTimeout ) ) {
 			Object::error( socket_->errorString() );
 		}
 	}
@@ -271,11 +314,24 @@ public slots:
 			Object::error( socket_->errorString() );
 		}
 	}
+	bool isEncrypted() const { return socket_->isEncrypted(); }
 	bool isConnected() const {
 		return socket_->state() == QAbstractSocket::ConnectedState;
 	}
 	bool waitForEncrypted( int msTimeout ) {
 	    return socket_->waitForEncrypted( msTimeout );
+	}
+	void setPeerVerifyMode( const QString& mode ) {
+		QSslSocket::PeerVerifyMode vm;
+		if( mode == "none" ) vm = QSslSocket::VerifyNone;
+		else if( mode == "query-peer" ) vm = QSslSocket::QueryPeer;
+		else if( mode == "verify-peer" ) vm = QSslSocket::VerifyPeer;
+		else if( mode == "auto" ) vm = QSslSocket::AutoVerifyPeer;
+		else {
+			Object::error( "Unknown peer verify mode -- " + mode );
+			return;
+		}
+		socket_->setPeerVerifyMode( vm );
 	}
 signals:
     void connected();
