@@ -24,8 +24,6 @@ public slots:
 	QString read() const { std::string s; std::cin >> s; return QString( s.c_str() ); }
 	QString readLine() const { std::string s; std::getline( std::cin, s ); return QString( s.c_str() ); }
 	int getc() const { return std::cin.get(); }
-	///\todo FIX only works on windows: REMOVE and UPDATE REPL
-	///QString getChar() const { return char( this->getc() ); }
 	void ungetc() const { std::cin.unget(); }
 	bool end() const { return std::cin.eof(); }
 	void flush()  const { std::cout.flush(); std::cerr.flush(); }
