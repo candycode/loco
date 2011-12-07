@@ -4,3 +4,4 @@ project("loco")
 
 add_subdirectory( sample )
 add_subdirectory( osgview )
+add_subdirectory( benchmark )

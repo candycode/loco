@@ -363,7 +363,7 @@ QVariant Context::Insert( const QString& uri, const QStringList& filters ) {
 }
 
 QVariant Context::LoadQtPlugin( QString filePath,
-		                        const QString& jsInstanceName,
+		                        QString jsInstanceName,
 		                        const QString& initMethodName,
 		                        const QVariantMap& params ) {
 	if( filePath.startsWith( "~/" ) ) filePath = QDir::homePath() + filePath.remove( 0, 1 );
@@ -392,6 +392,10 @@ QVariant Context::LoadQtPlugin( QString filePath,
         	error( ret );
         	return QVariant();
         }
+	}
+	if( jsInstanceName.isEmpty() ) {
+		Object obj;
+		jsInstanceName = obj.jsInstanceName();
 	}
 	AddQObjectToJSContext( pluginLoader, jsInstanceName + "__QPluginLoader", true );
     AddQObjectToJSContext( obj, jsInstanceName, false );

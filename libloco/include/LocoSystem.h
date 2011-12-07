@@ -25,7 +25,7 @@ public:
    System() : Object( 0, "LocoSystem", "Loco/System/System" ) {}
 
 public slots:
-
+    QVariant timer() const;
     bool putEnv( const QString& var, const QString& val ) {
 #ifndef Q_OS_WIN
         return ::putenv( const_cast<char*>(( var + "=" + val ).toAscii().constData()) ) == 0;
