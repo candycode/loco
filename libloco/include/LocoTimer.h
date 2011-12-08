@@ -70,7 +70,7 @@ inline void Timer::Start() {
     ::QueryPerformanceCounter( &tstart_ );
 }
 
-inline double Timer::Stop()
+inline double Timer::Stop() {
     ::QueryPerformanceCounter( &tend_ );
     return DTime();
 }
