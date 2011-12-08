@@ -154,7 +154,7 @@ public:
 	//If the object has a QString Init(QVariantMap) method then such method is invoked with the parameters
 	//stored in 'params' before the object is added to the javascript interpreter.
 	QVariant LoadQtPlugin( QString filePath,
-                           const QString& jsInstanceName,
+                           QString jsInstanceName = QString(),
                            const QString& initMethodName = "Init",
                            const QVariantMap& params = QVariantMap() );
 
