@@ -17,11 +17,16 @@ link_directories( ${QT_LIBRARY_DIR}  )
 set( MOC_HEADERS ${PLUGIN_MOC_HEADERS} )
 QT4_WRAP_CPP( MOC_SRCS ${MOC_HEADERS} ) 
 
-set( SRCS ${MOC_SRCS} RtAudio.cpp RtAudio.h RtError.h )
+set( SRCS ${MOC_SRCS} RtAudio.cpp RtAudio.h RtError.h RtAudioPlugin.h )
+
+if( WIN32 )
+  add_definitions( -D__WINDOWS_DS__ )
+  set( SOUNDLIB dsound )
+endif()  
 
 add_library( ${PLUGIN_NAME} SHARED ${SRCS} )
 set_target_properties( ${PLUGIN_NAME} PROPERTIES PREFIX "" SUFFIX ".qtplugin" )
 
-target_link_libraries( ${PLUGIN_NAME} ${QT_LIBRARIES} )
+target_link_libraries( ${PLUGIN_NAME} ${QT_LIBRARIES} ${SOUNDLIB} )
 
 

@@ -21,14 +21,20 @@ Loco.ctx.javaScriptConsoleMessage.connect(
    print( msg + " at line " + line );
  } );
 
-//if( args.length < 3 ) {
-//  print( "Usage: " + args[ 0 ] + " " + args[ 1 ] + "<....>" );
-//  exit( 0 );
-//}
+if( args.length < 3 ) {
+  print( "Usage: " + args[ 0 ] + " " + args[ 1 ] +
+         "<RtAudio plugin file path>" );
+  exit( 0 );
+}
 
 //==============================================================================
-
-
+var rtaudio = ctx.loadQtPlugin( args[ 2 ] );
+rtaudio.error.connect( err );
+rtaudio.inputReady.connect( function( data ) {
+  var l = data.length;
+  for( var i = 0; i !== l; ++i ) Loco.console.println( data[ i ] );
+} );
+rtaudio.openInputStream( {}, "float64", 11025, 256 );
 
 //==============================================================================
 //invoke exit() event loop has not been started, quit() otherwise

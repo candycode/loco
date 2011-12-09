@@ -28,6 +28,7 @@ class RtAudioPlugin : public QObject, public IDummy {
 	Q_PROPERTY( double streamTime READ GetStreamTime )
 	Q_PROPERTY( int streamLatency READ GetStreamLatency )
 public:
+	RtAudioPlugin( QObject* parent = 0 ) : QObject( parent ), adc_( RtAudio::WINDOWS_DS ) {}
 	int GetNumDevices() const { return adc_.getDeviceCount(); }
 	int GetDefaultInputDevice() const { return adc_.getDefaultInputDevice(); }
 	int GetDefaultOutputDevice() const { return adc_.getDefaultOutputDevice(); }
@@ -48,6 +49,22 @@ public:
         return 0;   
 
     }
+	static int RtAudioOutputCBack( void* outputBuffer, void* /*inputBuffer*/, unsigned int nBufferFrames,
+                             double streamTime, RtAudioStreamStatus status, void *userData ) {        
+        RtAudioPlugin* ap = reinterpret_cast< RtAudioPlugin* >( userData );
+        if( status ) {
+        	ap->EmitError( "Underflow" );
+        	return 0x2;
+        }
+        ///\todo make it work with any type
+        double* out = reinterpret_cast< double* >( outputBuffer );
+        ///\todo move into class instance, reuse same buffer
+        QVariantList in;
+		ap->EmitOutputReady( in ); // get output values
+        for( int i = 0; i != nBufferFrames && i != in.length(); ++i, ++out ) *out = in[ i ].toDouble();  
+     
+        return 0;   
+    }
     bool IsStreamOpen() const {
     	return adc_.isStreamOpen();
     }
@@ -64,7 +81,8 @@ public:
     	return adc_.getStreamSampleRate();
     } 
 signals: 
-    void inputReady( const QVariantList& data );
+    void inputReady( const QVariantList& );
+	void outputReady( QVariantList& );
     void error( const QString& );              
 public slots:
     void openInputStream( const QVariantMap& parameters,
@@ -76,6 +94,20 @@ public slots:
         try {
             adc_.openStream( 0, &params, inputDataType_, sampleRate, &sampleFrames,
                             &RtAudioPlugin::RtAudioInputCBack, this );
+            adc_.startStream();
+        } catch( const RtError& e ) {
+        	HandleException( e );
+        }                                       	                 	
+    }
+	void openOutputStream( const QVariantMap& parameters,
+                           const QString& dataType,
+                           int sampleRate, 
+                           unsigned int sampleFrames ) {
+        outputDataType_ = ConvertDataType( dataType );
+        RtAudio::StreamParameters params = ConvertStreamParameters( parameters );
+        try {
+            adc_.openStream( &params, 0, outputDataType_, sampleRate, &sampleFrames,
+                            &RtAudioPlugin::RtAudioOutputCBack, this );
             adc_.startStream();
         } catch( const RtError& e ) {
         	HandleException( e );
@@ -104,7 +136,8 @@ public slots:
     }
   
 private:
-	void EmitInputReady( const QVariantList& vl ) { emit inputReady( vl ); }  
+	void EmitInputReady( const QVariantList& vl ) { emit inputReady( vl ); }
+	void EmitOutputReady( QVariantList& vl ) { emit outputReady( vl ); } 
 	void EmitError( const QString& msg ) { emit error( msg ); }
     void HandleException( const RtError& e ) {
     	emit error( QString( e.getMessage().c_str() ) );
