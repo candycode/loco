@@ -20,6 +20,7 @@ QT4_WRAP_CPP( MOC_SRCS ${MOC_HEADERS} )
 set( SRCS ${MOC_SRCS} RtAudio.cpp RtAudio.h RtError.h )
 
 add_library( ${PLUGIN_NAME} SHARED ${SRCS} )
+set_target_properties( ${PLUGIN_NAME} PROPERTIES PREFIX "" SUFFIX ".qtplugin" )
 
 target_link_libraries( ${PLUGIN_NAME} ${QT_LIBRARIES} )
 
