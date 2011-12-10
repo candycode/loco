@@ -36,7 +36,7 @@ class RtAudioPlugin : public QObject, public IDummy {
 	Q_PROPERTY( QVariantList input READ GetInput )
 	Q_PROPERTY( QVariantList output READ GetOutput WRITE SetOutput )
 	Q_PROPERTY( int status READ GetStatus )
-	Q_PROPERTY( QVariantMap devices READ GetDevices )
+	Q_PROPERTY( QVariantList devices READ GetDevices )
 public:
 	RtAudioPlugin( QObject* parent = 0 ) : QObject( parent ), 
 		adc_( RtAudio::WINDOWS_DS ), bufferSize_( 0 ), status_( 0 ) {}
