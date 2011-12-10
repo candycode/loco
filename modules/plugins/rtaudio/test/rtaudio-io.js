@@ -36,11 +36,11 @@ rtaudio.filter.connect( function( input ) {
   var l = input.length;
   var output = [];
   for( var i = 0; i !== l; ++i ) {
-    output.push( input[ i ] * Math.sin( ( 100* 2 * Math.PI * i ) / l ) );
+    output.push( input[ i ] );// * Math.sin( ( 100* 2 * Math.PI * i ) / l ) );
   }
   rtaudio.setOutput( output );
 } );
-rtaudio.openIOStream( {}, {}, "float64", 4000, 500 );
+rtaudio.openIOStream( {}, {}, "float64", 2000, 100 );
 
 //==============================================================================
 //invoke exit() event loop has not been started, quit() otherwise
