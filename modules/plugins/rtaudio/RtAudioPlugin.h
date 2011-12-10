@@ -10,8 +10,10 @@
 #include <QVariant>
 #include <QVariantList>
 #include <QVariantMap>
+#include <QStringList>
 
 #include "RtAudio.h"
+#include "CopyBuffer.h"
 
 
 #include <iostream>
@@ -26,61 +28,49 @@ class RtAudioPlugin : public QObject, public IDummy {
 	Q_PROPERTY( int defaultInputDevice READ GetDefaultInputDevice )
 	Q_PROPERTY( int defaultOutputDevice READ GetDefaultOutputDevice )
 	Q_PROPERTY( bool streamOpen READ IsStreamOpen )
+	Q_PROPERTY( unsigned int bufferSize READ GetBufferSize )
 	Q_PROPERTY( bool streamRunning READ IsStreamRunning )
 	Q_PROPERTY( int sampleRate READ GetStreamSampleRate )
 	Q_PROPERTY( double streamTime READ GetStreamTime )
 	Q_PROPERTY( int streamLatency READ GetStreamLatency )
+	Q_PROPERTY( QVariantList input READ GetInput )
+	Q_PROPERTY( QVariantList output READ GetOutput WRITE SetOutput )
+	Q_PROPERTY( int status READ GetStatus )
+	Q_PROPERTY( QVariantMap devices READ GetDevices )
 public:
-	RtAudioPlugin( QObject* parent = 0 ) : QObject( parent ), adc_( RtAudio::WINDOWS_DS ) {}
+	RtAudioPlugin( QObject* parent = 0 ) : QObject( parent ), 
+		adc_( RtAudio::WINDOWS_DS ), bufferSize_( 0 ), status_( 0 ) {}
 	int GetNumDevices() const { return adc_.getDeviceCount(); }
 	int GetDefaultInputDevice() const { return adc_.getDefaultInputDevice(); }
 	int GetDefaultOutputDevice() const { return adc_.getDefaultOutputDevice(); }
 	static int RtAudioInputCBack( void* /*outputBuffer*/, void* inputBuffer, unsigned int nBufferFrames,
-                             double streamTime, RtAudioStreamStatus status, void *userData ) {        
+                                  double streamTime, RtAudioStreamStatus status, void *userData ) {        
         RtAudioPlugin* ap = reinterpret_cast< RtAudioPlugin* >( userData );
         if( status ) {
         	ap->EmitError( "Overflow" );
         	return 0x2;
         }
-        ///\todo make it work with any type
-        const double* in = reinterpret_cast< const double* >( inputBuffer );
-        ///\todo move into class instance, reuse same buffer
         QVariantList out;
         out.reserve( nBufferFrames );
-        for( ; nBufferFrames; --nBufferFrames, ++in ) out.push_back( *in );  
+        CopyBuffer( inputBuffer, out, nBufferFrames, ap->GetInputType() );
         ap->EmitInputReady( out );   
         return 0;   
 
     }
 	static int RtAudioInputOutputCBack( void* outputBuffer, void* inputBuffer, unsigned int nBufferFrames,
-                             double streamTime, RtAudioStreamStatus status, void *userData ) { 
+                                        double streamTime, RtAudioStreamStatus status, void *userData ) { 
+       
         RtAudioPlugin* ap = reinterpret_cast< RtAudioPlugin* >( userData );
 		if( status == RTAUDIO_INPUT_OVERFLOW ) {
-        	ap->EmitError( "overflow" );
-        	return 0x2;
-        }
-		if( status == RTAUDIO_OUTPUT_UNDERFLOW ) {
-        	ap->EmitError( "underflow" );
-        	return 0x2;
-        }
-		
-		///\todo make it work with any type
-        const double* in = reinterpret_cast< const double* >( inputBuffer );
-        ///\todo move into class instance, reuse same buffer
-        QVariantList input;
-        input.reserve( nBufferFrames );
-		for( ; nBufferFrames; --nBufferFrames, ++in ) {
-			input.push_back( *in );
-		}		
-		ap->EmitFilter( input );
+        	ap->status_ = RTAUDIO_INPUT_OVERFLOW;
+        } else if( status == RTAUDIO_OUTPUT_UNDERFLOW ) {
+        	ap->status_ = RTAUDIO_OUTPUT_UNDERFLOW;
+        } else ap->status_ = 0;
+		QVariantList& input = ap->input_;
+		CopyBuffer( inputBuffer, input, nBufferFrames, ap->GetInputType() );
+		ap->EmitFilter();
         const QVariantList& output = ap->GetOutput();
-		///\todo make it work with any type
-        double* out = reinterpret_cast< double* >( outputBuffer );
-		///\todo move into class instance, reuse same buffer
-		for( int i = 0; i != output.length(); ++i, ++out ) {
-			//std::cout << *out << std::endl;
-			*out =output[ i ].toDouble();
-		}
+        CopyBuffer( output, outputBuffer, nBufferFrames, ap->GetOutputType() );
         return 0;   
     }
 	static int RtAudioOutputCBack( void* outputBuffer, void* inputBuffer, unsigned int nBufferFrames,
@@ -90,15 +80,12 @@ public:
         	ap->EmitError( "Underflow" );
         	return 0x2;
         }
-        ///\todo make it work with any type
-        double* out = reinterpret_cast< double* >( outputBuffer );
-        ///\todo move into class instance, reuse same buffer
-        QVariantList in;
-		ap->EmitOutputReady( in ); // get output values
-        for( int i = 0; i != nBufferFrames && i != in.length(); ++i, ++out ) *out = in[ i ].toDouble();  
-     
+        ap->EmitOutputReady(); // get output values
+        const QVariantList& output = ap->GetOutput();
+        CopyBuffer( output, outputBuffer, nBufferFrames, ap->GetOutputType() );
         return 0;   
     }
+	int GetStatus() const { return int( status_ ); } 
     bool IsStreamOpen() const {
     	return adc_.isStreamOpen();
     }
@@ -115,13 +102,52 @@ public:
     	return adc_.getStreamSampleRate();
     } 
 	const QVariantList& GetOutput() const { return output_; }
+	const QVariantList& GetInput() const { return input_; }
+	void SetOutput( const QVariantList& out ) { output_ = out; }
+	unsigned GetBufferSize() const { return bufferSize_; }
+	QVariantList GetDevices() const {
+	    QVariantList dl;
+		for( int i = 0; i != GetNumDevices(); ++i ) {
+			dl.push_back( getDeviceInfo( i ) );
+		}
+		return dl;
+	}
 signals: 
     void inputReady( const QVariantList& );
-	void outputReady( QVariantList& );
-	void filter( const QVariantList& );
-    void error( const QString& );              
+	void outputReady();
+	void filter();
+    void error( const QString& ) const;              
 public slots:
-	void setOutput( const QVariantList& out ) { output_ = out; }
+	QVariantMap getDeviceInfo( unsigned id ) const {
+		if( id > unsigned( GetNumDevices() - 1 ) ) {
+		    emit error( "Device does not exist" );
+			return QVariantMap();
+		}
+		RtAudio::DeviceInfo di = adc_.getDeviceInfo( id );
+	    QVariantMap dim;
+		dim[ "probed" ] = di.probed;
+		dim[ "name"   ] = QString( di.name.c_str() );
+		dim[ "outputChannels" ] = di.outputChannels;
+		dim[ "inputChannels"  ] = di.inputChannels;
+		dim[ "duplexChannels" ] = di.duplexChannels;
+		dim[ "defaultOutput"  ] = di.isDefaultOutput;
+		dim[ "defaultInput"   ] = di.isDefaultInput;
+		QVariantList sr;
+		for( std::vector< unsigned >::const_iterator i = di.sampleRates.begin();
+			 i != di.sampleRates.end(); ++i ) {
+		    sr.push_back( *i ); 
+		}
+		dim[ "sampleRates" ] = sr;
+		QStringList af;
+		if( di.nativeFormats | RTAUDIO_SINT8   ) af.push_back( "sint8"   );
+		if( di.nativeFormats | RTAUDIO_SINT16  ) af.push_back( "sint16"  );
+		if( di.nativeFormats | RTAUDIO_SINT24  ) af.push_back( "sint24"  );
+		if( di.nativeFormats | RTAUDIO_SINT32  ) af.push_back( "sint32"  );
+		if( di.nativeFormats | RTAUDIO_FLOAT32 ) af.push_back( "float32" );
+		if( di.nativeFormats | RTAUDIO_FLOAT64 ) af.push_back( "float64" );
+        dim[ "nativeFormats" ] = af;
+	}
+	void startStream() { adc_.startStream(); }
     void openInputStream( const QVariantMap& parameters,
                           const QString& dataType,
                           int sampleRate, 
@@ -150,18 +176,27 @@ public slots:
         	HandleException( e );
         }                                       	                 	
     }
-	void openIOStream( const QVariantMap& inParameters,
-		               const QVariantMap& outParameters, 
-                       const QString& dataType,
+	void openIOStream( const QString& dataType,
                        int sampleRate, 
-                       unsigned int sampleFrames ) {
-        outputDataType_ = ConvertDataType( dataType );
+                       unsigned int sampleFrames,
+					   const QVariantMap& inParameters = QVariantMap(),
+		               const QVariantMap& outParameters = QVariantMap() ) {
+        inputDataType_  = ConvertDataType( dataType );
+	    outputDataType_ = ConvertDataType( dataType );
         RtAudio::StreamParameters inParams = ConvertStreamParameters( inParameters );
 		RtAudio::StreamParameters outParams = ConvertStreamParameters( outParameters );
-        try {
+		RtAudio::StreamOptions so;
+		so.flags = RTAUDIO_MINIMIZE_LATENCY | RTAUDIO_HOG_DEVICE | RTAUDIO_SCHEDULE_REALTIME;
+	    try {
             adc_.openStream( &outParams, &inParams, outputDataType_, sampleRate, &sampleFrames,
-                            &RtAudioPlugin::RtAudioInputOutputCBack, this );
-            adc_.startStream();
+                            &RtAudioPlugin::RtAudioInputOutputCBack, this, &so );
+			input_.reserve( sampleFrames );
+			output_.reserve( sampleFrames );
+			for( int i = 0; i != sampleFrames; ++i ) {
+				input_.push_back( QVariant() );
+				output_.push_back( QVariant() );
+			}
+			bufferSize_ = sampleFrames;
         } catch( const RtError& e ) {
         	HandleException( e );
         }                                       	                 	
@@ -186,20 +221,19 @@ public slots:
         }  catch ( const RtError& e ) {
            HandleException( e );
         }	
-    }
-  
+    }  
 private:
-	void EmitFilter( const QVariantList& in ) { emit filter( in ); }
+	void EmitFilter() { emit filter(); }
 	void EmitInputReady( const QVariantList& vl ) { emit inputReady( vl ); }
-	void EmitOutputReady( QVariantList& vl ) { emit outputReady( vl ); } 
+	void EmitOutputReady() { emit outputReady(); } 
 	void EmitError( const QString& msg ) { emit error( msg ); }
     void HandleException( const RtError& e ) {
     	emit error( QString( e.getMessage().c_str() ) );
     }
+	RtAudioStreamFlags GetInputType() const { return inputDataType_; }
+    RtAudioStreamFlags GetOutputType() const { return outputDataType_; }
     RtAudioStreamFlags ConvertDataType( const QString& dt ) {
-        ///\todo remove
-    	//return RTAUDIO_FLOAT64;
-    	if( dt == "sint8"  ) { return RTAUDIO_SINT8; }
+      	if( dt == "sint8"  ) { return RTAUDIO_SINT8; }
     	else if( dt == "sint16" ) { return RTAUDIO_SINT16; }
     	else if( dt == "sint24" ) { return RTAUDIO_SINT24; }
     	else if( dt == "sint32" ) { return RTAUDIO_SINT32; }
@@ -227,8 +261,10 @@ private:
 	mutable RtAudio adc_;
     mutable RtAudioStreamFlags inputDataType_;
     mutable RtAudioStreamFlags outputDataType_;
-	QVariantList output_;
-    
+	QVariantList output_;   
+	QVariantList input_;
+	unsigned bufferSize_;
+	RtAudioStreamStatus status_;
 };
 
 Q_EXPORT_PLUGIN2( RtAudio, RtAudioPlugin )

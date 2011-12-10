@@ -30,17 +30,33 @@ if( args.length < 3 ) {
 //==============================================================================
 var rtaudio = ctx.loadQtPlugin( args[ 2 ] );
 var inbuffer = [];
-print( rtaudio.defaultOutputDevice );
 rtaudio.error.connect( err );
-rtaudio.filter.connect( function( input ) {
+var sampleCount = 0;
+var sampleBuffer = 512;
+var sampleRate = 44100;
+var maxSampleCount = sampleRate - 1;
+var output = new Array( sampleBuffer );
+var input = [];
+var F = 100; //Hz
+function filter( t, idx, input ) {
+  var N = 100;
+  var out = 0;
+  for( var i = 0; i != N; ++i ) {
+    out += ( 0.5 * ( 1 + Math.cos( 2 * Math.PI * F * i * t + i / N ) ) ) / N;
+  } 
+  return out * input[ idx ];  
+}
+rtaudio.filter.connect( function() {
+  input = rtaudio.input;
   var l = input.length;
-  var output = [];
   for( var i = 0; i !== l; ++i ) {
-    output.push( input[ i ] );// * Math.sin( ( 100* 2 * Math.PI * i ) / l ) );
+    ++sampleCount; if( sampleCount ===  maxSampleCount ) sampleCount = 0;
+    output[ i ] = filter( sampleCount / maxSampleCount,  i, input );
   }
-  rtaudio.setOutput( output );
+  rtaudio.output = output;
 } );
-rtaudio.openIOStream( {}, {}, "float64", 2000, 100 );
+rtaudio.openIOStream( "float64", sampleRate, sampleBuffer );
+rtaudio.startStream();
 
 //==============================================================================
 //invoke exit() event loop has not been started, quit() otherwise
