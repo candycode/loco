@@ -1,0 +1,56 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Flot Examples</title>
+    <link href="layout.css" rel="stylesheet" type="text/css">
+    <!--[if lte IE 8]><script language="javascript" type="text/javascript" src="../excanvas.min.js"></script><![endif]-->
+    <script language="javascript" type="text/javascript" src="./flot/jquery.js"></script>
+    <script language="javascript" type="text/javascript" src="./flot/jquery.flot.js"></script>
+ </head>
+    <body>
+    <h1>Real-time sampling</h1>
+
+    <div id="placeholder" style="width:1000px;height:600px;"></div>
+
+    <p>Simple example. You don't need to specify much to get an
+       attractive look. Put in a placeholder, make sure you set its
+       dimensions (otherwise the plot library will barf) and call the
+       plot function with the data. The axes are automatically
+       scaled.</p>
+
+<script type="text/javascript">
+$(function () {
+  
+  var sampleBuffer = 1000;
+  var sampleRate = 96000;
+  var input = new Array( sampleBuffer );
+  rtaudio.inputReady.connect( function() {
+    var data = rtaudio.input;
+    var l = data.length;
+    for( var i = 0; i != l; ++i ) input[ i ] = [i,data[i]];
+    //console.log( input[ 0 ] );
+  } );
+  // setup plot
+  var options = {
+      series: { shadowSize: 0 }, // drawing is faster without shadows
+      yaxis: { min: -.1, max: .1 },
+      xaxis: { show: false, min: 0, max: 1000 }
+  };
+  var plot = $.plot($("#placeholder"), [input], options);
+
+  function update() {
+      plot.setData([input]);
+      // since the axes don't change, we don't need to call plot.setupGrid()
+      plot.draw();
+      
+      setTimeout(update, 20);
+  } 
+  rtaudio.openInputStream( "float32", sampleRate, sampleBuffer/*, {deviceId: 3}*/ );
+  rtaudio.startStream(); 
+  update();   
+});
+</script>
+
+ </body>
+</html>

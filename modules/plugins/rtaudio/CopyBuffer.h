@@ -1,5 +1,7 @@
 #pragma once
 
+#include <algorithm>
+
 #include <QVariant>
 #include <QVariantList>
 
@@ -10,12 +12,26 @@ template < typename T > void BufferCopy( const void* in, QVariantList& out, int 
 	for( int c = 0; c != sz; ++c, ++i ) out[ c ] = *i; 
 }
 
+template < typename T > void BufferCopy( const void* in, void* out, int sz ) {
+    const T* i = reinterpret_cast< const T* >( in );
+	T* o = reinterpret_cast< T* >( out );
+	//on V++ -D_SCL_SECURE_NO_WARNINGS to disable warning
+	std::copy( i, i + sz, o );
+}
+
 inline void CopyInt8( const void* in, QVariantList& out, int sz ) { BufferCopy< char >( in, out, sz ); }
 inline void CopyInt16( const void* in, QVariantList& out, int sz ) { BufferCopy< short >( in, out, sz ); }
 inline void CopyInt24( const void* in, QVariantList& out, int sz ) { BufferCopy< int >( in, out, sz ); }
 inline void CopyInt32( const void* in, QVariantList& out, int sz ) { BufferCopy< int >( in, out, sz ); }
 inline void CopyFloat32( const void* in, QVariantList& out, int sz ) { BufferCopy< float >( in, out, sz ); }
 inline void CopyFloat64( const void* in, QVariantList& out, int sz ) { BufferCopy< double >( in, out, sz ); }
+
+inline void CopyInt8( const void* in, void* out, int sz ) { BufferCopy< char >( in, out, sz ); }
+inline void CopyInt16( const void* in, void* out, int sz ) { BufferCopy< short >( in, out, sz ); }
+inline void CopyInt24( const void* in, void* out, int sz ) { BufferCopy< int >( in, out, sz ); }
+inline void CopyInt32( const void* in, void* out, int sz ) { BufferCopy< int >( in, out, sz ); }
+inline void CopyFloat32( const void* in, void* out, int sz ) { BufferCopy< float >( in, out, sz ); }
+inline void CopyFloat64( const void* in, void* out, int sz ) { BufferCopy< double >( in, out, sz ); }
 
 inline void CopyInt8( const QVariantList& in, void* out, int sz ) { 
 	char* output = reinterpret_cast< char* >( out );
@@ -72,6 +88,24 @@ inline void CopyBuffer( const void* in, QVariantList& out, int sz, RtAudioStream
 }
 
 inline void CopyBuffer( const QVariantList& in, void* out,  int sz, RtAudioStreamFlags type ) {
+	switch( type ) {
+	case RTAUDIO_SINT8: CopyInt8( in, out, sz );
+		                break;
+	case RTAUDIO_SINT16: CopyInt16( in, out, sz );
+		                 break;
+	case RTAUDIO_SINT24: CopyInt32( in, out, sz );
+		                 break;
+    case RTAUDIO_SINT32: CopyInt32( in, out, sz );
+		                 break;
+    case RTAUDIO_FLOAT32: CopyFloat32( in, out, sz );
+		                  break;
+    case RTAUDIO_FLOAT64: CopyFloat64( in, out, sz );
+		                  break;
+	default: break;
+	}
+}
+
+inline void CopyBuffer( const void* in, void* out, int sz, RtAudioStreamFlags type ) {
 	switch( type ) {
 	case RTAUDIO_SINT8: CopyInt8( in, out, sz );
 		                break;

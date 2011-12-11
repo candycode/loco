@@ -29,36 +29,14 @@ if( args.length < 3 ) {
 
 //==============================================================================
 var rtaudio = ctx.loadQtPlugin( args[ 2 ] );
-var inbuffer = [];
-rtaudio.error.connect( err );
-var sampleCount = 0;
-var sampleBuffer = 600;
-var sampleRate = 44100;
-var maxSampleCount = sampleRate - 1;
-var output = new Array( sampleBuffer );
-var input = [];
-var F = 100; //Hz
-function filter( t, idx, input ) {
-  var N = 10;
-  var out = 0;
-  if( false /*idx > 10*/ ) {
-    for( var i = 0; i != N; ++i ) {
-      out += input[ idx - i ] / N; //(  Math.cos( 2 * Math.PI * F * i * t + i / N ) ) / N;
-    }
-  } else out = input[ idx ]; 
-  return out;// * input[ idx ];  
-}
-rtaudio.filter.connect( function() {
-  input = rtaudio.input;
-  var l = input.length;
-  for( var i = 0; i !== l; ++i ) {
-    ++sampleCount; if( sampleCount ===  sampleRate ) sampleCount = 0;
-    output[ i ] = filter( sampleCount / maxSampleCount,  i, input );
-  }
-  rtaudio.output = output;
-} );
-rtaudio.openIOStream( "float32", sampleRate, sampleBuffer/*, {deviceId: 3}*/ );
-rtaudio.startStream();
+var ww = Loco.gui.create( "WebWindow" );
+ww.setAttributes( {JavascriptEnabled: true,
+                   DeveloperExtrasEnabled: true} );                  
+
+ww.setEnableContextMenu( true );
+ww.addObjectToContext( rtaudio, "rtaudio" );
+ww.load( "file:///C:/projects/loco/modules/plugins/rtaudio/test/gui/gui.html" );
+ww.show();
 
 //==============================================================================
 //invoke exit() event loop has not been started, quit() otherwise

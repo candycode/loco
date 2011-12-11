@@ -30,11 +30,14 @@ if( args.length < 3 ) {
 //==============================================================================
 var rtaudio = ctx.loadQtPlugin( args[ 2 ] );
 rtaudio.error.connect( err );
-rtaudio.inputReady.connect( function( data ) {
-  var l = data.length;
-  for( var i = 0; i !== l; ++i ) Loco.console.println( data[ i ] );
+var input = [];
+rtaudio.inputReady.connect( function() {
+  input = rtaudio.input;
+  var l = input.length;
+  for( var i = 0; i !== l; ++i ) Loco.console.println( input[ i ] );
 } );
-rtaudio.openInputStream( {}, "float64", 11025, 256 );
+rtaudio.openInputStream( "float64", 11025, 256 );
+rtaudio.startStream();
 
 //==============================================================================
 //invoke exit() event loop has not been started, quit() otherwise

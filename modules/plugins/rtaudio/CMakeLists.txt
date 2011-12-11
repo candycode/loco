@@ -20,7 +20,7 @@ QT4_WRAP_CPP( MOC_SRCS ${MOC_HEADERS} )
 set( SRCS ${MOC_SRCS} RtAudio.cpp RtAudio.h RtError.h RtAudioPlugin.h )
 
 if( WIN32 )
-  add_definitions( -D__WINDOWS_DS__ )
+  add_definitions( -D__WINDOWS_DS__ -D_SCL_SECURE_NO_WARNINGS )
   set( SOUNDLIB dsound )
 endif()  
 
