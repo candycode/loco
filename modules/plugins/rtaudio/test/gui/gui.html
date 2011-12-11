@@ -6,39 +6,48 @@
     <link href="layout.css" rel="stylesheet" type="text/css">
     <script language="javascript" type="text/javascript" src="./flot/jquery.js"></script>
     <script language="javascript" type="text/javascript" src="./flot/jquery.flot.js"></script>
-    <script language="javascript" type="text/javascript" src="jquery.flot.axislabels.js"></script>
+    <!--<script language="javascript" type="text/javascript" src="jquery.flot.axislabels.js"></script>-->
+    <script language="javascript" type="text/javascript" src="dsp.js"></script>
  </head>
     <body>
     <h1>Real-time sampling</h1>
-
-    <div id="placeholder" style="width:1000px;height:600px;"></div>
-
+    <div id="placeholder"  style="width:1000px;height:600px;margin-left:100px"></div>
     <p>Example of how to use the Qt RtAudio plugin wrapper to display real-time audio data with LoCO</p>
 
 <script type="text/javascript">
 $(function () {
-  
-  var sampleBuffer = 960;
-  var sampleRate = 96000;
+  var sampleBuffer = 1024; //window width //DFT MAX 256, FFT MAX 2048, best 1024/512
+  var sampleRate = 44100; //44.1 kHz
+  var fft = new FFT(sampleBuffer, sampleRate);
   var input = new Array( sampleBuffer );
-  var r = 1 / sampleRate;
+  var input2 = new Array( sampleBuffer );
+  var signal = new Array( sampleBuffer );
+  var r = sampleRate / sampleBuffer;
+  var t = 1 / sampleRate;
   rtaudio.inputReady.connect( function() {
-    var data = rtaudio.input;
-    var l = data.length;
-    for( var i = 0; i != l; ++i ) input[ i ] = [i*r,data[i]];
+    signal = rtaudio.input;
+    fft.forward( signal );
+    //var data = fft.spectrum;
+    var l = fft.spectrum.length; //it's half the length of signal
+    for( var i = 0; i != l; ++i ) {
+      input[ i ]  = [ i * r,fft.spectrum[i]];
+      input2[ i ] = [ 2 * i * t, signal[i] ];
+    }
   } );
-  // setup plot
+   // setup plot
   var options = {
       series: { shadowSize: 0 }, // drawing is faster without shadows
-      yaxis: { min: -.05, max: .05 },
-      xaxis: { label: "Time (s)", show: true, min: 0, max: sampleBuffer / sampleRate }
+      yaxes: [{ min: 0, max: 0.022 }, {show:true,min: -0.1,max:0.1,position:'right'}],
+      xaxes:[{ /*label: "Time (s)",*/ show: true, min: 0, max: sampleRate/2 },{show: true, min: 0, max: sampleBuffer/sampleRate}],
+      legend: { position: 'ne' }
   };
-  var plot = $.plot($("#placeholder"), [input], options);
+  var plot = $.plot($("#placeholder"), [input,input2], options);
 
   function update() {
-      plot.setData([input]);
+      plot.setData( [{data:input, bars: {show:true}, label: "Power spectrum" },
+                     {data:input2, xaxis: 2, yaxis: 2, label: "Signal"}] );
       plot.draw();      
-      setTimeout(update, 20); // 50Hz refresh frequency
+      setTimeout(update, 20); // 50Hz refresh rate
   } 
   rtaudio.openInputStream( "float32", sampleRate, sampleBuffer );
   rtaudio.startStream(); 
