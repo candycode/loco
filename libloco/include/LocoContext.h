@@ -77,6 +77,14 @@ public:
     		   const QStringList& cmdLine = QStringList(), Context* parent = 0 );
 // called from C++
 public:
+	QString SignalSignature( const QString& sig ) { //returns mangled signature
+	    QString placeHolder = SIGNAL( () );
+		return placeHolder.replace( "()", sig );
+	}
+	QString SlotSignature( const QString& sig ) { //returns mangled signature
+	    QString placeHolder = SLOT( () );
+		return placeHolder.replace( "()", sig );
+	}
     void Yeld() { app_->processEvents(); }
     const QString& LastReadURI() const { return lastReadURI_; }
     bool SetAllowInterrupt( bool yes ) { return jsInterpreter_->SetAllowInterrupt( yes ); }

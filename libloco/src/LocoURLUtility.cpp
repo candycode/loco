@@ -44,7 +44,13 @@ void ConfigureHeaders( QNetworkRequest& req, const QVariantMap& headers ) {
 QUrl TranslateUrl( const QString& urlString ) {
 	if( urlString.contains( "://" ) ) return QUrl( urlString );
 	else if( urlString.startsWith( '/' ) ) return QUrl( "file://" + urlString );
-	else return QUrl( "file://" + QDir::currentPath() + "/" + urlString );
+	else {
+#ifdef Q_OS_WIN
+		return QUrl( "file:///" + QDir::currentPath() + "/" + urlString );
+#else
+        return QUrl( "file://" + QDir::currentPath() + "/" + urlString );
+#endif
+	}
 }
 
 }

@@ -23,8 +23,10 @@ public:
     const QString& code() const { return ctx_->Code(); }
     void storeCode( bool on ) { ctx_->SetStoreCode( on ); }
 	bool storeCode() const { return ctx_->GetStoreCode(); }
-// invocable from javascript
+// invokable from javascript
 public slots: // js interface
+	QString signalSignature( const QString& sig ) { return ctx_->SignalSignature( sig ); }
+    QString slotSignature( const QString& sig ) { return ctx_->SlotSignature( sig ); }
     void yeld() { ctx_->Yeld(); }
     int netReadTimeout() const { return ctx_->GetNetReadTimeout(); }
     void setNetReadTimeout( int timeout ) { ctx_->SetNetReadTimeout( timeout ); }

@@ -28,6 +28,7 @@ if( args.length < 3 ) {
 }
 
 //==============================================================================
+print( CURDIR );
 var rtaudio = ctx.loadQtPlugin( args[ 2 ] );
 var ww = Loco.gui.create( "WebWindow" );
 ww.setAttributes( {JavascriptEnabled: true,
@@ -35,7 +36,8 @@ ww.setAttributes( {JavascriptEnabled: true,
 
 ww.setEnableContextMenu( true );
 ww.addObjectToContext( rtaudio, "rtaudio" );
-ww.load( "file:///C:/projects/loco/modules/plugins/rtaudio/test/gui/gui.html" );
+//ww.load( "file:///C:/projects/loco/modules/plugins/rtaudio/test/gui/gui.html" );
+ww.load( "gui.html" );
 ww.show();
 
 //==============================================================================
