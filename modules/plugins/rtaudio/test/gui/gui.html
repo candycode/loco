@@ -6,13 +6,21 @@
     <link href="layout.css" rel="stylesheet" type="text/css">
     <script language="javascript" type="text/javascript" src="./flot/jquery.js"></script>
     <script language="javascript" type="text/javascript" src="./flot/jquery.flot.js"></script>
-    <!--<script language="javascript" type="text/javascript" src="jquery.flot.axislabels.js"></script>-->
+    <script language="javascript" type="text/javascript" src="jquery.flot.axislabels.js"></script>
     <script language="javascript" type="text/javascript" src="dsp.js"></script>
  </head>
     <body>
     <h1>Real-time sampling</h1>
     <div id="placeholder"  style="width:1000px;height:600px;margin-left:100px"></div>
     <p>Example of how to use the Qt RtAudio plugin wrapper to display real-time audio data with LoCO</p>
+    <p>
+      <ul>
+        <li>Top axis: Time(s)</li>
+        <li>Bottom axis: Frequency(Hz)</li>
+        <li>Left axis: Power spectrum</li>
+        <li>Right axis: Input signal</li>
+      </ul>
+    </p>
 
 <script type="text/javascript">
 $(function () {
@@ -27,7 +35,6 @@ $(function () {
   rtaudio.inputReady.connect( function() {
     signal = rtaudio.input;
     fft.forward( signal );
-    //var data = fft.spectrum;
     var l = fft.spectrum.length; //it's half the length of signal
     for( var i = 0; i != l; ++i ) {
       input[ i ]  = [ i * r,fft.spectrum[i]];
@@ -38,14 +45,14 @@ $(function () {
   var options = {
       series: { shadowSize: 0 }, // drawing is faster without shadows
       yaxes: [{ min: 0, max: 0.022 }, {show:true,min: -0.1,max:0.1,position:'right'}],
-      xaxes:[{ /*label: "Time (s)",*/ show: true, min: 0, max: sampleRate/2 },{show: true, min: 0, max: sampleBuffer/sampleRate}],
-      legend: { position: 'ne' }
+      xaxes:[{ show: true, min: 0, max: sampleRate/2 },
+             { show: true, min: 0, max: sampleBuffer/sampleRate,position:'top'}]
   };
   var plot = $.plot($("#placeholder"), [input,input2], options);
 
   function update() {
-      plot.setData( [{data:input, bars: {show:true}, label: "Power spectrum" },
-                     {data:input2, xaxis: 2, yaxis: 2, label: "Signal"}] );
+      plot.setData( [{data:input, bars: {show:true} },
+                     {data:input2, xaxis: 2, yaxis: 2}] );
       plot.draw();      
       setTimeout(update, 20); // 50Hz refresh rate
   } 

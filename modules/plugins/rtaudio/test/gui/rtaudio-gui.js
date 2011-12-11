@@ -38,7 +38,7 @@ ww.setEnableContextMenu( true );
 ww.addObjectToContext( rtaudio, "rtaudio" );
 //ww.load( "file:///C:/projects/loco/modules/plugins/rtaudio/test/gui/gui.html" );
 ww.load( "gui.html" );
-ww.show();
+ww.show( 1200, 800 );
 
 //==============================================================================
 //invoke exit() event loop has not been started, quit() otherwise

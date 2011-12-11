@@ -39,6 +39,7 @@ protected:
 	    connect( Widget(), SIGNAL( closing() ), this, SIGNAL( closing() ) );
 	}
 public slots:
+	void resize( int w, int h ) { Widget()->resize( w, h ); }
     bool setParentWidget( QObject* obj ) {
     	if( !qobject_cast< WrappedWidget* >( obj ) ) {
     		error( "'setParentWidget' requires a WrappedWidget derived object" );
@@ -76,6 +77,7 @@ public slots:
 	void showNormal() { Widget()->showNormal(); }
 	void showFullScreen() { Widget()->showFullScreen(); }
 	void show() {  Widget()->show(); }
+	void show( int w, int h ) {  Widget()->show(); Widget()->resize( w, h ); }
 	void hide() {  Widget()->hide(); }
 signals:
     void closing();
