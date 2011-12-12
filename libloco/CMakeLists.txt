@@ -117,7 +117,10 @@ set( MOC_HEADERS
   ${LOCO_SCRIPT_MOC_HEADERS} ${LOCO_JS_SYNTAX_CHECKER_MOC_HEADERS}
   ${LINC}/LocoScriptNetworkRequestHandler.h ${LINC}/LocoContextThread.h 
   ${LINC}/LocoDataType.h ${LINC}/LocoContextThreadLoop.h
-  ${LINC}/LocoNetwork.h ${LINC}/LocoTimer.h ) 
+  ${LINC}/LocoNetwork.h ${LINC}/LocoTimer.h ${LINC}/Arrays/LocoFloat64Array.h
+  ${LINC}/Arrays/LocoFloat32Array.h ${LINC}/Arrays/LocoIntArray.h
+  ${LINC}/Arrays/LocoUIntArray.h ${LINC}/Arrays/LocoShortArray.h
+  ${LINC}/Arrays/LocoUShortArray.h ${LINC}/Arrays/LocoByteArray.h ) 
 
 QT4_WRAP_CPP( MOC_SRCS ${MOC_HEADERS} ) 
 
@@ -128,7 +131,7 @@ set( SRCS ${LSRC}/LocoObject.cpp  ${LOCO_FSYSTEM_SRCS} ${LOCO_WKIT_SRCS} ${LSRC}
     
 set( SRCS_INCLUDE ${MOC_HEADERS} ${LOCO_WKIT_HEADERS} ${LOCO_FSYSTEM_INCLUDE} 
      ${LINC}/LocoDefaultJSInit.h ${LINC}/LocoApp.h ${LINC}/LocoINetworkRequestHandler.h
-     ${LINC}/LocoURLUtility.h )
+     ${LINC}/LocoURLUtility.h ${LINC}/Arrays/LocoArray.h )
 
 ####CONFIGURE LIBRARY
 if(LOCO_DYNAMIC)

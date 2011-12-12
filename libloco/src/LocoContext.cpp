@@ -11,6 +11,13 @@
 #include "LocoScriptNetworkRequestHandler.h"
 #include "LocoContextThread.h"
 #include "LocoContextThreadLoop.h"
+#include "Arrays/LocoFloat64Array.h"
+#include "Arrays/LocoFloat32Array.h"
+#include "Arrays/LocoIntArray.h"
+#include "Arrays/LocoUIntArray.h"
+#include "Arrays/LocoShortArray.h"
+#include "Arrays/LocoUShortArray.h"
+#include "Arrays/LocoByteArray.h"
 
 #ifdef LOCO_WKIT
 #include "LocoWebKitJSCore.h"
@@ -19,6 +26,7 @@
 #include "LocoQScriptInterpreter.h"
 #endif
 #include "LocoDataType.h"
+
 
 namespace loco {
 
@@ -434,6 +442,27 @@ QVariant Context::Create( const QString& className ) {
 		ContextThreadLoop* ct = new ContextThreadLoop();
 		AddQObjectToJSContext( ct, ct->JSInstanceName() );
 		return jsInterpreter_->EvaluateJavaScript( ct->JSInstanceName() );
+	} else if( className == "Float64Array" ) {
+		Float64Array* array = new Float64Array();
+		return AddObjToJSContext( array );
+	} else if( className == "Float32Array" ) {
+		Float32Array* array = new Float32Array();
+		return AddObjToJSContext( array );
+	} else if( className == "IntArray" ) {
+		IntArray* array = new IntArray();
+		return AddObjToJSContext( array );
+	} else if( className == "UIntArray" ) {
+		UIntArray* array = new UIntArray();
+		return AddObjToJSContext( array );
+	} else if( className == "ShortArray" ) {
+		ShortArray* array = new ShortArray();
+		return AddObjToJSContext( array );
+	} else if( className == "UShortArray" ) {
+		UShortArray* array = new UShortArray();
+		return AddObjToJSContext( array );
+	} else if( className == "ByteArray" ) {
+		ByteArray* array = new ByteArray();
+		return AddObjToJSContext( array );
 	} else {
 		error( "Cannot create object of type " + className );
 		return QVariant();
