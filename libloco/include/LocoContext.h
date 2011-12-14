@@ -97,7 +97,7 @@ public:
     void SetEnableCustomNetRequestHandlers( bool yes ) {
     	netAccessMgr_->SetEnableCustomRequestHandlers( yes );
     }
-    QVariant Create( const QString& className );
+    QVariant Create( const QString& className, const QVariantMap& init = QVariantMap() );
 	bool RegisterResources( const QString& path, const QString& rootPath = QString() ) {
 		return QResource::registerResource( path, rootPath );
 	}

@@ -29,6 +29,24 @@
 
 
 namespace loco {
+namespace {
+template < typename T >
+QVariant CreateArray( Context& ctx, const QVariantMap& init ) {
+    typename T::Allocator a;
+    if( init.contains( "align" ) ) a.set_alignment( init[ "align" ].toUInt() );
+	bool ok = false;
+	T* array = new T( a );
+	if( init.contains( "size" ) ) {
+		array->resize( init[ "size" ].toULongLong( &ok ) );
+	    if( !ok ) {
+		    delete array;
+		    ctx.error( "Invalid unsigned long value");
+		    return QVariant();
+	    }
+	}
+	return ctx.AddObjToJSContext( array );
+}
+}
 
 Context::Context( Context* parent ) : jsContext_( new JSContext( this ) ),
                      jsInterpreter_( 0 ), jsInitGenerator_( 0 ),
@@ -186,7 +204,6 @@ QByteArray Context::ReadFile( QString filePath ) {
             return QByteArray();
         }
     }
-
                 
     if( !fileAccessMgr_->CheckAccess( filePath ) ) {
         error( "Not authorized to access file " + filePath );
@@ -410,7 +427,7 @@ QVariant Context::LoadQtPlugin( QString filePath,
     return jsInterpreter_->EvaluateJavaScript( jsInstanceName );
 }
 
-QVariant Context::Create( const QString& className ) {
+QVariant Context::Create( const QString& className, const QVariantMap& init ) {
 	if( className == "ProtocolHandler" ) {
 		return AddObjToJSContext( new ScriptNetworkRequestHandler ); //lifetime managed by Javascript
 	}
@@ -443,26 +460,19 @@ QVariant Context::Create( const QString& className ) {
 		AddQObjectToJSContext( ct, ct->JSInstanceName() );
 		return jsInterpreter_->EvaluateJavaScript( ct->JSInstanceName() );
 	} else if( className == "Float64Array" ) {
-		Float64Array* array = new Float64Array();
-		return AddObjToJSContext( array );
+		return CreateArray< Float64Array >( *this, init );
 	} else if( className == "Float32Array" ) {
-		Float32Array* array = new Float32Array();
-		return AddObjToJSContext( array );
+		return CreateArray< Float32Array >( *this, init );
 	} else if( className == "IntArray" ) {
-		IntArray* array = new IntArray();
-		return AddObjToJSContext( array );
+		return CreateArray< IntArray >( *this, init );
 	} else if( className == "UIntArray" ) {
-		UIntArray* array = new UIntArray();
-		return AddObjToJSContext( array );
+		return CreateArray< UIntArray >( *this, init );
 	} else if( className == "ShortArray" ) {
-		ShortArray* array = new ShortArray();
-		return AddObjToJSContext( array );
+		return CreateArray< ShortArray >( *this, init );
 	} else if( className == "UShortArray" ) {
-		UShortArray* array = new UShortArray();
-		return AddObjToJSContext( array );
+		return CreateArray< UShortArray >( *this, init );
 	} else if( className == "ByteArray" ) {
-		ByteArray* array = new ByteArray();
-		return AddObjToJSContext( array );
+		return CreateArray< ByteArray >( *this, init );
 	} else {
 		error( "Cannot create object of type " + className );
 		return QVariant();

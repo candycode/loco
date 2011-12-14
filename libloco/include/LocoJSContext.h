@@ -61,7 +61,9 @@ public slots: // js interface
     	ctx_->AddNetworkRequestHandler( scheme, handler );
     }
     void setEnableCustomProtocolHandlers( bool yes ) { ctx_->SetEnableCustomNetRequestHandlers( yes ); }
-    QVariant create( const QString& className ) { return ctx_->Create( className ); }
+    QVariant create( const QString& className, const QVariantMap& init = QVariantMap() ) {
+    	return ctx_->Create( className, init );
+    }
     QVariant loadQtPlugin( QString filePath,
                            const QString& jsInstanceName = QString(),
                            const QString& initMethodName = "Init",

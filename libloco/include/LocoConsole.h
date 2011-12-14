@@ -27,6 +27,7 @@ public slots:
 	void ungetc() const { std::cin.unget(); }
 	bool end() const { return std::cin.eof(); }
 	void flush()  const { std::cout.flush(); std::cerr.flush(); }
+	void c( const QVariant& c ) { std::cout << c.toInt() << std::endl; }
 };
 
 }
