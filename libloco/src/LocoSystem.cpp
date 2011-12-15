@@ -33,4 +33,17 @@ namespace loco {
 		Timer* t = new Timer;
 		return GetContext()->AddObjToJSContext( t );
 	}
+	QVariantMap System::SysInfo() const {
+		QVariantMap info;
+#if defined( Q_OS_LINUX ) || defined( Q_OS_MAC )
+        info[ "numCpu" ] = int( sysconf( _SC_NPROCESSORS_ONLN ) );
+        info[ "pageSize" ] = int( sysconf( _SC_PAGE_SIZE ) );
+#elif defined( Q_OS_WIN )
+        SYSTEM_INFO sysinfo;
+        GetNativeSystemInfo( &sysinfo );
+        info[ "numCpu" ] = int( sysinfo.dwNumberOfProcessors );
+        info[ "pageSize" ] = int( sysinfo.dwPageSize );
+#endif
+        return info;
+	}
 }

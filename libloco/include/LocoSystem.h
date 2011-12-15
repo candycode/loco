@@ -21,9 +21,10 @@ namespace loco {
 class System : public Object {
     Q_OBJECT
     Q_PROPERTY( quint64 CLOCKS_PER_SECOND READ clocksPerSecond )
+    Q_PROPERTY( QVariantMap sysInfo READ SysInfo )
 public:
    System() : Object( 0, "LocoSystem", "Loco/System/System" ) {}
-
+   QVariantMap SysInfo() const;
 public slots:
     QVariant timer() const;
     bool putEnv( const QString& var, const QString& val ) {
@@ -126,7 +127,7 @@ public slots:
             vm[ *kv.begin() ] = *( ++kv.begin() );
         }
         return vm;          
-    }    
+    }
     QVariant process() const;
 	QVariant eventLoop() const;
 	void sleep( int ms ) const {
