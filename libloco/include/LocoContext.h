@@ -69,7 +69,6 @@ class Context : public EWL {
 friend class App; //loco contexts are embedded into an application
 
 public:
-    
     Context( Context* parent = 0 );
     Context( IJSInterpreter* jsi, LocoQtApp* app, const QStringList& cmdLine,
              Context* parent = 0 );
@@ -97,7 +96,7 @@ public:
             	  const QString& sigOrSlotSignature ) {
                 QObject::connect( srcObj, sigSignature.toAscii().constData(),
                 		          targetObj, sigOrSlotSignature.toAscii().constData() );
-        }
+    }
 	QString SignalSignature( const QString& sig ) { //returns mangled signature
 	    QString placeHolder = SIGNAL( () );
 		return placeHolder.replace( "()", sig );
