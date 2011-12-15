@@ -96,6 +96,7 @@ public:
     }
 	void SetScriptFileNameMatchingExpression( const QRegExp& rx )  { scriptNameRX_ = rx; }
     int Execute( bool forceDefault = false );
+    int Execute( const QString& code, const QStringList& filters = QStringList() );
     void ConfigNetAccessFromFile( const QString& deny,
     		                      const QString& allow ) {
     	ReadRules( deny, NetDeny );
@@ -126,6 +127,12 @@ public:
     void PreloadObject( const QString& uri ) {
         const bool PERSISTENT = true;
         ctx_.LoadObject( uri, PERSISTENT );
+    }
+    void PreloadQtPlugin( QString filePath,
+                              QString jsInstanceName,
+                              const QString& initMethodName = "Init",
+                              const QVariantMap& params = QVariantMap() ) {
+        ctx_.LoadQtPlugin( filePath, jsInstanceName, initMethodName, params );
     }
     void SetDocHandler( const QRegExp& rx, const QString& scriptURI ) {
     	docHandlers_.push_back( qMakePair( rx, scriptURI ) );

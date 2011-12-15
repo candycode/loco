@@ -52,8 +52,8 @@ int main(int argc, char *argv[])
           .SetUrl( LOCO_APP_URL );
 		loco::App app( qtApp, argc, argv, i );
 		//WARNING: interpreter MUST BE CREATED AFTER APP if not
-		//a ERROR IS REPORTED (QWidgets must be created after QApplication
-		//and in the case of the QtWebKit jscore interpreter the interpreter
+		//AN ERROR IS REPORTED ("QWidgets must be created after QApplication")
+		//and in the case of the QtWebKit JavaScriptCore interpreter the interpreter
 		//is inside a class that has a dependency on QWidget.
 #ifdef LOCOPLAY_WKIT
 		app.SetInterpreter( new WebKitJSCore ); // app owns interpreter

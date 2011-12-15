@@ -100,8 +100,25 @@ void App::ParseCommandLine() {
     }
 }
 
+int App::Execute( const QString& code, const QStringList& filters ) {
+	try {
+		execResult_ = ctx_.Eval( code, filters );
+		int execResult = 0;
+		if( startEventLoop_ ) execResult = app_.exec();
+		if( execResult_.isValid() && execResult_.type() == QVariant::Int ) return execResult_.toInt();
+		return execResult;
+	} catch( const std::exception& e ) {
+		  emit OnException( e.what() );
+		std::cerr << app_.applicationName().toStdString() << " - " << e.what() << std::endl;
+	#ifdef LOCO_GUI
+		QMessageBox::critical( 0, app_.applicationName(), e.what() );
+	#endif
+		   return -1;
+	}
+	return -1;
+}
 	
-int App::Execute( bool forceDefault  ) {
+int App::Execute( bool forceDefault ) {
     try {		
         scriptFileName_ = defaultScript_;
         bool found = false;
