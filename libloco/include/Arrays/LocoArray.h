@@ -14,7 +14,7 @@
 #include "DynamicAlignedAllocator.h"
 
 //cannot use templates (issues with moc/Qt)
-//cannot declare slots in a macro because moc does not expand regular macros before the slot macro
+//cannot declare slots in a macro because moc does not expand regular macros before the 'slot' macro
 // i.e. the following results into an "Error: Not a signal or slot declaration"
 //public slots:
 // LOCO_DECLARE_SLOTS_MACRO
@@ -62,6 +62,8 @@ public: \
         std::copy( array.data_.begin(), array.data_.end(), data_.begin() + start ); \
     } \
     QString GetValueType() const { return ValueTypeName ; } \
-    int GetAlignment() const { return data_.get_allocator().alignment(); }
+    int GetAlignment() const { return data_.get_allocator().alignment(); } \
+    quint64 AddressOf( quint64 elementIdx ) const { return reinterpret_cast< quint64 >( &data_[ elementIdx ] ); } \
+    quint64 Address() const { return reinterpret_cast< quint64 >( &data_[ 0 ] ); }
 
 

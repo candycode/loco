@@ -16,6 +16,7 @@ class Float32Array : public Object {
 	Q_PROPERTY( quint64 length READ GetLength )
     Q_PROPERTY( QString valueType READ GetValueType )
     Q_PROPERTY( QVariantList data READ GetData WRITE SetData )
+    Q_PROPERTY( quint64 address READ Address )
 private:
     double ToFloat( const QVariant& v ) { return v.toFloat(); }
 public:
@@ -85,6 +86,7 @@ public slots:
         remove( start, length );
         return GetContext()->AddObjToJSContext( v );
     }
+    quint64 addressOf( quint64 idx ) const { return AddressOf( idx ); }
 private:
 	Vector data_;
 };

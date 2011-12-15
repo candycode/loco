@@ -77,6 +77,27 @@ public:
     		   const QStringList& cmdLine = QStringList(), Context* parent = 0 );
 // called from C++
 public:
+    void ConnectSigToSlot( QObject* srcObj,
+    		               const QString& sigSignature,
+    		               QObject* targetObj,
+    		               const QString& slotSignature ) {
+        QObject::connect( srcObj, SignalSignature( sigSignature ).toAscii().constData(),
+        		          targetObj, SlotSignature( slotSignature ).toAscii().constData() );
+    }
+    void ConnectSigToSig( QObject* srcObj,
+        		          const QString& sig1Signature,
+        		          QObject* targetObj,
+        		          const QString& sig2Signature ) {
+            QObject::connect( srcObj, SignalSignature( sig1Signature ).toAscii().constData(),
+            		          targetObj, SignalSignature( sig2Signature ).toAscii().constData() );
+    }
+    void Connect( QObject* srcObj,
+            	  const QString& sigSignature,
+            	  QObject* targetObj,
+            	  const QString& sigOrSlotSignature ) {
+                QObject::connect( srcObj, sigSignature.toAscii().constData(),
+                		          targetObj, sigOrSlotSignature.toAscii().constData() );
+        }
 	QString SignalSignature( const QString& sig ) { //returns mangled signature
 	    QString placeHolder = SIGNAL( () );
 		return placeHolder.replace( "()", sig );

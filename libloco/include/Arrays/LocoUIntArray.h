@@ -17,6 +17,7 @@ class UIntArray : public Object {
     Q_PROPERTY( QString valueType READ GetValueType )
     Q_PROPERTY( QVariantList data READ GetData WRITE SetData )
     Q_PROPERTY( int alignment READ GetAlignment )
+    Q_PROPERTY( quint64 address READ Address )
 private:
     unsigned ToUInt( const QVariant& v ) { return v.toUInt(); }
 public:
@@ -86,6 +87,7 @@ public slots:
         remove( start, length );
         return GetContext()->AddObjToJSContext( v );
     }
+    quint64 addressOf( quint64 idx ) const { return AddressOf( idx ); }
 private:
 	Vector data_;
 };

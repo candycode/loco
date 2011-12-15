@@ -16,7 +16,7 @@ timer.stop();
 Loco.console.println( timer.elapsed );
 timer.stop();
 
-//this should be 100x slower, only
+//this should be 100x slower 
 //cppArray.resize( SIZE );
 timer.start();
 for( i = 0; i != SIZE; ++i ) cppArray.set( i, i );
@@ -30,7 +30,6 @@ timer.start();
 cppArray.mset( 0, jsArray );
 timer.stop();
 Loco.console.println( timer.elapsed );
-timer.stop();
 
 Loco.ctx.exit( 0 );
 } catch( e ) {

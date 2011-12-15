@@ -8,7 +8,7 @@
 
 ///\warning INTENDED FOR POD TYPES ONLY
 /// The only changes required to make it work with any type
-/// are to explicitly invoke destructors in the deallocate/destroy methods
+/// are to explicitly invoke destructors in the deallocate() abd destroy() methods
 /// and use placement new in construct()
 
 template <class T > class DynamicAlignedAllocator {
@@ -65,7 +65,7 @@ public:
 	    //new ( p ) T( val );
 		*p = val;
 	}
-	void destroy(pointer p) {
+	void destroy(pointer /*p*/) {
         //p->~T();
 	}
 public:
