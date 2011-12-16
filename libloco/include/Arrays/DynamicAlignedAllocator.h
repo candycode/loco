@@ -24,12 +24,13 @@ public:
 public:
 	DynamicAlignedAllocator( size_t alignment = 0 ) throw() : alignment_( alignment ) {
 		assert( sizeof( void* ) == sizeof( size_t ) );
+		assert( sizeof( quint64 ) >= sizeof( size_t ) );
 	}
 	DynamicAlignedAllocator(const DynamicAlignedAllocator& other ) throw() : alignment_( other.alignment_ ) {}
-	template <class U> DynamicAlignedAllocator(const DynamicAlignedAllocator<U>& other) throw()  :  alignment_( other.alignment_ ) {}
+	template <class U> DynamicAlignedAllocator( const DynamicAlignedAllocator<U>& other ) throw()  :  alignment_( other.alignment() ) {}
 	~DynamicAlignedAllocator() throw() {}
-	pointer address(reference x) const { return &x; }
-	const_pointer address(const_reference x) const { return &x; };
+	pointer address( reference x ) const { return &x; }
+	const_pointer address( const_reference x ) const { return &x; };
 	pointer allocate( size_type sz, const void* = 0 ) {
         if( alignment_ == 0 ) {
         	pointer p = reinterpret_cast< pointer >( malloc( sz * sizeof( value_type ) ) );

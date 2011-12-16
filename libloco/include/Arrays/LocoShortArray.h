@@ -16,7 +16,7 @@ class ShortArray : public Object {
 	Q_PROPERTY( quint64 length READ GetLength )
     Q_PROPERTY( QString valueType READ GetValueType )
     Q_PROPERTY( QVariantList data READ GetData WRITE SetData )
-    Q_PROPERTY( int alignment READ GetAlignment )
+    Q_PROPERTY( quint64 alignment READ GetAlignment )
     Q_PROPERTY( quint64 address READ Address )
 private:
     short ToShort( const QVariant& v ) { return short( v.toInt() ); }

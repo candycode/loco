@@ -24,7 +24,7 @@ public:
 LOCO_DECLARE_ARRAY_METHODS
 
 public slots:
-    int valueByteSize() const { return sizeof( ValueType ); }
+    size_t valueByteSize() const { return sizeof( ValueType ); }
     QVariant at( quint64 idx ) { return data_[ idx ]; }
     QVariantList at( quint64 start, quint64 size ) const {
         QVariantList sa;

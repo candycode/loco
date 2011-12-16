@@ -16,6 +16,7 @@ class Float32Array : public Object {
 	Q_PROPERTY( quint64 length READ GetLength )
     Q_PROPERTY( QString valueType READ GetValueType )
     Q_PROPERTY( QVariantList data READ GetData WRITE SetData )
+	Q_PROPERTY( quint64 alignment READ GetAlignment )
     Q_PROPERTY( quint64 address READ Address )
 private:
     double ToFloat( const QVariant& v ) { return v.toFloat(); }

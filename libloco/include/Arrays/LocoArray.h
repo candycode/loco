@@ -26,7 +26,7 @@
 #define LOCO_DECLARE_ARRAY_METHODS \
 public: \
 	typedef std::vector< ValueType, DynamicAlignedAllocator< ValueType > > Vector; \
-	typedef typename Vector::allocator_type Allocator; \
+	typedef Vector::allocator_type Allocator; \
 	ClassName ( const Vector::allocator_type& a = Vector::allocator_type() ) : \
         Object( 0, LocoClassName , "/Loco/Data/Array" ), \
         data_( a ) {} \
@@ -35,7 +35,7 @@ public: \
     ClassName ( const ClassName & other ) : data_( other.data_ ) {} \
     QVariantList GetData() const { \
         QVariantList data; \
-        data.reserve( data_.size() ); \
+        data.reserve( QVariantList::size_type( data_.size() ) ); \
         Vector::const_iterator i = data_.begin(); \
         for( ; i != data_.end(); ++i ) data.push_back( *i ); \
         return data; \
@@ -62,7 +62,7 @@ public: \
         std::copy( array.data_.begin(), array.data_.end(), data_.begin() + start ); \
     } \
     QString GetValueType() const { return ValueTypeName ; } \
-    int GetAlignment() const { return data_.get_allocator().alignment(); } \
+    quint64 GetAlignment() const { return data_.get_allocator().alignment(); } \
     quint64 AddressOf( quint64 elementIdx ) const { return reinterpret_cast< quint64 >( &data_[ elementIdx ] ); } \
     quint64 Address() const { return reinterpret_cast< quint64 >( &data_[ 0 ] ); }
 
