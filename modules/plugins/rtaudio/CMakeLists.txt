@@ -17,10 +17,12 @@ link_directories( ${QT_LIBRARY_DIR}  )
 set( MOC_HEADERS ${PLUGIN_MOC_HEADERS} )
 QT4_WRAP_CPP( MOC_SRCS ${MOC_HEADERS} ) 
 
-set( SRCS ${MOC_SRCS} RtAudio.cpp RtAudio.h RtError.h RtAudioPlugin.h )
+set( SRCS ${MOC_SRCS} stk/RtAudio.cpp stk/RtAudio.h stk/RtError.h 
+     stk/stk.h stk/Stk.cpp stk/FileRead.h stk/FileRead.cpp stk/FileWrite.h
+     stk/FileWrite.cpp RtAudioPlugin.h )
 
 if( WIN32 )
-  add_definitions( -D__WINDOWS_DS__ -D_SCL_SECURE_NO_WARNINGS )
+  add_definitions( -D__WINDOWS_DS__ -D_SCL_SECURE_NO_WARNINGS -D__LITTLE_ENDIAN__ )
   set( SOUNDLIB dsound )
 endif()  
 

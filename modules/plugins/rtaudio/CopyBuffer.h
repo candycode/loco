@@ -5,7 +5,8 @@
 #include <QVariant>
 #include <QVariantList>
 
-#include "RtAudio.h"
+#include "stk/RtAudio.h"
+#include "stk/stk.h"
 
 template < typename T > void BufferCopy( const void* in, QVariantList& out, int sz ) {
     const T* i = reinterpret_cast< const T* >( in );
@@ -17,6 +18,12 @@ template < typename T > void BufferCopy( const void* in, void* out, int sz ) {
 	T* o = reinterpret_cast< T* >( out );
 	//on V++ -D_SCL_SECURE_NO_WARNINGS to disable warning
 	std::copy( i, i + sz, o );
+}
+
+void BufferCopy( const QVariantList& inList, stk::StkFrames& outFrames, int sz ) {
+	QVariantList::const_iterator in = inList.begin();
+	stk::StkFloat* out = &outFrames[ 0 ];
+	for( ; sz; ++out, ++in, --sz ) *out = in->toDouble(); 
 }
 
 inline void CopyInt8( const void* in, QVariantList& out, int sz ) { BufferCopy< char >( in, out, sz ); }
@@ -121,4 +128,12 @@ inline void CopyBuffer( const void* in, void* out, int sz, RtAudioStreamFlags ty
 		                  break;
 	default: break;
 	}
+}
+
+inline void CopyBuffer( const stk::StkFrames& inStreams, QVariantList& out ) {
+	BufferCopy< stk::StkFloat >( &inStreams[ 0 ], out, inStreams.channels() * inStreams.size() );
+}
+
+inline void CopyBuffer( const QVariantList& in, stk::StkFrames& outStreams ) {
+	BufferCopy( in, outStreams, in.length() );
 }

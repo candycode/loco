@@ -12,10 +12,11 @@
 #include <QVariantMap>
 #include <QStringList>
 
-#include "RtAudio.h"
+#include "stk/RtAudio.h"
+#include "stk/FileRead.h"
+#include "stk/FileWrite.h"
+#include "stk/stk.h"
 #include "CopyBuffer.h"
-
-#include <iostream>
 
 struct IDummy {};
 Q_DECLARE_INTERFACE( IDummy, "dummy" )
@@ -218,6 +219,42 @@ public slots:
         	HandleException( e );
         }                                       	                 	
     }
+	QVariantMap readFile( const QString& fileName, bool normalize = true ) const {
+		QVariantMap audioData;
+		try {
+			QVariantList data;		
+			stk::FileRead fr( fileName.toStdString() );
+			audioData[ "numChannels" ] = fr.channels();
+			audioData[ "frames" ] = quint64( fr.fileSize() );
+			audioData[ "type" ] = ConvertFormat( fr.format() );
+			audioData[ "rate" ] = fr.fileRate();
+			audioData[ "normalized" ] = normalize;
+			stk::StkFrames frames( fr.fileSize(), fr.channels() );
+			fr.read( frames, 0, normalize );
+			CopyBuffer( frames, data );
+			audioData[ "data" ] = data;
+		
+		} catch( const stk::StkError& err ) {
+			error( err.getMessageCString() );
+		}
+		return audioData;
+	}
+	void writeFile( const QString& fileName, const QVariantMap& info ) const {
+		try {
+			QVariantList data = info[ "data" ].toList();
+			const unsigned nChannels = info[ "numChannels" ].toUInt();
+			const QString format = info[ "format" ].toString();
+			stk::FileWrite fw( fileName.toStdString(), nChannels, stk::FileWrite::FILE_WAV, ConvertFormat( format ) );
+			stk::StkFrames frames;
+			frames.resize( data.length() / nChannels );
+			CopyBuffer( data, frames );
+			fw.write( frames );
+		} catch( const stk::StkError& err ) {
+			error( err.getMessageCString() );
+		}
+	}
+	void splitFile( const QString& inName, const QStringList& outNames ) const {
+	}
     void stopStream() {
         try {
             adc_.stopStream();
@@ -306,6 +343,30 @@ private:
 		else {
 			EmitError( "Unknown data type: " + dt );
 		    return RtAudioStreamFlags();
+		}
+    }
+	QString ConvertFormat( stk::Stk::StkFormat dt ) const {
+	    if( dt == stk::Stk::STK_SINT8  ) { return "sint8"; }
+    	else if( dt == stk::Stk::STK_SINT16 ) { return "sint16"; }
+    	else if( dt == stk::Stk::STK_SINT24 ) { return "sint24"; }
+    	else if( dt == stk::Stk::STK_SINT32 ) { return "sint32"; }
+    	else if( dt == stk::Stk::STK_FLOAT32 ) { return "float32"; }
+    	else if( dt == stk::Stk::STK_FLOAT64 ) { return "float64"; }
+		else {
+			EmitError( "Unknown data type" );
+		    return QString();
+		}
+    }
+	stk::Stk::StkFormat ConvertFormat( const QString& dt ) const {
+      	if( dt == "sint8"  ) { return stk::Stk::STK_SINT8; }
+    	else if( dt == "sint16" ) { return stk::Stk::STK_SINT16; }
+    	else if( dt == "sint24" ) { return stk::Stk::STK_SINT24; }
+    	else if( dt == "sint32" ) { return stk::Stk::STK_SINT32; }
+    	else if( dt == "float32" ) { return stk::Stk::STK_FLOAT32; }
+    	else if( dt == "float64" ) { return stk::Stk::STK_FLOAT64; }
+		else {
+			EmitError( "Unknown data type: " + dt );
+		    return stk::Stk::StkFormat();
 		}
     }
     RtAudio::StreamParameters ConvertStreamParameters( const QVariantMap& pm ) const {
