@@ -6,7 +6,7 @@
 #include <QVariantList>
 
 #include "stk/RtAudio.h"
-#include "stk/stk.h"
+#include "stk/Stk.h"
 
 template < typename T > void BufferCopy( const void* in, QVariantList& out, int sz ) {
     const T* i = reinterpret_cast< const T* >( in );

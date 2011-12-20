@@ -15,7 +15,7 @@
 #include "stk/RtAudio.h"
 #include "stk/FileRead.h"
 #include "stk/FileWrite.h"
-#include "stk/stk.h"
+#include "stk/Stk.h"
 #include "CopyBuffer.h"
 
 struct IDummy {};
