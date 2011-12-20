@@ -19,7 +19,7 @@ QT4_WRAP_CPP( MOC_SRCS ${MOC_HEADERS} )
 
 set( SRCS ${MOC_SRCS} stk/RtAudio.cpp stk/RtAudio.h stk/RtError.h 
      stk/Stk.h stk/Stk.cpp stk/FileRead.h stk/FileRead.cpp stk/FileWrite.h
-     stk/FileWrite.cpp RtAudioPlugin.h )
+     stk/FileWrite.cpp RtAudioPlugin.h CopyBuffer.h )
 
 if( WIN32 )
   add_definitions( -D__WINDOWS_DS__ -D_SCL_SECURE_NO_WARNINGS -D__LITTLE_ENDIAN__ )

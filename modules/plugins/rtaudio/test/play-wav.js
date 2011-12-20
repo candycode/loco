@@ -30,8 +30,14 @@ if( args.length < 3 ) {
 //==============================================================================
 var rtaudio = ctx.loadQtPlugin( args[ 2 ] );
 rtaudio.error.connect( err );
-var wav = rtaudio.readFile( args[ 3 ] );
-print( wav.numChannels );
+var wav = rtaudio.readFile( args[ 3 ], true );
+rtaudio.outputReady.connect( function() {
+  rtaudio.output = wav.data;
+  for( var i = 0; i < 100; ++i ) print( rtaudio.output[ i ] );
+});
+print( wav.type + " " + wav.rate + " " + wav.data.length );
+rtaudio.openOutputStream( "float64", wav.rate, wav.data.length / wav.numChannels );
+rtaudio.startStream();
 
 //==============================================================================
 //invoke exit() event loop has not been started, quit() otherwise
