@@ -18,6 +18,8 @@
 #include "stk/stk.h"
 #include "CopyBuffer.h"
 
+#include <iostream>
+
 struct IDummy {};
 Q_DECLARE_INTERFACE( IDummy, "dummy" )
 
@@ -231,6 +233,10 @@ public slots:
 			audioData[ "normalized" ] = normalize;
 			stk::StkFrames frames( fr.fileSize(), fr.channels() );
 			fr.read( frames, 0, normalize );
+			data.reserve( frames.size() * frames.channels() );
+			for( int i = 0; i != frames.size() * frames.channels(); ++i ) {
+				data.push_back( QVariant() );
+			}
 			CopyBuffer( frames, data );
 			audioData[ "data" ] = data;
 		
