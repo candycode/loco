@@ -24,6 +24,10 @@ set( SRCS ${MOC_SRCS} stk/RtAudio.cpp stk/RtAudio.h stk/RtError.h
 if( WIN32 )
   add_definitions( -D__WINDOWS_DS__ -D_SCL_SECURE_NO_WARNINGS -D__LITTLE_ENDIAN__ )
   set( SOUNDLIB dsound )
+elseif( APPLE )
+  add_definitions( -D__MACOS_CORE__  -D__LITTLE_ENDIAN__ )
+elseif( UNIX )
+  add_definitions( -D__LINUX_ALSA__ -D__LITTLE_ENDIAN__ )
 endif()  
 
 add_library( ${PLUGIN_NAME} SHARED ${SRCS} )
