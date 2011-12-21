@@ -28,6 +28,7 @@ elseif( APPLE )
   add_definitions( -D__MACOS_CORE__  -D__LITTLE_ENDIAN__ )
 elseif( UNIX )
   add_definitions( -D__LINUX_ALSA__ -D__LITTLE_ENDIAN__ )
+  set( SOUNDLIB asound )
 endif()  
 
 add_library( ${PLUGIN_NAME} SHARED ${SRCS} )

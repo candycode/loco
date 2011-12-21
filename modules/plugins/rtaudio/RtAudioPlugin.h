@@ -39,6 +39,7 @@ class RtAudioPlugin : public QObject, public IDummy {
 	Q_PROPERTY( QVariantList output READ GetOutput WRITE SetOutput )
 	Q_PROPERTY( int status READ GetStatus )
 	Q_PROPERTY( QVariantList devices READ GetDevices )
+	Q_PROPERTY( unsigned sampleRate READ GetSampleRate WRITE SetSampleRate )
 public:
 	RtAudioPlugin( QObject* parent = 0 ) : QObject( parent ), 
 #if defined( Q_OS_WIN )
@@ -79,6 +80,12 @@ public:
 			dl.push_back( getDeviceInfo( i ) );
 		}
 		return dl;
+	}
+	void SetSampleRate( unsigned int sr ) const {
+	  	stk::Stk::setSampleRate( sr );
+	}
+	unsigned GetSampleRate() const {
+	   	return stk::Stk::sampleRate();
 	}
 signals: 
     void inputReady();
@@ -259,7 +266,8 @@ public slots:
 			error( err.getMessageCString() );
 		}
 	}
-	void splitFile( const QString& inName, const QStringList& outNames ) const {
+	bool isStreamOpen() const {
+	    return adc_.isStreamOpen();
 	}
     void stopStream() {
         try {
@@ -281,7 +289,7 @@ public slots:
         }  catch ( const RtError& e ) {
            HandleException( e );
         }	
-    }  
+    }
 private:
 	static int RtAudioInputCBack( void* /*outputBuffer*/, void* inputBuffer, unsigned int nBufferFrames,
                                   double streamTime, RtAudioStreamStatus status, void *userData ) {        
@@ -303,7 +311,7 @@ private:
 		ap->EmitFilter();
         const QVariantList& output = ap->output_;
         CopyBuffer( output, outputBuffer, nBufferFrames * ap->outputChannels_, ap->outputDataType_ );
-        return 0;   
+        return 0;
     }
 	static int RtAudioOutputCBack( void* outputBuffer, void* /*inputBuffer*/, unsigned int /*nBufferFrames*/,
                              double streamTime, RtAudioStreamStatus status, void *userData ) {   
@@ -312,7 +320,7 @@ private:
 		ap->EmitOutputReady();
         const QVariantList& output = ap->output_;
 		CopyBuffer( output, outputBuffer, output.length(), ap->outputDataType_ );
-        return 0;   
+        return 0;
     }
 	static int RtAudioCBack( void* outputBuffer, void* inputBuffer, unsigned int nBufferFrames,
                              double streamTime, RtAudioStreamStatus status, void *userData ) {        

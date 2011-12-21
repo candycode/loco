@@ -16,7 +16,7 @@ template < typename T > void BufferCopy( const void* in, QVariantList& out, int 
 template < typename T > void BufferCopy( const void* in, void* out, int sz ) {
     const T* i = reinterpret_cast< const T* >( in );
 	T* o = reinterpret_cast< T* >( out );
-	//on V++ -D_SCL_SECURE_NO_WARNINGS to disable warning
+	//on VC++ -D_SCL_SECURE_NO_WARNINGS to disable warning
 	std::copy( i, i + sz, o );
 }
 
@@ -25,6 +25,13 @@ void BufferCopy( const QVariantList& inList, stk::StkFrames& outFrames, int sz )
 	stk::StkFloat* out = &outFrames[ 0 ];
 	for( ; sz; ++out, ++in, --sz ) *out = in->toDouble(); 
 }
+
+/*template < typename T >
+void BufferCopy( const QVariantList& inList, void* out, int sz ) {
+	QVariantList::const_iterator in = inList.begin();
+	T* o = reinterpret_cast< T* >( out );
+	for( ; sz; ++o, ++in, --sz ) *o = T( in->toDouble() );
+}*/
 
 inline void CopyInt8( const void* in, QVariantList& out, int sz ) { BufferCopy< char >( in, out, sz ); }
 inline void CopyInt16( const void* in, QVariantList& out, int sz ) { BufferCopy< short >( in, out, sz ); }
@@ -51,7 +58,7 @@ inline void CopyInt16( const QVariantList& in, void* out, int sz ) {
 	short* output = reinterpret_cast< short* >( out );
 	for( QVariantList::const_iterator i = in.begin();
 		 i != in.end(); ++i, ++output ) {
-			 *output = short( i->toInt() );
+			 *output = short( i->toDouble() );
 	}
 }
 inline void CopyInt32( const QVariantList& in, void* out, int sz ) { 
@@ -72,6 +79,8 @@ inline void CopyFloat64( const QVariantList& in, void* out, int sz ) {
 	double* output = reinterpret_cast< double* >( out );
 	for( QVariantList::const_iterator i = in.begin();
 		 i != in.end(); ++i, ++output ) {
+
+	    // std::cout <<  i->toDouble() << ' ';
 			 *output = i->toDouble();
 	}
 }
