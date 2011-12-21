@@ -26,12 +26,12 @@ void BufferCopy( const QVariantList& inList, stk::StkFrames& outFrames, int sz )
 	for( ; sz; ++out, ++in, --sz ) *out = in->toDouble(); 
 }
 
-/*template < typename T >
+template < typename T >
 void BufferCopy( const QVariantList& inList, void* out, int sz ) {
 	QVariantList::const_iterator in = inList.begin();
 	T* o = reinterpret_cast< T* >( out );
 	for( ; sz; ++o, ++in, --sz ) *o = T( in->toDouble() );
-}*/
+}
 
 inline void CopyInt8( const void* in, QVariantList& out, int sz ) { BufferCopy< char >( in, out, sz ); }
 inline void CopyInt16( const void* in, QVariantList& out, int sz ) { BufferCopy< short >( in, out, sz ); }
@@ -47,11 +47,11 @@ inline void CopyInt32( const void* in, void* out, int sz ) { BufferCopy< int >( 
 inline void CopyFloat32( const void* in, void* out, int sz ) { BufferCopy< float >( in, out, sz ); }
 inline void CopyFloat64( const void* in, void* out, int sz ) { BufferCopy< double >( in, out, sz ); }
 
-inline void CopyInt8( const QVariantList& in, void* out, int sz ) { 
+/*inline void CopyInt8( const QVariantList& in, void* out, int sz ) {
 	char* output = reinterpret_cast< char* >( out );
 	for( QVariantList::const_iterator i = in.begin();
 		 i != in.end(); ++i, ++output ) {
-			 *output = char( i->toInt() );
+			 *output = char( i->toDouble() );
 	}
 }
 inline void CopyInt16( const QVariantList& in, void* out, int sz ) { 
@@ -65,14 +65,14 @@ inline void CopyInt32( const QVariantList& in, void* out, int sz ) {
 	int* output = reinterpret_cast< int* >( out );
 	for( QVariantList::const_iterator i = in.begin();
 		 i != in.end(); ++i, ++output ) {
-			 *output = i->toInt();
+			 *output = int( i->toDouble() );
 	}
 }
 inline void CopyFloat32( const QVariantList& in, void* out, int sz ) { 
 	float* output = reinterpret_cast< float* >( out );
 	for( QVariantList::const_iterator i = in.begin();
 		 i != in.end(); ++i, ++output ) {
-			 *output = i->toFloat();
+			 *output = float( i->toDouble() );
 	}
 }
 inline void CopyFloat64( const QVariantList& in, void* out, int sz ) { 
@@ -83,7 +83,7 @@ inline void CopyFloat64( const QVariantList& in, void* out, int sz ) {
 	    // std::cout <<  i->toDouble() << ' ';
 			 *output = i->toDouble();
 	}
-}
+}*/
 
 inline void CopyBuffer( const void* in, QVariantList& out, int sz, RtAudioStreamFlags type ) {
 	switch( type ) {
@@ -105,17 +105,17 @@ inline void CopyBuffer( const void* in, QVariantList& out, int sz, RtAudioStream
 
 inline void CopyBuffer( const QVariantList& in, void* out,  int sz, RtAudioStreamFlags type ) {
 	switch( type ) {
-	case RTAUDIO_SINT8: CopyInt8( in, out, sz );
+	case RTAUDIO_SINT8: BufferCopy< char >( in, out, sz);//CopyInt8( in, out, sz );
 		                break;
-	case RTAUDIO_SINT16: CopyInt16( in, out, sz );
+	case RTAUDIO_SINT16: BufferCopy< short >( in, out, sz);//CopyInt16( in, out, sz );
 		                 break;
-	case RTAUDIO_SINT24: CopyInt32( in, out, sz );
+	case RTAUDIO_SINT24: BufferCopy< int >( in, out, sz);//CopyInt32( in, out, sz );
 		                 break;
-    case RTAUDIO_SINT32: CopyInt32( in, out, sz );
+    case RTAUDIO_SINT32: BufferCopy< int >( in, out, sz);//CopyInt32( in, out, sz );
 		                 break;
-    case RTAUDIO_FLOAT32: CopyFloat32( in, out, sz );
+    case RTAUDIO_FLOAT32: BufferCopy< float >( in, out, sz);//CopyFloat32( in, out, sz );
 		                  break;
-    case RTAUDIO_FLOAT64: CopyFloat64( in, out, sz );
+    case RTAUDIO_FLOAT64: BufferCopy< double >( in, out, sz);//CopyFloat64( in, out, sz );
 		                  break;
 	default: break;
 	}
