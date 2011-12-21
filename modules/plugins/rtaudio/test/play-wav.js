@@ -112,7 +112,7 @@ print( "Data type: " + wav.type +
        "\nChannels: " + wav.numChannels +
        "\nNumber of samples: " + wav.data.length );
 rtaudio.sampleRate = 44100;
-play( rtaudio, wav.data, 1, wav.type, function() { play( rtaudio, sinwave, 1, "sint16" ); } ); 
+play( rtaudio, wav.data, 2, wav.type, function() { play( rtaudio, sinwave, 1, "sint16", function(){ Loco.ctx.quit(); } ) } ); 
 
 
 //==============================================================================

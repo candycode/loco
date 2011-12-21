@@ -61,7 +61,7 @@ inline void CopyInt16( const QVariantList& in, void* out, int sz ) {
 			 *output = short( i->toDouble() );
 	}
 }
-inline void CopyInt32( const QVariantList& in, void* out, int sz ) { 
+inline void CopyInt32( const QVariantList& in, void* out, int sz ) {
 	int* output = reinterpret_cast< int* >( out );
 	for( QVariantList::const_iterator i = in.begin();
 		 i != in.end(); ++i, ++output ) {
