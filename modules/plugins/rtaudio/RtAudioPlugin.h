@@ -256,10 +256,15 @@ public slots:
 		try {
 			QVariantList data = info[ "data" ].toList();
 			const unsigned nChannels = info[ "numChannels" ].toUInt();
-			const QString format = info[ "format" ].toString();
-			stk::FileWrite fw( fileName.toStdString(), nChannels, stk::FileWrite::FILE_WAV, ConvertFormat( format ) );
-			stk::StkFrames frames( data.length()/nChannels, nChannels );
-			CopyBuffer( data, frames );
+			const QString format = info[ "type" ].toString();
+			stk::StkFloat rate = stk::StkFloat( info[ "rate" ].toDouble() );
+			stk::FileWrite fw( fileName.toStdString(),
+					           nChannels, stk::FileWrite::FILE_WAV,
+					           ConvertFormat( format ) );
+			stk::StkFrames frames( data.length() / nChannels, nChannels );
+			frames.setDataRate( rate );
+			stk::StkFloat scaling = ComputeScaling( format );
+			CopyBuffer( data, frames, scaling );
 			fw.write( frames );
 		} catch( const stk::StkError& err ) {
 			error( err.getMessageCString() );
@@ -416,6 +421,18 @@ private:
 		if( om.contains( "streamName" ) ) options.streamName = om[ "numBuffers" ].toString().toStdString();
 		if( om.contains( "priority" ) ) options.priority = om[ "priority" ].toInt();
 		return options;
+	}
+	stk::StkFloat ComputeScaling( const QString& dt ) const {
+	    if( dt == "sint8"  )       { return 1/stk::StkFloat( 0x7f ); }
+	    else if( dt == "sint16" )  { return 1/stk::StkFloat( 0x7fff ); }
+		else if( dt == "sint24" )  { return 1/stk::StkFloat( 0x7fffff ); }
+		else if( dt == "sint32" )  { return 1/stk::StkFloat( 0x7fffffff ); }
+		else if( dt == "float32" ) { return 1; }
+		else if( dt == "float64" ) { return 1; }
+		else {
+		    EmitError( "Unknown data type: " + dt );
+			return 0;
+		}
 	}
 private:
 	mutable RtAudio adc_;

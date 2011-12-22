@@ -68,9 +68,9 @@ function resample( data, inRate, outRate /*, bool round*/ ) {
     //no need to convert to int since data is passed back to C++
     //as doubles
   }
-  var totalLength = Math.round( data.length * r );
+  var totalLength = Math.floor( data.length * r );
   var out = new Array( totalLength );
-  for( i = 0; i != totalLength; ++i ) {
+  for( i = 0; i != totalLength - 1; ++i ) {
     // r == ratio == sample-axis interval:
     // sample interval of original signal == d1 == 1
     // sample interval of resampled signal == d2 == d1 * r == r 
@@ -80,7 +80,6 @@ function resample( data, inRate, outRate /*, bool round*/ ) {
 }
 
 function mergeChannels() {
-  print( arguments.length );
   if( arguments.length < 1 ) return undefined;
   var out = new Array( arguments[ 0 ].length * arguments.length );
   var ch = arguments.length;
@@ -116,23 +115,25 @@ function splitChannels( data, ch ) {
 var sinwave = signal( 32767, 1, 44100, 400, 0);
 var rtaudio = ctx.loadQtPlugin( args[ 2 ] );
 rtaudio.error.connect( err );
-var wav = rtaudio.readFile( args[ 3 ] );
-wav.data = resample( wav.data, wav.rate, rtaudio.sampleRate );
-wav.data = mergeChannels( wav.data, wav.data ); 
+var wav = rtaudio.readFile( args[ 3 ], true );
+wav.data = resample( wav.data, wav.rate, 44100 );
+print( wav.data.length + " " + wav.data.length / 44100 );
+wav.data = mergeChannels( wav.data, wav.data );
+sinwave = mergeChannels( sinwave, sinwave ); 
 print( "Data type: " + wav.type + 
        "\nSampling rate: " + wav.rate +
        "\nChannels: " + wav.numChannels +
        "\nNumber of samples: " + wav.data.length );
-rtaudio.sampleRate = 44100;
-play( rtaudio, wav.data, 2, wav.type, 
+wav.numChannels = 2;
+wav.rate = 44100;
+play( rtaudio, wav.data, 2, "float64", 
       function() { 
-        play( rtaudio, sinwave, 1, "sint16", 
-              function() {
+        play( rtaudio, sinwave, 2, "sint16", 
+              function() { 
+                rtaudio.writeFile( "out.wav", { data: wav.data, type: "sint16", numChannels: 2 }  );
                 quit(); 
               } ) 
       } ); 
-
-rtaudio.writeFile( "out.wav", { data: wav.data, format: wav.type, numChannels: 2 } );
 
 
 //==============================================================================

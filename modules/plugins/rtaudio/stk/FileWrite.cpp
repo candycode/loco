@@ -214,6 +214,7 @@ bool FileWrite :: setRawFile( std::string fileName )
 
 bool FileWrite :: setWavFile( std::string fileName )
 {
+
   std::string name( fileName );
   if ( fileName.find( ".wav" ) == std::string::npos ) fileName += ".wav";
   fd_ = fopen( fileName.c_str(), "wb" );

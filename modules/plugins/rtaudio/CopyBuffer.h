@@ -20,10 +20,14 @@ template < typename T > void BufferCopy( const void* in, void* out, int sz ) {
 	std::copy( i, i + sz, o );
 }
 
-void BufferCopy( const QVariantList& inList, stk::StkFrames& outFrames, int sz ) {
+void BufferCopy( const QVariantList& inList, stk::StkFrames& outFrames,
+		         int sz, stk::StkFloat scaling ) {
 	QVariantList::const_iterator in = inList.begin();
 	stk::StkFloat* out = &outFrames[ 0 ];
-	for( ; sz; ++out, ++in, --sz ) *out = in->toDouble(); 
+	for( ; sz; ++out, ++in, --sz ) {
+		*out = scaling * stk::StkFloat( in->toDouble() );
+		std::cout << *out << ' ';
+	}
 }
 
 template < typename T >
@@ -143,6 +147,6 @@ inline void CopyBuffer( const stk::StkFrames& inStreams, QVariantList& out ) {
 	BufferCopy< stk::StkFloat >( &inStreams[ 0 ], out, inStreams.channels() * inStreams.size() );
 }
 
-inline void CopyBuffer( const QVariantList& in, stk::StkFrames& outStreams ) {
-	BufferCopy( in, outStreams, in.length() );
+inline void CopyBuffer( const QVariantList& in, stk::StkFrames& outStreams, stk::StkFloat scaling ) {
+	BufferCopy( in, outStreams, in.length(), scaling );
 }
