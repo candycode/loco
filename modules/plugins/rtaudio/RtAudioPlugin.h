@@ -258,8 +258,7 @@ public slots:
 			const unsigned nChannels = info[ "numChannels" ].toUInt();
 			const QString format = info[ "format" ].toString();
 			stk::FileWrite fw( fileName.toStdString(), nChannels, stk::FileWrite::FILE_WAV, ConvertFormat( format ) );
-			stk::StkFrames frames;
-			frames.resize( data.length() / nChannels );
+			stk::StkFrames frames( data.length()/nChannels, nChannels );
 			CopyBuffer( data, frames );
 			fw.write( frames );
 		} catch( const stk::StkError& err ) {
