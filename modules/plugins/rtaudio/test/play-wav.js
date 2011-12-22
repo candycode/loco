@@ -27,7 +27,8 @@ if( args.length < 3 ) {
 //==============================================================================
 
 function play( audio, signal, channels, type, finish ) {
-  
+  var offset = 0;
+  var samples = 512; //<- warning, changes depending on hardware/OS
   function cback() {
     audio.output = signal.slice( offset, offset + samples * channels );
     if( offset < ( signal.length - samples * channels ) ) offset += samples * channels;
@@ -37,12 +38,12 @@ function play( audio, signal, channels, type, finish ) {
       audio.outputReady.disconnect( cback );
       if( finish ) finish();
     }
-  }
-
-  var offset = 0;
-  var samples = 256;
+  }  
   audio.outputReady.connect( cback );
-  if( audio.isStreamOpen() ) audio.closeStream();
+  if( audio.isStreamOpen() ) {
+    audio.stopStream();
+    audio.closeStream();
+  }
   audio.openOutputStream( type, 
                           audio.sampleRate, 
                           samples,
@@ -75,7 +76,8 @@ function resample( data, inRate, outRate /*, bool round*/ ) {
     // sample interval of original signal == d1 == 1
     // sample interval of resampled signal == d2 == d1 * r == r 
     out[ i ] = lintp( Math.floor( i / r ), Math.ceil( i / r ), i/r - Math.floor( i / r ) );
-  }  
+  }
+  out[ totalLength - 1 ] = data[ data.length - 1 ];  
   return out;
 }
 
@@ -87,6 +89,7 @@ function mergeChannels() {
   var i, j;
   for( i = 0; i != samples; ++i ) {
     for( j = 0; j != ch; ++j ) {
+      if( arguments[ j ] === undefined|| arguments[j][i] === undefined ) throw j + " -- " +i;
       out[ ch * i + j ] = arguments[ j ][ i ];
     }
   }
@@ -115,18 +118,19 @@ function splitChannels( data, ch ) {
 var sinwave = signal( 32767, 1, 44100, 400, 0);
 var rtaudio = ctx.loadQtPlugin( args[ 2 ] );
 rtaudio.error.connect( err );
-var wav = rtaudio.readFile( args[ 3 ], true );
+rtaudio.sampleRate = 44100;
+var wav = rtaudio.readFile( args[ 3 ] );
 wav.data = resample( wav.data, wav.rate, 44100 );
 print( wav.data.length + " " + wav.data.length / 44100 );
 wav.data = mergeChannels( wav.data, wav.data );
+print( Math.max.apply( null, wav.data) );
+print( Math.min.apply( null, wav.data) );
 sinwave = mergeChannels( sinwave, sinwave ); 
 print( "Data type: " + wav.type + 
        "\nSampling rate: " + wav.rate +
        "\nChannels: " + wav.numChannels +
        "\nNumber of samples: " + wav.data.length );
-wav.numChannels = 2;
-wav.rate = 44100;
-play( rtaudio, wav.data, 2, "float64", 
+play( rtaudio, wav.data, 2, "sint16", 
       function() { 
         play( rtaudio, sinwave, 2, "sint16", 
               function() { 

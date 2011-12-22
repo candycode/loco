@@ -26,7 +26,6 @@ void BufferCopy( const QVariantList& inList, stk::StkFrames& outFrames,
 	stk::StkFloat* out = &outFrames[ 0 ];
 	for( ; sz; ++out, ++in, --sz ) {
 		*out = scaling * stk::StkFloat( in->toDouble() );
-		std::cout << *out << ' ';
 	}
 }
 
