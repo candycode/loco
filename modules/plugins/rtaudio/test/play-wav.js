@@ -1,9 +1,6 @@
 try {
 var include = Loco.ctx.include,
     print = Loco.console.println,
-    readline = Loco.console.readLine,
-    fread = Loco.fs.fread,
-    fwrite = Loco.fs.fwrite,
     exit = Loco.ctx.exit,
     ctx = Loco.ctx,
     quit = Loco.ctx.quit,
@@ -63,63 +60,82 @@ function signal( S, d, sr, f, phi ) {
   return data;  
 }
 
-function resample( data, inRate, outRate, ch ) {
+function resample( data, inRate, outRate /*, bool round*/ ) {
   var r = outRate / inRate;
-  ch = ch || 1;
-  var step = Math.round( r * ch );
-  var chstep = Math.round( r ); 
-  var totalLength = Math.ceil( data.length * r );
-  var length = Math.floor( data.length * r );
-  var out = new Array( totalLength );
-  var i, j, k, c;
-  for( i = 0, j = 0; i < ( length - ch ); ++i, j += step ) {
-    start = data[ i ];
-    end = data[ i + ch ];
-    for( k = 0, c = 0; k < step; k += ch, ++c ) {
-      out[ j + k ] = Math.round( start + (end - start) * c / chstep );
-    }
+  function lintp( start, end, t ) {
+    var f = data[ start ] + ( data[ end ] - data[ start ] ) * t;
+    return /*round ? Math.round( f ) :*/ f; 
+    //no need to convert to int since data is passed back to C++
+    //as doubles
   }
-  for( i = length - ch; i < totalLength; i += ch ) {
-    for( j = 0; j != ch; ++j ) out[ i + j ] = out[ length - ch + j ];
-  } 
+  var totalLength = Math.round( data.length * r );
+  var out = new Array( totalLength );
+  for( i = 0; i != totalLength; ++i ) {
+    // r == ratio == sample-axis interval:
+    // sample interval of original signal == d1 == 1
+    // sample interval of resampled signal == d2 == d1 * r == r 
+    out[ i ] = lintp( Math.floor( i / r ), Math.ceil( i / r ), i/r - Math.floor( i / r ) );
+  }  
   return out;
 }
 
-function merge() {
+function mergeChannels() {
   print( arguments.length );
   if( arguments.length < 1 ) return undefined;
   var out = new Array( arguments[ 0 ].length * arguments.length );
   var ch = arguments.length;
   var samples = arguments[ 0 ].length;
   var i, j;
-  for( i = 0; i != out.length; i += ch ) {
+  for( i = 0; i != samples; ++i ) {
     for( j = 0; j != ch; ++j ) {
-      out[ i + j ] = arguments[ j ][ i / ch ];
+      out[ ch * i + j ] = arguments[ j ][ i ];
     }
   }
   return out;
 }
 
+function splitChannels( data, ch ) {
+  var length = data.length;
+  if( ch === undefined ) throw "Missing number of channels";
+  if( length % ch !== 0 ) {
+    throw "Datasize is not a multiple of the number of channels";
+    return null;
+  }
+  var samples = length / ch;
+  var out = new Array( ch );
+  var i, j;
+  for( i = 0; i != ch; ++i ) out[ i ] = new Array( samples );
+  for( i = 0; i < samples; ++i ) {
+    for( j = 0; j != ch; ++j ) {
+      out[ j ][ i ] = data[ i * ch + j ];
+    } 
+  } 
+  return out;
+}
 
 var sinwave = signal( 32767, 1, 44100, 400, 0);
 var rtaudio = ctx.loadQtPlugin( args[ 2 ] );
 rtaudio.error.connect( err );
 var wav = rtaudio.readFile( args[ 3 ] );
-wav.data = resample( wav.data, wav.rate, rtaudio.sampleRate, wav.numChannels );
-wav.data = merge( wav.data, wav.data ); 
+wav.data = resample( wav.data, wav.rate, rtaudio.sampleRate );
+wav.data = mergeChannels( wav.data, wav.data ); 
 print( "Data type: " + wav.type + 
        "\nSampling rate: " + wav.rate +
        "\nChannels: " + wav.numChannels +
        "\nNumber of samples: " + wav.data.length );
 rtaudio.sampleRate = 44100;
-play( rtaudio, wav.data, 2, wav.type, function() { play( rtaudio, sinwave, 1, "sint16", function(){ Loco.ctx.quit(); } ) } ); 
+play( rtaudio, wav.data, 2, wav.type, 
+      function() { 
+        play( rtaudio, sinwave, 1, "sint16", 
+              function() {
+                quit(); 
+              } ) 
+      } ); 
+
+rtaudio.writeFile( "out.wav", { data: wav.data, format: wav.type, numChannels: 2 } );
 
 
 //==============================================================================
-//invoke exit() event loop has not been started, quit() otherwise
-//locoplay: event loop is created by default, to disable invoke with -nl flag:
-//locoplay -nl ...
-//exit(0); 
 
 } catch( e ) {
   if( e.message ) Loco.console.printerrln( e.message );
