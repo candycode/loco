@@ -126,14 +126,20 @@ public slots:
         dim[ "nativeFormats" ] = af;
 		return dim;
 	}
-	void startStream() { adc_.startStream(); }
+	void startStream() { 
+		try {
+            adc_.startStream();
+        }  catch ( const RtError& e ) {
+           HandleException( e );
+		}	
+	}
     void openInputStream( const QString& dataType,
                           int sampleRate, 
                           unsigned int sampleFrames,
 						  const QVariantMap& parameters = QVariantMap(),
 					      const QVariantMap& options = QVariantMap() ) {
         inputDataType_  = ConvertDataType( dataType );
-        RtAudio::StreamParameters inParams = ConvertStreamParameters( parameters );
+        RtAudio::StreamParameters inParams = ConvertStreamParameters( parameters, true );
 		RtAudio::StreamOptions so = ConvertStreamOptions( options );
 	    try {
             adc_.openStream( 0, &inParams, inputDataType_, sampleRate, &sampleFrames,
@@ -155,7 +161,7 @@ public slots:
 						   const QVariantMap& parameters = QVariantMap(),
 					       const QVariantMap& options = QVariantMap() ) {
         outputDataType_  = ConvertDataType( dataType );
-		RtAudio::StreamParameters outParams = ConvertStreamParameters( parameters );
+		RtAudio::StreamParameters outParams = ConvertStreamParameters( parameters, false );
 		RtAudio::StreamOptions so = ConvertStreamOptions( options );
 		try {
 			adc_.openStream( &outParams, 0, outputDataType_, sampleRate, &sampleFrames,
@@ -179,8 +185,8 @@ public slots:
 					   const QVariantMap& options = QVariantMap() ) {
         inputDataType_  = ConvertDataType( dataType );
 	    outputDataType_ = ConvertDataType( dataType );
-        RtAudio::StreamParameters inParams = ConvertStreamParameters( inParameters );
-		RtAudio::StreamParameters outParams = ConvertStreamParameters( outParameters );
+        RtAudio::StreamParameters inParams = ConvertStreamParameters( inParameters, true );
+		RtAudio::StreamParameters outParams = ConvertStreamParameters( outParameters, false );
 	    RtAudio::StreamOptions so = ConvertStreamOptions( options );
 	    try {
             adc_.openStream( &outParams, &inParams, outputDataType_, sampleRate, &sampleFrames,
@@ -213,8 +219,8 @@ public slots:
 					 const QVariantMap& options = QVariantMap() ) {
         inputDataType_  = ConvertDataType( dataType );
 	    outputDataType_ = ConvertDataType( dataType );
-        RtAudio::StreamParameters inParams = ConvertStreamParameters( inParameters );
-		RtAudio::StreamParameters outParams = ConvertStreamParameters( outParameters );
+        RtAudio::StreamParameters inParams = ConvertStreamParameters( inParameters, true );
+		RtAudio::StreamParameters outParams = ConvertStreamParameters( outParameters, false );
 	    RtAudio::StreamOptions so = ConvertStreamOptions( options );
 	    try {
 			RtAudio::StreamParameters* in  = input ? &inParams : 0;
@@ -387,9 +393,9 @@ private:
 		    return stk::Stk::StkFormat();
 		}
     }
-    RtAudio::StreamParameters ConvertStreamParameters( const QVariantMap& pm ) const {
+    RtAudio::StreamParameters ConvertStreamParameters( const QVariantMap& pm, bool input ) const {
         RtAudio::StreamParameters params;
-        unsigned deviceId = 1;
+		unsigned deviceId = input ? GetDefaultInputDevice() : GetDefaultOutputDevice();
         unsigned nChannels = 1;		
         unsigned channelOffset = 0;
 		if( pm.contains( "deviceId" ) ) deviceId = pm[ "deviceId" ].toUInt();

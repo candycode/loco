@@ -89,7 +89,6 @@ function mergeChannels() {
   var i, j;
   for( i = 0; i != samples; ++i ) {
     for( j = 0; j != ch; ++j ) {
-      if( arguments[ j ] === undefined|| arguments[j][i] === undefined ) throw j + " -- " +i;
       out[ ch * i + j ] = arguments[ j ][ i ];
     }
   }

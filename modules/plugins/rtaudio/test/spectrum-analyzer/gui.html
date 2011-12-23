@@ -24,7 +24,7 @@
 
 <script type="text/javascript">
 $(function () {
-  var sampleBuffer = 1024; //window width //DFT MAX 256, FFT MAX 2048, best 1024/512
+  var sampleBuffer = 512; //window width //DFT MAX 256, FFT MAX 2048, best 1024/512
   var sampleRate = 44100; //44.1 kHz
   var fft = new FFT(sampleBuffer, sampleRate);
   var input = new Array( sampleBuffer );
@@ -32,6 +32,7 @@ $(function () {
   var signal = new Array( sampleBuffer );
   var r = sampleRate / sampleBuffer;
   var t = 1 / sampleRate;
+  rtaudio.error.connect( function(msg) {alert(msg);});
   rtaudio.inputReady.connect( function() {
     signal = rtaudio.input;
     fft.forward( signal );
