@@ -75,9 +75,9 @@ function resample( data, inRate, outRate /*, bool round*/ ) {
     // r == ratio == sample-axis interval:
     // sample interval of original signal == d1 == 1
     // sample interval of resampled signal == d2 == d1 * r == r 
-    out[ i ] = lintp( Math.floor( i / r ), Math.ceil( i / r ), i/r - Math.floor( i / r ) );
+    out[ i ] = lintp( Math.floor( i / r ), Math.min( Math.ceil( i / r ), data.length - 1 ), i/r - Math.floor( i / r ) );
   }
-  out[ totalLength - 1 ] = data[ data.length - 1 ];  
+  out[ totalLength - 1 ] = data[ data.length - 1 ];     
   return out;
 }
 
@@ -121,10 +121,10 @@ rtaudio.error.connect( err );
 rtaudio.sampleRate = 44100;
 var wav = rtaudio.readFile( args[ 3 ] );
 wav.data = resample( wav.data, wav.rate, 44100 );
-print( wav.data.length + " " + wav.data.length / 44100 );
+print( "Length: " + wav.data.length / 44100 + " seconds" );
 wav.data = mergeChannels( wav.data, wav.data );
-print( Math.max.apply( null, wav.data) );
-print( Math.min.apply( null, wav.data) );
+print( "Max: " + Math.max.apply( null, wav.data) );
+print( "Min: " + Math.min.apply( null, wav.data) );
 sinwave = mergeChannels( sinwave, sinwave ); 
 print( "Data type: " + wav.type + 
        "\nSampling rate: " + wav.rate +
