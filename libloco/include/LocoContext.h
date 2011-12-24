@@ -185,7 +185,7 @@ public:
                            QString jsInstanceName = QString(),
                            const QString& initMethodName = "Init",
                            const QVariantMap& params = QVariantMap() );
-
+    QVariant WrapQObject( QObject* obj, bool takeOwnership = true );
  // attched to internal signals            
 private slots:
    

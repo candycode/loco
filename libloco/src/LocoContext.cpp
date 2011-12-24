@@ -427,6 +427,12 @@ QVariant Context::LoadQtPlugin( QString filePath,
     return jsInterpreter_->EvaluateJavaScript( jsInstanceName );
 }
 
+QVariant Context::WrapQObject( QObject* qobj, bool takeOwnership ) {
+	Object obj;
+	AddQObjectToJSContext( qobj, obj.jsInstanceName(), takeOwnership );
+	return jsInterpreter_->EvaluateJavaScript( obj.jsInstanceName() );
+}
+
 QVariant Context::Create( const QString& className, const QVariantMap& init ) {
 	if( className == "ProtocolHandler" ) {
 		return AddObjToJSContext( new ScriptNetworkRequestHandler ); //lifetime managed by Javascript

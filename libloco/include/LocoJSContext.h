@@ -25,6 +25,7 @@ public:
 	bool storeCode() const { return ctx_->GetStoreCode(); }
 // invokable from javascript
 public slots: // js interface
+	QVariant wrapQObject( QObject* qobj, bool takeOwnership = true ) { return ctx_->WrapQObject( qobj, takeOwnership ); } 
 	QString signalSignature( const QString& sig ) { return ctx_->SignalSignature( sig ); }
     QString slotSignature( const QString& sig ) { return ctx_->SlotSignature( sig ); }
     void yeld() { ctx_->Yeld(); }
