@@ -20,7 +20,6 @@ extern "C" {
 #include <QString>
 #include <QVariant>
 #include <QVariantMap>
-#include <QGenericArgument>
 
 
 QString LuaKeyToQString( lua_State* L, int idx ) {
@@ -166,9 +165,5 @@ int main( int argc, char** argv ) {
 	ReportErrors( L, luaL_dostring( L, "print( myCFunction( {1,true,3,table={key='value'} } )['key3']['key31'] )" ) ); 
 
     lua_close( L );
-	QString ciao("ciao");
-	QGenericArgument arg = Q_ARG( QString, ciao );
-	QGenericReturnArgument rarg = Q_RETURN_ARG( QString, ciao );
-	std::cout << (reinterpret_cast< QString* >( arg.data() ) )->toStdString() << std::endl; 
     return 0;	
 }
