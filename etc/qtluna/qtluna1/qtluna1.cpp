@@ -42,25 +42,27 @@ struct IReturnConstructor {
     virtual void Push( const QGenericReturnArgument&, lua_State* ) const = 0;
 	virtual ~IReturnConstructor() {}
 };
-struct IntReturnConstructor {
+struct IntReturnConstructor : IReturnConstructor {
 	void Push( const QGenericReturnArgument& arg, lua_State* L ) const {
 	    int i = *(reinterpret_cast< int* >( arg.data() ) );
 		lua_pushinteger( L, i );
 	}
 };
-struct DoubleReturnConstructor {
+struct DoubleReturnConstructor : IReturnConstructor {
 	void Push( const QGenericReturnArgument& arg, lua_State* L ) const {
 	    double d = *(reinterpret_cast< double* >( arg.data() ) );
 		lua_pushnumber( L, d );
 	}
 };
-struct StringReturnConstructor {
+struct StringReturnConstructor : IReturnConstructor {
 	void Push( const QGenericReturnArgument& arg, lua_State* L ) const {
 	    QString s= *(reinterpret_cast< QString* >( arg.data() ) );
 		lua_pushstring( L, s.toAscii().constData() );
 	}
 };
-
+struct VoidReturnConstructor : IReturnConstructor {
+	void Push( const QGenericReturnArgument& , lua_State*  ) const {}
+};
 
 class ParameterWrapper {
 public:
@@ -90,7 +92,7 @@ public:
 			rc_ = new DoubleReturnConstructor;
 		} else if( type == "QString" ) {
 			rc_ = new StringReturnConstructor;
-		}
+		} else if( type.isEmpty() ) rc_ = new VoidReturnConstructor;
 	}
     void Push( lua_State* L, const QGenericReturnArgument& ret ) const {
     	rc_->Push( L, ret );
@@ -111,16 +113,23 @@ struct Method {
 	obj_( obj ), idx_( idx ), paramWrappers_( pw ), returnWrappers_( rw ) {}
 };
 QList< QByteArray > ParamTypes;
-Method::ParamWrappers GenerateParameterWrappers( const ParamTypes& pt, lua_State* L ) {
+Method::ParamWrappers GenerateParameterWrappers( const ParamTypes& pt ) {
 	Method::ParamWrappers pw;
 	for( ParamTypes::const_iterator i = pt.begin(); i != pt.end(); ++i ) {
 	    pw.push_back( ParameterWrapper( *i ) );
 	}
 }
 
+ReturnWrapper GenerateReturnWrapper( const QString& typeName ) {
+    return ReturnWrapper( typeName );
+}
+
+
 //------------------------------------------------------------------------------
 class LuaContext {
 public:
+	typedef QList< Method > Methods;
+	typedef QMap< QString, Methods > MethodMap;
 	LuaContext() {
 		L_ = luaL_newstate();
 		luaL_openlibs(L_);
@@ -140,8 +149,8 @@ public:
 			name.truncate( name.indexOf("(") );
 			methods_[ name ].push_back( Method( obj,
 			                            m, //index 
-			                            GenerateParamWrappers( params, L_ ),
-			                            GenerateReturnWrapper( returnType, L_ ) );
+			                            GenerateParamWrappers( params ),
+			                            GenerateReturnWrapper( returnType ) );
 			if( method[ name ].size() == 1 ) {
 				lua_pushstring( L_, name.toAscii().constData() );
 		        lua_pushlightuserdata( L_, &methods_[ name ] );
@@ -160,7 +169,7 @@ public:
 	}
 private:
 	static int InvokeMethod( lua_State *L ) {
-		QObject* obj = reinterpret_cast< QObject* >( lua_topointer( lua_upvalue( 1 ) ) );
+		QObject* obj = reinterpret_cast< QObject* >( lua_touserdata( lua_upvalue( 1 ) ) );
 		MethodInfo* mi = reinterpret_cast< MethodInfo* >( lua_topointer( lua_upvalue( 2 ) ) );
 		switch( mi->Args() ) {
 			case 0: return Invoke0( obj, mi );
@@ -194,6 +203,7 @@ private:
     }	
 private:
     lua_State* L_;	
+	MethodMap methods_;
 };
 
 
