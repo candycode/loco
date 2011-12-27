@@ -27,6 +27,10 @@ public slots:
 	void ungetc() const { std::cin.unget(); }
 	bool end() const { return std::cin.eof(); }
 	void flush()  const { std::cout.flush(); std::cerr.flush(); }
+	void slot() { }//std::cout << f.toFloat() << std::endl; }
+	void emitSignal( float f ) { emit sig( f ); }
+signals:
+	void sig( float );
 };
 
 
