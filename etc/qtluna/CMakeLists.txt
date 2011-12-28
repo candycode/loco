@@ -10,3 +10,4 @@ set( LUA_LIBRARIES "Lua51" CACHE FILEPATH "Lua library" )
 
 add_subdirectory( scratch )
 add_subdirectory( qtluna1 )
+add_subdirectory( qtluna2 )

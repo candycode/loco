@@ -26,11 +26,18 @@ class MyClass {
 public:
     static int InvokeMethod( lua_State* L ) {
     	MyClass* obj = reinterpret_cast< MyClass* >( lua_touserdata( L, lua_upvalueindex( 1 ) ) );
-    	return obj->PrivateMethod();
+    	return obj->PrivateMethod( L );
     }
 private:
-    int PrivateMethod() {
-    	std::cout << "Invoked from Lua" << std::endl;
+    int PrivateMethod( lua_State* L ) {
+		if( lua_gettop( L ) < 2 ) {
+		    lua_pushstring( L, "Two arguments required!" );
+		    lua_error( L );
+			return 0;
+		}
+		const char* p1 = lua_tostring( L, 1 );
+		const char* p2 = lua_tostring( L, 2 );
+		std::cout << "Invoked from Lua; parameters: " << p1 << ' ' << p2 << std::endl;
 		return 0;
     }    
 };
@@ -57,7 +64,7 @@ int main( int argc, char** argv ) {
     lua_rawset( L, -3 );
     lua_setglobal( L, "mytable" );
 
-	ReportErrors( L, luaL_dostring( L, "mytable.method()" ) ); 
+	ReportErrors( L, luaL_dostring( L, "mytable.method('first','second')" ) ); 
 
     lua_close( L );
     return 0;	

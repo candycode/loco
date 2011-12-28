@@ -13,8 +13,11 @@ extern "C" {
 #include <QMetaObject>
 #include <QMetaMethod>
 #include <QSet>
+#include <QMetaType>
 
 #include "MyObject.h"
+
+#include "DynamicLuaQObject.h"
 
 //------------------------------------------------------------------------------
 struct IArgConstructor {
@@ -186,6 +189,9 @@ public:
 	LuaContext() {
 		L_ = luaL_newstate();
 		luaL_openlibs(L_);
+		lua_pushlightuserdata( L_, this );
+		lua_pushcclosure( L_, &LuaContext::QtConnect , 1);
+		lua_setglobal( L_, "qtconnect" );
 	}
 	void Eval( const char* code ) {
 		ReportErrors( luaL_dostring( L_, code ) );
@@ -216,12 +222,60 @@ public:
 		        lua_rawset( L_, -3 );
 		    }	                            
 		}
+		lua_pushstring( L_, "qobject__" );
+		lua_pushlightuserdata( L, obj );
+        lua_rawset( L_, -3 );
+
+		//add method return pointer to object
 		lua_setglobal( L_, tableName );
 	}
 	~LuaContext() {
 		lua_close( L_ );
 	}
 private:
+	static int QtConnect( lua_State* L ) {
+		LuaContext& lc = *( reinterpret_cast< LuaContext* >( lua_touserdata( L, lua_upvalueindex( 1 ) ) );
+		if( lua_gettop( L ) != 4 ) {
+		    lua_pushstring( L, "Four parameters required" );
+		    lua_error( L );
+			return 0;
+		}
+		if( !lua_istable( L, 1 ) ) {
+		    lua_pushstring( L, "First parameter to function 'qtconnect' is not a table" );
+		    lua_error( L );
+			return 0;
+		}
+		lua_pushstring( L, "qobject__" );
+		lua_gettable( L, 1 );
+		if( lua_isnil( L, -1 ) ) {
+			lua_pushstring( L, "Wrong table format: reference to QObject not found" );
+		    lua_error( L );
+			return 0;
+		}
+		QObject* obj = reinterpret_cast< QObject* >( lua_touserdata( L, -1 ) );
+		const QString signal = lua_tostring( L, 2 );
+		//extract signal arguments info
+		const QMetaObject* mo = obj->metaObject();
+		QList< QByteArray > params;
+		for( int i = 0; i != mo->methodCount(); ++i ) {
+			QMetaMethod mm = mo->method( i );
+			QString name = mm.signature();
+			name.truncate( name.indexOf("(") );
+			if( name == signal ) {
+				params = mm.parameterTypes();                  
+			    break;
+			}
+		}
+		//push lua callback onto top of stack
+		QList< QMetaType::Type > types;
+		for( QList< QByteArray >::const_iterator i = params.begin();
+			 i != params.end(); ++i ) {
+		    types.push_back( QMetaType::type( i->constData() );
+		}
+		lua_pushvalue( L, 3 );
+		dispatcher_.RegisterSlot( signal, types, luaL_ref( L, LUA_REGISTRYINDEX );
+        return 0;
+	}
 	static int InvokeMethod( lua_State *L ) {
 		const Methods& m = *( reinterpret_cast< Methods* >( lua_touserdata( L, lua_upvalueindex( 1 ) ) ) );
         const int numArgs = lua_gettop( L );
@@ -262,12 +316,12 @@ private:
 		bool ok = false;
 		if( mi->returnWrapper_.Type().isEmpty() ) {
 			ok = mi->metaMethod_.invoke( mi->obj_, Qt::DirectConnection,
-	          			            mi->paramWrappers_[ 0 ].Arg( L, 1 ) );
+	          			                 mi->paramWrappers_[ 0 ].Arg( L, 1 ) );
 		    if( ok ) return 0;
 		} else {
 			ok = mi->metaMethod_.invoke( mi->obj_, Qt::DirectConnection,
-	    		                    mi->returnWrapper_.Arg(), //passes the location (void*) where return data will be stored
-	          			            mi->paramWrappers_[ 0 ].Arg( L, 1 ) );
+	    		                         mi->returnWrapper_.Arg(), //passes the location (void*) where return data will be stored
+	          			                 mi->paramWrappers_[ 0 ].Arg( L, 1 ) );
 			if( ok ) {
 				mi->returnWrapper_.Push( L );
 			    return 1;
@@ -287,6 +341,7 @@ private:
 private:
     lua_State* L_;	
 	MethodMap methods_;
+	DynamicLuaQObject dispatcher_; //signal->dispatcher_->Lua callback
 };
 
 
@@ -295,6 +350,7 @@ int main() {
 	LuaContext ctx;
     MyObject myobj;
     ctx.AddQObject( &myobj, "myobj" );
-    ctx.Eval( "myobj.method(\"ma ciau ne\")" ); 
+	ctx.Eval( "qtconnect( myobj, 'aSignal()', function() print( 'called!' ); end )" );
+    ctx.Eval( "myobj.emitSignal()" ); 
 	return 0;
 }
