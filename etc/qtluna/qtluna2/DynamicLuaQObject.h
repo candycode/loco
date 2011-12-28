@@ -12,39 +12,22 @@ extern "C" {
 #include "lualib.h"
 }
 
+class LuaContext;
+
 typedef QList< QMetaType::Type > ParameterTypes;
 
-
-void PushLuaValue( lua_State* L, QMetaType::Type type, void* arg ) {
-	switch( type ) {
-	case QMetaType::Int: lua_pushinteger( L, *reinterpret_cast< int* >( arg ) );
-		                 break;
-	case QMetaType::Double: lua_pushnumber( L, *reinterpret_cast< double* >( arg ) );
-		                    break;
-	case QMetaType::QString: lua_pushstring( L, (reinterpret_cast< QString* >( arg ))->toAscii().constData() );
-		                     break;
-	default: throw std::logic_error( "Only int, double and QString implemented at this time" );
-	}
-}
+void PushLuaValue( LuaContext* lc, QMetaType::Type type, void* arg );
 
 class LuaCBackSlot : public DynamicSlot {
 public:
-	LuaCBackSlot( lua_State* L, const ParameterTypes& p, int luaCBackRef ) 
-		: L_( L ), paramTypes_( p ), luaCBackRef_( luaCBackRef ) {}
-	virtual void call(QObject* /*sender*/, void **arguments ) {
-		for( ParameterTypes::const_iterator i = paramTypes_.begin();
-			 i != paramTypes_.end(); ++i, ++arguments ) {
-		    PushLuaValue( L_, *i, *arguments );
-		}
-		lua_rawgeti( L_, LUA_REGISTRYINDEX, luaCBackRef_ );
-		lua_pcall( L_, paramTypes_.size(), 0, 0 );
-	}
+	LuaCBackSlot( LuaContext* lc, const ParameterTypes& p, int luaCBackRef ) 
+		: lc_( lc ), paramTypes_( p ), luaCBackRef_( luaCBackRef ) {}
+	virtual void call(QObject* /*sender*/, void **arguments );
 private:
-	lua_State* L_;
+	LuaContext* lc_;
 	ParameterTypes paramTypes_;
 	int luaCBackRef_;
 };
-
 
 struct SlotInfo {
     int luaCBackRef;
@@ -56,16 +39,14 @@ typedef QMap< QString, SlotInfo > SlotInfoMap;
 class DynamicLuaQObject: public DynamicQObject
 {
 public:
-	DynamicLuaQObject() : L_( 0 ) {}
-	DynamicLuaQObject( lua_State* L ) : L_( L ) {}
-	void SetLuaState( lua_State* L ) { L_ = L; };
+	DynamicLuaQObject() : lc_( 0 ) {}
+	DynamicLuaQObject( LuaContext* lc ) : lc_( lc ) {}
+	void SetLuaContext( LuaContext* lc ) { lc_ = lc; };
 	void RegisterSlot( const QString& slot, const ParameterTypes& paramTypes, int luaCBackRef ) {
 	    luaRefMap_[ slot ] = SlotInfo( luaCBackRef, paramTypes );
 	}
-	virtual DynamicSlot *createSlot( char *slot ) {
-		return new LuaCBackSlot( L_, luaRefMap_[ slot ].paramTypes, luaRefMap_[ slot ].luaCBackRef );
-	}
+	virtual DynamicSlot *createSlot( char *slot );
 private:
-	lua_State* L_;
+	LuaContext* lc_;
 	SlotInfoMap luaRefMap_;
 };
