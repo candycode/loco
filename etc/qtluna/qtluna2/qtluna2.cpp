@@ -192,6 +192,7 @@ public:
 		lua_pushlightuserdata( L_, this );
 		lua_pushcclosure( L_, &LuaContext::QtConnect , 1);
 		lua_setglobal( L_, "qtconnect" );
+		dispatcher_.SetLuaState( L_ );
 	}
 	void Eval( const char* code ) {
 		ReportErrors( luaL_dostring( L_, code ) );
@@ -276,7 +277,7 @@ private:
 		//push lua callback onto top of stack
 		lua_pushvalue( L, 3 );
 		const int luaRef = luaL_ref( L, LUA_REGISTRYINDEX );
-		const QString slot = signal + "_" + QString("%1").arg( luaRef );
+		const QString slot = "_" + QString("%1").arg( luaRef ) + "_" + signalSignature;
 		lc.dispatcher_.RegisterSlot( slot, types, luaRef );
 		lc.dispatcher_.connectDynamicSlot( obj, signalSignature.toAscii().data(), slot.toAscii().data() ); 
         return 0;
