@@ -12,14 +12,15 @@ extern "C" {
 #include <QList>
 #include <QMetaObject>
 #include <QMetaMethod>
+#include <QSet>
 
 #include "MyObject.h"
-
 
 //------------------------------------------------------------------------------
 struct IArgConstructor {
 	virtual QGenericArgument Create( lua_State*, int ) const = 0;
 	virtual ~IArgConstructor() {}
+	virtual IArgConstructor* Clone() const = 0;
 	QGenericArgument ga_;
 };
 
@@ -28,6 +29,9 @@ struct IntArgConstructor : IArgConstructor {
 	    i_ = luaL_checkint( L, idx );
 		return Q_ARG( int, i_ );
  	}
+	IntArgConstructor* Clone() const {
+	    return new IntArgConstructor( *this );
+	}
 	mutable int i_;
 };
 struct DoubleArgConstructor : IArgConstructor {
@@ -35,6 +39,9 @@ struct DoubleArgConstructor : IArgConstructor {
 	    d_ = luaL_checknumber( L, idx );
 		return Q_ARG( double, d_ );
  	}
+	DoubleArgConstructor* Clone() const {
+	    return new DoubleArgConstructor( *this );
+	}
 	mutable double d_;
 };
 struct StringArgConstructor : IArgConstructor {
@@ -42,6 +49,9 @@ struct StringArgConstructor : IArgConstructor {
 		s_ = luaL_checkstring( L, idx ); 
 	    return Q_ARG( QString, s_ );
  	}
+	StringArgConstructor* Clone() const {
+	    return new StringArgConstructor( *this );
+	}
 	mutable QString s_;
 };
 
@@ -49,6 +59,7 @@ struct StringArgConstructor : IArgConstructor {
 struct IReturnConstructor {
     virtual void Push( lua_State* ) const = 0;
 	virtual ~IReturnConstructor() {}
+	virtual IReturnConstructor* Clone() const = 0;
 	QGenericArgument ga_; 
 };
 struct IntReturnConstructor : IReturnConstructor {
@@ -57,6 +68,9 @@ struct IntReturnConstructor : IReturnConstructor {
 	}
 	void Push( lua_State* L ) const {
 		lua_pushinteger( L, i_ );
+	}
+	IntReturnConstructor* Clone() const {
+	    return new IntReturnConstructor( *this );
 	}
 	int i_;	
 };
@@ -67,6 +81,9 @@ struct DoubleReturnConstructor : IReturnConstructor {
 	void Push( lua_State* L ) const {
 	    lua_pushnumber( L, d_ );
 	}
+	DoubleReturnConstructor* Clone() const {
+	    return new DoubleReturnConstructor( *this );
+	}
 	double d_;
 };
 struct StringReturnConstructor : IReturnConstructor {
@@ -76,16 +93,26 @@ struct StringReturnConstructor : IReturnConstructor {
 	void Push( lua_State* L ) const {
 		lua_pushstring( L, s_.toAscii().constData() );
 	}
+	StringReturnConstructor* Clone() const {
+	    return new StringReturnConstructor( *this );
+	}
 	QString s_;
 };
 struct VoidReturnConstructor : IReturnConstructor {
 	void Push( lua_State*  ) const {}
+	VoidReturnConstructor* Clone() const {
+	    return new VoidReturnConstructor( *this );
+	}
 };
 
 //------------------------------------------------------------------------------
 class ParameterWrapper {
 public:
-	ParameterWrapper( const QString& type ) {
+	ParameterWrapper() : ac_( 0 ) {}
+	ParameterWrapper( const ParameterWrapper& other ) : ac_( 0 ) {
+		if( other.ac_ ) ac_ = other.ac_->Clone();
+	}
+	ParameterWrapper( const QString& type ) : ac_( 0 ) {
 		if( type == "int" ) {
 			ac_ = new IntArgConstructor;
 		} else if( type == "double" ) {
@@ -104,6 +131,10 @@ private:
 
 class ReturnWrapper {
 public:
+	ReturnWrapper() : rc_( 0 ) {}
+	ReturnWrapper( const ReturnWrapper& other ) : rc_( 0 ) {
+		if( other.rc_ ) rc_ = other.rc_->Clone();
+	}
 	ReturnWrapper( const QString& type ) : rc_( 0 ), type_( type ) {
 		if( type_ == "int" ) {
 			rc_ = new IntReturnConstructor;
@@ -159,16 +190,21 @@ public:
 	void Eval( const char* code ) {
 		ReportErrors( luaL_dostring( L_, code ) );
 	}
-	void AddQObject( QObject* obj, const char* tableName ) {
+	void AddQObject( QObject* obj, 
+		             const char* tableName,
+					 const QSet< QString >& methodNames = QSet< QString >(),
+					 const QSet< QMetaMethod::MethodType >& methodTypes = QSet< QMetaMethod::MethodType >()  ) {
         lua_newtable( L_ );
 		const QMetaObject* mo = obj->metaObject();
 		for( int i = 0; i != mo->methodCount(); ++i ) {
 			QMetaMethod mm = mo->method( i );
+			QString name = mm.signature();
+			name.truncate( name.indexOf("(") );
+			if( !methodNames.isEmpty() && !methodNames.contains( name ) ) continue;
+			if( !methodTypes.isEmpty() && !methodTypes.contains( mm.methodType() ) ) continue;
 			typedef QList< QByteArray > Params;
 			Params params = mm.parameterTypes();
 			const QString returnType = mm.typeName();
-			QString name = mm.signature();
-			name.truncate( name.indexOf("(") );
 			methods_[ name ].push_back( Method( obj,
 			                            mm, 
 			                            GenerateParameterWrappers( params ),
@@ -253,6 +289,6 @@ int main() {
 	LuaContext ctx;
     MyObject myobj;
     ctx.AddQObject( &myobj, "myobj" );
-    ctx.Eval( "myobj.method(\"hello\")" ); 
+    ctx.Eval( "myobj.method(\"ma ciau ne\")" ); 
 	return 0;
 }
