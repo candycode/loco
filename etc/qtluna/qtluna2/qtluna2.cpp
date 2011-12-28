@@ -14,6 +14,7 @@ extern "C" {
 #include <QMetaMethod>
 #include <QSet>
 #include <QMetaType>
+#include <QStringList>
 
 #include "MyObject.h"
 
@@ -199,16 +200,24 @@ public:
 	}
 	void AddQObject( QObject* obj, 
 		             const char* tableName,
-					 const QSet< QString >& methodNames = QSet< QString >(),
-					 const QSet< QMetaMethod::MethodType >& methodTypes = QSet< QMetaMethod::MethodType >()  ) {
+					 const QStringList& methodNames = QStringList(),
+					 const QList< QMetaMethod::MethodType >& methodTypes = QList< QMetaMethod::MethodType >()  ) {
+        QSet< QString > mn;
+		QSet< QMetaMethod::MethodType > mt;
+	    foreach( QString s, methodNames ) {
+			mn.insert( s );
+		}
+		foreach( QMetaMethod::MethodType t, methodTypes ) {
+			mt.insert( t );
+		}
         lua_newtable( L_ );
 		const QMetaObject* mo = obj->metaObject();
 		for( int i = 0; i != mo->methodCount(); ++i ) {
 			QMetaMethod mm = mo->method( i );
 			QString name = mm.signature();
 			name.truncate( name.indexOf("(") );
-			if( !methodNames.isEmpty() && !methodNames.contains( name ) ) continue;
-			if( !methodTypes.isEmpty() && !methodTypes.contains( mm.methodType() ) ) continue;
+			if( !mn.isEmpty() && !mn.contains( name ) ) continue;
+			if( !mt.isEmpty() && !mt.contains( mm.methodType() ) ) continue;
 			typedef QList< QByteArray > Params;
 			Params params = mm.parameterTypes();
 			const QString returnType = mm.typeName();
@@ -254,21 +263,21 @@ private:
 			return 0;
 		}
 		QObject* obj = reinterpret_cast< QObject* >( lua_touserdata( L, -1 ) );
-		const QString signal = lua_tostring( L, 2 );
+		const char* signal = lua_tostring( L, 2 );
 		//extract signal arguments info
 		const QMetaObject* mo = obj->metaObject();
-		QList< QByteArray > params;
-		QString signalSignature;
-		for( int i = 0; i != mo->methodCount(); ++i ) {
-			QMetaMethod mm = mo->method( i );
-			QString name = mm.signature();
-			name.truncate( name.indexOf("(") );
-			if( name == signal ) {
-				signalSignature = mm.signature();
-				params = mm.parameterTypes();                  
-			    break;
-			}
-		}
+		
+		QString signalSignature = QMetaObject::normalizedSignature( signal );
+		const int signalIndex = mo->indexOfSignal( signalSignature.toAscii().constData() );
+		if( signalIndex < 0 ) {
+			lua_pushstring( L, QString( "Signal '" + signalSignature + "; not found" ).toAscii().constData() );
+		    lua_error( L );
+			return 0;
+		} 
+        QMetaMethod mm = mo->method( signalIndex );
+        
+
+		QList< QByteArray > params = mm.parameterTypes();
 		QList< QMetaType::Type > types;
 		for( QList< QByteArray >::const_iterator i = params.begin();
 			 i != params.end(); ++i ) {
@@ -277,7 +286,7 @@ private:
 		//push lua callback onto top of stack
 		lua_pushvalue( L, 3 );
 		const int luaRef = luaL_ref( L, LUA_REGISTRYINDEX );
-		const QString slot = "_" + QString("%1").arg( luaRef ) + "_" + signalSignature;
+		const QString slot = QString("_%1_%2_%3").arg( quint64( obj ) ).arg( luaRef ).arg( signalSignature );
 		lc.dispatcher_.RegisterSlot( slot, types, luaRef );
 		lc.dispatcher_.connectDynamicSlot( obj, signalSignature.toAscii().data(), slot.toAscii().data() ); 
         return 0;
@@ -373,8 +382,9 @@ int main() {
 	try {
 	    LuaContext ctx;
         MyObject myobj;
-        ctx.AddQObject( &myobj, "myobj" );
-	    ctx.Eval( "qtconnect( myobj, 'aSignal', function() print( 'called!' ); end )" );
+		//only add a single method to the proxy Lua table
+        ctx.AddQObject( &myobj, "myobj", QStringList() << "emitSignal" );
+	    ctx.Eval( "qtconnect( myobj, 'aSignal()', function() print( 'called!' ); end )" );
         ctx.Eval( "myobj.emitSignal()" ); 
 	} catch( const std::exception& e ) {
 		std::cerr << e.what() << std::endl;
