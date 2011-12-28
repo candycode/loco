@@ -19,6 +19,7 @@ extern "C" {
 
 #include "DynamicLuaQObject.h"
 
+//==============================================================================
 //------------------------------------------------------------------------------
 struct IArgConstructor {
 	virtual QGenericArgument Create( lua_State*, int ) const = 0;
@@ -36,6 +37,16 @@ struct IntArgConstructor : IArgConstructor {
 	    return new IntArgConstructor( *this );
 	}
 	mutable int i_;
+};
+struct FloatArgConstructor : IArgConstructor {
+	QGenericArgument Create( lua_State* L, int idx ) const {
+	    f_ = float( luaL_checknumber( L, idx ) );
+		return Q_ARG( double, f_ );
+ 	}
+	FloatArgConstructor* Clone() const {
+	    return new FloatArgConstructor( *this );
+	}
+	mutable float f_;
 };
 struct DoubleArgConstructor : IArgConstructor {
 	QGenericArgument Create( lua_State* L, int idx ) const {
@@ -57,6 +68,38 @@ struct StringArgConstructor : IArgConstructor {
 	}
 	mutable QString s_;
 };
+//struct VariantMapArgConstructor : IArgConstructor {
+//	QGenericArgument Create( lua_State* L, int idx ) const {
+//		vm = ParseLuaTable( L, idx );
+//	    return Q_ARG( QString, vm_ );
+// 	}
+//	VariantMapArgConstructor* Clone() const {
+//	    return new VariantMapArgConstructor( *this );
+//	}
+//	mutable QVariantMap vm_;
+//};
+//struct VariantListArgConstructor : IArgConstructor {
+//	QGenericArgument Create( lua_State* L, int idx ) const {
+//		vl = ParseLuaTableAsVariantList( L, idx );
+//	    return Q_ARG( QString, vl_ );
+// 	}
+//	VariantListArgConstructor* Clone() const {
+//	    return new VariantListArgConstructor( *this );
+//	}
+//	mutable QVariantList vl_;
+//};
+//template < typename T >
+//struct ListArgConstructor : IArgConstructor {
+//	QGenericArgument Create( lua_State* L, int idx ) const {
+//		l = ParseLuaTableAsList< T >( L, idx );
+//	    return Q_ARG( QString, l_ );
+// 	}
+//	VariantListArgConstructor* Clone() const {
+//	    return new VariantListArgConstructor( *this );
+//	}
+//	mutable QList< T > l_;
+//};
+
 
 //------------------------------------------------------------------------------
 struct IReturnConstructor {
@@ -89,6 +132,18 @@ struct DoubleReturnConstructor : IReturnConstructor {
 	}
 	double d_;
 };
+struct FloatReturnConstructor : IReturnConstructor {
+	FloatReturnConstructor() {
+	   ga_ = Q_RETURN_ARG( float, f_ ); 
+	}
+	void Push( lua_State* L ) const {
+	    lua_pushnumber( L, f_ );
+	}
+	FloatReturnConstructor* Clone() const {
+	    return new FloatReturnConstructor( *this );
+	}
+	float f_;
+};
 struct StringReturnConstructor : IReturnConstructor {
 	StringReturnConstructor() {
 	    ga_ = Q_RETURN_ARG( QString, s_ );   
@@ -107,6 +162,43 @@ struct VoidReturnConstructor : IReturnConstructor {
 	    return new VoidReturnConstructor( *this );
 	}
 };
+//struct VariantMapReturnConstructor : IReturnConstructor {
+//	VariantMapReturnConstructor() {
+//	    ga_ = Q_RETURN_ARG( QVariantMap, vm_ );   
+//	}
+//	void Push( lua_State* L ) const {
+//		VariantMapToLuaTable( L, vm_ );
+//	}
+//	VariantMapReturnConstructor* Clone() const {
+//	    return new VariantMapReturnConstructor( *this );
+//	}
+//	QVariantMap vm_;
+//};
+//struct VariantListReturnConstructor : IReturnConstructor {
+//	VariantListReturnConstructor() {
+//	    ga_ = Q_RETURN_ARG( QVariantList, vl_ );   
+//	}
+//	void Push( lua_State* L ) const {
+//		VariantListToLuaTable( L, vl_ );
+//	}
+//	VariantListReturnConstructor* Clone() const {
+//	    return new VariantListReturnConstructor( *this );
+//	}
+//	QVariantList vl_;
+//};
+//template < typename T >
+//struct ListReturnConstructor : IReturnConstructor {
+//	ListReturnConstructor() {
+//	    ga_ = Q_RETURN_ARG( QList< T >, l_ );   
+//	}
+//	void Push( lua_State* L ) const {
+//		ListToLuaTable< T >( L, l_ );
+//	}
+//	ListReturnConstructor* Clone() const {
+//	    return new ListReturnConstructor( *this );
+//	}
+//	QList< T > vl_;
+//};
 
 //------------------------------------------------------------------------------
 class ParameterWrapper {
@@ -158,18 +250,10 @@ private:
 	QString type_;
 };
 
-struct Method {
-	typedef QList< ParameterWrapper > ParamWrappers;
-    QObject* obj_;
-	QMetaMethod metaMethod_;
-	ParamWrappers paramWrappers_;
-	ReturnWrapper returnWrapper_;
-	Method( QObject* obj, const QMetaMethod& mm, const ParamWrappers& pw, const ReturnWrapper& rw ) :
-	obj_( obj ), metaMethod_( mm ), paramWrappers_( pw ), returnWrapper_( rw ) {}
-};
+typedef QList< ParameterWrapper > ParamWrappers;
 typedef QList< QByteArray > ParamTypes;
-inline Method::ParamWrappers GenerateParameterWrappers( const ParamTypes& pt ) {
-	Method::ParamWrappers pw;
+inline ParamWrappers GenerateParameterWrappers( const ParamTypes& pt ) {
+	ParamWrappers pw;
 	for( ParamTypes::const_iterator i = pt.begin(); i != pt.end(); ++i ) {
 	    pw.push_back( ParameterWrapper( *i ) );
 	}
@@ -179,10 +263,19 @@ inline Method::ParamWrappers GenerateParameterWrappers( const ParamTypes& pt ) {
 inline ReturnWrapper GenerateReturnWrapper( const QString& typeName ) {
     return ReturnWrapper( typeName );
 }
+//==============================================================================
 
-
+//==============================================================================
 //------------------------------------------------------------------------------
 class LuaContext {
+    struct Method {
+        QObject* obj_;
+	    QMetaMethod metaMethod_;
+	    ParamWrappers paramWrappers_;
+	    ReturnWrapper returnWrapper_;
+	    Method( QObject* obj, const QMetaMethod& mm, const ParamWrappers& pw, const ReturnWrapper& rw ) :
+	    obj_( obj ), metaMethod_( mm ), paramWrappers_( pw ), returnWrapper_( rw ) {}
+    };
 public:
 	typedef QList< Method > Methods;
 	typedef QMap< QString, Methods > MethodMap;
@@ -198,8 +291,11 @@ public:
 	void Eval( const char* code ) {
 		ReportErrors( luaL_dostring( L_, code ) );
 	}
+	//void AddQVariantMap( const QVariantMap&, const char* name = 0 );
+	//void AddQVariantList( const QVariantList&, const char* name = 0 );
+	//template < typename T > void AddQList( const QList< T >&, const char* name = 0 );
 	void AddQObject( QObject* obj, 
-		             const char* tableName = 0,
+		             const char* tableName = 0, //not setting a global name allows to use this method to push a table on the stack
 					 const QStringList& methodNames = QStringList(),
 					 const QList< QMetaMethod::MethodType >& methodTypes = QList< QMetaMethod::MethodType >()  ) {
         QSet< QString > mn;
@@ -245,8 +341,8 @@ public:
 private:
 	static int QtConnect( lua_State* L ) {
 		LuaContext& lc = *reinterpret_cast< LuaContext* >( lua_touserdata( L, lua_upvalueindex( 1 ) ) );
-		if( lua_gettop( L ) != 3 ) {
-		    lua_pushstring( L, "Three parameters required" );
+		if( lua_gettop( L ) != 3 && lua_gettop( L ) != 4  ) {
+			lua_pushstring( L, "qtconnect: Three or four parameters required" );
 		    lua_error( L );
 			return 0;
 		}
@@ -258,7 +354,7 @@ private:
 		lua_pushstring( L, "qobject__" );
 		lua_gettable( L, 1 );
 		if( lua_isnil( L, -1 ) ) {
-			lua_pushstring( L, "Wrong table format: reference to QObject not found" );
+			lua_pushstring( L, "qtconnect: Wrong table format: reference to QObject not found" );
 		    lua_error( L );
 			return 0;
 		}
@@ -270,12 +366,11 @@ private:
 		QString signalSignature = QMetaObject::normalizedSignature( signal );
 		const int signalIndex = mo->indexOfSignal( signalSignature.toAscii().constData() );
 		if( signalIndex < 0 ) {
-			lua_pushstring( L, QString( "Signal '" + signalSignature + "; not found" ).toAscii().constData() );
+			lua_pushstring( L, QString( "Signal '" + signalSignature + "' not found" ).toAscii().constData() );
 		    lua_error( L );
 			return 0;
 		} 
         QMetaMethod mm = mo->method( signalIndex );
-        
 
 		QList< QByteArray > params = mm.parameterTypes();
 		QList< QMetaType::Type > types;
@@ -291,11 +386,51 @@ private:
 			lc.dispatcher_.RegisterSlot( slot, types, luaRef );
 			lc.dispatcher_.connectDynamicSlot( obj, signalSignature.toAscii().data(), slot.toAscii().data() ); 
 		} else {
-			throw std::runtime_error( "Connection to other QObject slot not implemented yet" );
 			if( lua_islightuserdata( L, 3 ) ) {
-			    //fetch QObject* and method/signal signature to invoke in parameter 4  
+				if( lua_gettop( L ) < 4 || !lua_isstring( L, 4 ) ) {
+					lua_pushstring( L, "qtconnect: missing target method" );
+		            lua_error( L );
+					return 0;
+				}
+			    //fetch QObject* and method/signal signature to invoke in parameter 4
+				QObject* targetObj = reinterpret_cast< QObject* >( lua_touserdata( L, 3 ) );
+				const char* targetMethod = lua_tostring( L, 4 );
+				const QMetaObject* mo = targetObj->metaObject();
+				const int targetMethodIdx = mo->indexOfMethod( QMetaObject::normalizedSignature( targetMethod ) ); 
+				if( targetMethodIdx < 0 ) {
+				    lua_pushstring( L, QString( "Method '" + QString( targetMethod ) + 
+						                        "' not found" ).toAscii().constData() );
+		            lua_error( L );
+					return 0;
+				}
+				QMetaObject::connect( obj, signalIndex, targetObj, targetMethodIdx );
+				return 0;
 			} else if( lua_istable( L, 3 ) ) {
+				if( lua_gettop( L ) < 4 || !lua_isstring( L, 4 ) ) {
+					lua_pushstring( L, "qtconnect: missing target method" );
+		            lua_error( L );
+					return 0;
+				}
 				//table wrapping QObject*: extract qobject__ field and signal/slot signature in parameter 4 
+				lua_pushstring( L, "qobject__" );
+		        lua_gettable( L, 1 );
+		        if( lua_isnil( L, -1 ) ) {
+			        lua_pushstring( L, "qtconnect: Wrong table format: reference to QObject not found" );
+		            lua_error( L );
+			        return 0;
+				}
+				QObject* targetObj = reinterpret_cast< QObject* >( lua_touserdata( L, -1 ) );
+				const char* targetMethod = lua_tostring( L, 4 );
+				const QMetaObject* mo = targetObj->metaObject();
+				const int targetMethodIdx = mo->indexOfMethod( QMetaObject::normalizedSignature( targetMethod ) ); 
+				if( targetMethodIdx < 0 ) {
+				    lua_pushstring( L, QString( "Method '" + QString( targetMethod ) + 
+						                        "' not found" ).toAscii().constData() );
+		            lua_error( L );
+					return 0;
+				}
+				QMetaObject::connect( obj, signalIndex, targetObj, targetMethodIdx );
+				return 0;
 			}
 		}
         return 0;
@@ -384,3 +519,4 @@ private:
 	MethodMap methods_;
 	DynamicLuaQObject dispatcher_; //signal->dispatcher_->Lua callback
 };
+//==============================================================================

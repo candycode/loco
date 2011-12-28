@@ -99,7 +99,6 @@ void VariantMapToLuaTable( const QVariantMap& vm, lua_State* L ) {
 }
 
 
-
 void PrintVariantMap( const QVariantMap& vm, const QString& padding = "" ) {
 	for( QVariantMap::const_iterator i = vm.begin();
 		 i != vm.end(); ++i ) {

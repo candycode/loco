@@ -13,6 +13,8 @@ void PushLuaValue( LuaContext* lc, QMetaType::Type type, void* arg ) {
 		                      break;
     case QMetaType::ULongLong: lua_pushnumber( lc->LuaState(), *reinterpret_cast< unsigned long long * >( arg ) );
 		                       break;
+    case QMetaType::Float: lua_pushnumber( lc->LuaState(), *reinterpret_cast< float* >( arg ) );
+		                    break;
 	case QMetaType::Double: lua_pushnumber( lc->LuaState(), *reinterpret_cast< double* >( arg ) );
 		                    break;
 	case QMetaType::QString: lua_pushstring( lc->LuaState(), (reinterpret_cast< QString* >( arg ))->toAscii().constData() );
@@ -21,7 +23,7 @@ void PushLuaValue( LuaContext* lc, QMetaType::Type type, void* arg ) {
 		                         break;
     case QMetaType::QObjectStar: lc->AddQObject( reinterpret_cast< QObject* >( arg ) );
 		                         break;
-	default: throw std::logic_error( "Only int, double and QString implemented at this time" );
+	default: throw std::logic_error( "Type not supported" );
 	}
 }
 

@@ -12,6 +12,7 @@ public slots:
 		std::cout << msg.toStdString() << std::endl;
 	}
 	void emitSignal() { emit aSignal(); }
+	void aSlot() { std::cout << "aSlot() called" << std::endl; }
 signals:
 	void aSignal();
 };
