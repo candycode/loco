@@ -223,7 +223,7 @@ public:
 		    }	                            
 		}
 		lua_pushstring( L_, "qobject__" );
-		lua_pushlightuserdata( L, obj );
+		lua_pushlightuserdata( L_, obj );
         lua_rawset( L_, -3 );
 
 		//add method return pointer to object
@@ -234,9 +234,9 @@ public:
 	}
 private:
 	static int QtConnect( lua_State* L ) {
-		LuaContext& lc = *( reinterpret_cast< LuaContext* >( lua_touserdata( L, lua_upvalueindex( 1 ) ) );
-		if( lua_gettop( L ) != 4 ) {
-		    lua_pushstring( L, "Four parameters required" );
+		LuaContext& lc = *reinterpret_cast< LuaContext* >( lua_touserdata( L, lua_upvalueindex( 1 ) ) );
+		if( lua_gettop( L ) != 3 ) {
+		    lua_pushstring( L, "Three parameters required" );
 		    lua_error( L );
 			return 0;
 		}
@@ -257,23 +257,28 @@ private:
 		//extract signal arguments info
 		const QMetaObject* mo = obj->metaObject();
 		QList< QByteArray > params;
+		QString signalSignature;
 		for( int i = 0; i != mo->methodCount(); ++i ) {
 			QMetaMethod mm = mo->method( i );
 			QString name = mm.signature();
 			name.truncate( name.indexOf("(") );
 			if( name == signal ) {
+				signalSignature = mm.signature();
 				params = mm.parameterTypes();                  
 			    break;
 			}
 		}
-		//push lua callback onto top of stack
 		QList< QMetaType::Type > types;
 		for( QList< QByteArray >::const_iterator i = params.begin();
 			 i != params.end(); ++i ) {
-		    types.push_back( QMetaType::type( i->constData() );
+				 types.push_back( QMetaType::Type( QMetaType::type( i->constData() ) ) );
 		}
+		//push lua callback onto top of stack
 		lua_pushvalue( L, 3 );
-		dispatcher_.RegisterSlot( signal, types, luaL_ref( L, LUA_REGISTRYINDEX );
+		const int luaRef = luaL_ref( L, LUA_REGISTRYINDEX );
+		const QString slot = signal + "_" + QString("%1").arg( luaRef );
+		lc.dispatcher_.RegisterSlot( slot, types, luaRef );
+		lc.dispatcher_.connectDynamicSlot( obj, signalSignature.toAscii().data(), slot.toAscii().data() ); 
         return 0;
 	}
 	static int InvokeMethod( lua_State *L ) {
@@ -289,8 +294,8 @@ private:
 		}
 		if( !mi ) throw std::runtime_error( "Method not found" );
 		switch( numArgs ) {
-			/*case 0: return Invoke0( mi, L );
-			        break;*/
+			case 0: return Invoke0( mi, L );
+			        break;
 			case 1: return Invoke1( mi, L );
 			        break;
 			/*case 2: return Invoke2( mi, L );
@@ -312,6 +317,23 @@ private:
 		return 0;
 	}
 	//move invokers into Invokers struct
+	static int Invoke0( const Method* mi, lua_State* L ) {
+		bool ok = false;
+		if( mi->returnWrapper_.Type().isEmpty() ) {
+			ok = mi->metaMethod_.invoke( mi->obj_, Qt::DirectConnection );
+		    if( ok ) return 0;
+		} else {
+			ok = mi->metaMethod_.invoke( mi->obj_, Qt::DirectConnection,
+	    		                         mi->returnWrapper_.Arg() ); //passes the location (void*) where return data will be stored
+			if( ok ) {
+				mi->returnWrapper_.Push( L );
+			    return 1;
+			}
+		}
+		lua_pushstring( L, "Slot invocation error" );
+		lua_error( L );
+		return 0;
+    }
     static int Invoke1( const Method* mi, lua_State* L ) {
 		bool ok = false;
 		if( mi->returnWrapper_.Type().isEmpty() ) {
@@ -347,10 +369,14 @@ private:
 
 //------------------------------------------------------------------------------
 int main() {
-	LuaContext ctx;
-    MyObject myobj;
-    ctx.AddQObject( &myobj, "myobj" );
-	ctx.Eval( "qtconnect( myobj, 'aSignal()', function() print( 'called!' ); end )" );
-    ctx.Eval( "myobj.emitSignal()" ); 
+	try {
+	    LuaContext ctx;
+        MyObject myobj;
+        ctx.AddQObject( &myobj, "myobj" );
+	    ctx.Eval( "qtconnect( myobj, 'aSignal', function() print( 'called!' ); end )" );
+        ctx.Eval( "myobj.emitSignal()" ); 
+	} catch( const std::exception& e ) {
+		std::cerr << e.what() << std::endl;
+	}
 	return 0;
 }
