@@ -7,67 +7,82 @@ extern "C" {
 #include <stdexcept>
 #include <string>
 
+#include <QString>
+#include <QMap>
+#include <QList>
+#include <QMetaObject>
+#include <QMetaMethod>
+
 #include "MyObject.h"
 
 
-
 //------------------------------------------------------------------------------
-
 struct IArgConstructor {
-	virtual QGenericArgument Create( lua_State* ) const = 0;
+	virtual QGenericArgument Create( lua_State*, int ) const = 0;
 	virtual ~IArgConstructor() {}
+	QGenericArgument ga_;
 };
 
 struct IntArgConstructor : IArgConstructor {
-	QGenericArgument Create( lua_State* L, idx ) const {
-	    i_ = luaL_checkint( L, idx )
+	QGenericArgument Create( lua_State* L, int idx ) const {
+	    i_ = luaL_checkint( L, idx );
 		return Q_ARG( int, i_ );
  	}
-	int i_;
+	mutable int i_;
 };
 struct DoubleArgConstructor : IArgConstructor {
-	QGenericArgument Create( lua_State* L ) const {
-	    d_ = luaL_checknumber( L, -1 );
+	QGenericArgument Create( lua_State* L, int idx ) const {
+	    d_ = luaL_checknumber( L, idx );
 		return Q_ARG( double, d_ );
  	}
+	mutable double d_;
 };
 struct StringArgConstructor : IArgConstructor {
-	QGenericArgument Create( lua_State* L ) const {
-		s_ = luaL_checkstring( L, -1 ); 
+	QGenericArgument Create( lua_State* L, int idx ) const {
+		s_ = luaL_checkstring( L, idx ); 
 	    return Q_ARG( QString, s_ );
  	}
-	QString s_;
+	mutable QString s_;
 };
+
+//------------------------------------------------------------------------------
 struct IReturnConstructor {
-    virtual void Push( const QGenericReturnArgument&, lua_State* ) const = 0;
+    virtual void Push( lua_State* ) const = 0;
 	virtual ~IReturnConstructor() {}
+	QGenericArgument ga_; 
 };
 struct IntReturnConstructor : IReturnConstructor {
 	IntReturnConstructor() {
 	    ga_ = Q_RETURN_ARG( int, i_ );
 	}
-	void Push( const QGenericReturnArgument& arg, lua_State* L ) const {
-		lua_pushinteger( L, i );
+	void Push( lua_State* L ) const {
+		lua_pushinteger( L, i_ );
 	}
-	int i_;
-	QGenericArgument ga_; 
+	int i_;	
 };
 struct DoubleReturnConstructor : IReturnConstructor {
-	void Push( const QGenericReturnArgument& arg, lua_State* L ) const {
-	    double d = *(reinterpret_cast< double* >( arg.data() ) );
-		lua_pushnumber( L, d );
+	DoubleReturnConstructor() {
+	   ga_ = Q_RETURN_ARG( double, d_ ); 
 	}
+	void Push( lua_State* L ) const {
+	    lua_pushnumber( L, d_ );
+	}
+	double d_;
 };
 struct StringReturnConstructor : IReturnConstructor {
-	void Push( const QGenericReturnArgument& arg, lua_State* L ) const {
-	    QString s= *(reinterpret_cast< QString* >( arg.data() ) );
-		lua_pushstring( L, s.toAscii().constData() );
+	StringReturnConstructor() {
+	    ga_ = Q_RETURN_ARG( QString, s_ );   
 	}
+	void Push( lua_State* L ) const {
+		lua_pushstring( L, s_.toAscii().constData() );
+	}
+	QString s_;
 };
 struct VoidReturnConstructor : IReturnConstructor {
-	void Push( const QGenericReturnArgument& , lua_State*  ) const {}
+	void Push( lua_State*  ) const {}
 };
 
+//------------------------------------------------------------------------------
 class ParameterWrapper {
 public:
 	ParameterWrapper( const QString& type ) {
@@ -80,7 +95,7 @@ public:
 		}
 	}
     QGenericArgument Arg( lua_State* L, int idx ) const {
-    	return ac_->Create( L, idx )
+    	return ac_->Create( L, idx );
     }
     ~ParameterWrapper() { delete ac_; }
 private:
@@ -89,7 +104,7 @@ private:
 
 class ReturnWrapper {
 public:
-	ReturnWrapper( const QString& type ) : rc_( 0 ) {
+	ReturnWrapper( const QString& type ) : rc_( 0 ), type_( type ) {
 		if( type_ == "int" ) {
 			rc_ = new IntReturnConstructor;
 		} else if( type_ == "double" ) {
@@ -98,8 +113,8 @@ public:
 			rc_ = new StringReturnConstructor;
 		} else if( type_.isEmpty() ) rc_ = new VoidReturnConstructor;
 	}
-    void Push( lua_State* L, const QGenericReturnArgument& ret ) const {
-    	rc_->Push( L, ret );
+    void Push( lua_State* L ) const {
+    	rc_->Push( L );
     }
 	QGenericArgument Arg() const { return rc_->ga_; }
 	const QString& Type() const { return type_; }
@@ -110,20 +125,21 @@ private:
 };
 
 struct Method {
-	typedef QList< ParameterWrapper > ParamWrappers
+	typedef QList< ParameterWrapper > ParamWrappers;
     QObject* obj_;
 	QMetaMethod metaMethod_;
 	ParamWrappers paramWrappers_;
-	RetWrapper returnWrapper_;
-	Method( QObject* obj, const QMetaMethod& mm, const ParamWrappers& pw, const RetWrapper& rw ) :
+	ReturnWrapper returnWrapper_;
+	Method( QObject* obj, const QMetaMethod& mm, const ParamWrappers& pw, const ReturnWrapper& rw ) :
 	obj_( obj ), metaMethod_( mm ), paramWrappers_( pw ), returnWrapper_( rw ) {}
 };
-QList< QByteArray > ParamTypes;
+typedef QList< QByteArray > ParamTypes;
 Method::ParamWrappers GenerateParameterWrappers( const ParamTypes& pt ) {
 	Method::ParamWrappers pw;
 	for( ParamTypes::const_iterator i = pt.begin(); i != pt.end(); ++i ) {
 	    pw.push_back( ParameterWrapper( *i ) );
 	}
+	return pw;
 }
 
 ReturnWrapper GenerateReturnWrapper( const QString& typeName ) {
@@ -141,23 +157,23 @@ public:
 		luaL_openlibs(L_);
 	}
 	void Eval( const char* code ) {
-		ReportError( luaL_dostring( L_, code ) );
+		ReportErrors( luaL_dostring( L_, code ) );
 	}
 	void AddQObject( QObject* obj, const char* tableName ) {
         lua_newtable( L_ );
-		QMetaObject mo = obj->metaObject();
-		for( int m = 0; m != mo.methodCount(); ++m ) {
-			QMetaMethod mm = mo.method( i );
+		const QMetaObject* mo = obj->metaObject();
+		for( int i = 0; i != mo->methodCount(); ++i ) {
+			QMetaMethod mm = mo->method( i );
 			typedef QList< QByteArray > Params;
 			Params params = mm.parameterTypes();
 			const QString returnType = mm.typeName();
 			QString name = mm.signature();
 			name.truncate( name.indexOf("(") );
 			methods_[ name ].push_back( Method( obj,
-			                            mm, //index 
-			                            GenerateParamWrappers( params ),
-			                            GenerateReturnWrapper( returnType ) );
-			if( method[ name ].size() == 1 ) {
+			                            mm, 
+			                            GenerateParameterWrappers( params ),
+			                            GenerateReturnWrapper( returnType ) ) );
+			if( methods_[ name ].size() == 1 ) {
 				lua_pushstring( L_, name.toAscii().constData() );
 		        lua_pushlightuserdata( L_, &methods_[ name ] );
 		        lua_pushcclosure( L_, LuaContext::InvokeMethod, 1 );
@@ -165,33 +181,29 @@ public:
 		    }	                            
 		}
 		lua_setglobal( L_, tableName );
-		// use lua_gettop to find the number of parameters passed to function
-        //add table 
-		//iterate over methods and for each name add a
-		//c closure taking as the upvalue the 
 	}
 	~LuaContext() {
 		lua_close( L_ );
 	}
 private:
 	static int InvokeMethod( lua_State *L ) {
-		const Methods& m = *( reinterpret_cast< MethodInfo* >( lua_touserdata( lua_upvalue( 1 ) ) ) );
+		const Methods& m = *( reinterpret_cast< Methods* >( lua_touserdata( L, lua_upvalueindex( 1 ) ) ) );
         const int numArgs = lua_gettop( L );
 		int idx = -1;
 		const Method* mi = 0;
 		for( Methods::const_iterator i = m.begin(); i != m.end(); ++i ) {
-			if( i->paramWrappers.size() == numArgs ) {
-			    mi = &(*i);
+			if( i->paramWrappers_.size() == numArgs ) {
+			    mi = &( *i );
 				break;
 			}
 		}
 		if( !mi ) throw std::runtime_error( "Method not found" );
 		switch( numArgs ) {
-			case 0: return Invoke0( mi, L );
-			        break;
+			/*case 0: return Invoke0( mi, L );
+			        break;*/
 			case 1: return Invoke1( mi, L );
 			        break;
-			case 2: return Invoke2( mi, L );
+			/*case 2: return Invoke2( mi, L );
 			        break;
 			case 3: return Invoke3( mi, L );
 			        break;
@@ -204,21 +216,22 @@ private:
             case 8: return Invoke7( mi, L );
 			        break;
             case 9: return Invoke8( mi, L );
-			        break; 
+			        break; */
 			default: break;                                                         
 		}
+		return 0;
 	}
 	//move invokers into Invokers struct
     static int Invoke1( const Method* mi, lua_State* L ) {
-		if( mi->Type().isEmpty() ) {
+		if( mi->returnWrapper_.Type().isEmpty() ) {
 			mi->metaMethod_.invoke( mi->obj_, Qt::DirectConnection,
-	          			            mi->paramWrappers_[ 0 ] );
+	          			            mi->paramWrappers_[ 0 ].Arg( L, 1 ) );
 		    return 0;
 		} else {
 			mi->metaMethod_.invoke( mi->obj_, Qt::DirectConnection,
-	    		                    mi->returnWrapper_.Arg(),
+	    		                    mi->returnWrapper_.Arg(), //passes the location (void*) where return data will be stored
 	          			            mi->paramWrappers_[ 0 ].Arg( L, 1 ) );
-			mi->returnWrapper_.Push( L ):
+			mi->returnWrapper_.Push( L );
 			return 1;
 		}
     }
@@ -239,7 +252,7 @@ private:
 int main() {
 	LuaContext ctx;
     MyObject myobj;
-    ctx.AddQObject( ctx, &myobj, "myobj" );
+    ctx.AddQObject( &myobj, "myobj" );
     ctx.Eval( "myobj.method(\"hello\")" ); 
 	return 0;
 }
