@@ -16,6 +16,8 @@ extern "C" {
 
 #include "LuaQtTypes.h"
 
+namespace qlua {
+
 //------------------------------------------------------------------------------
 struct IArgConstructor {
 	virtual QGenericArgument Create( lua_State*, int ) const = 0;
@@ -257,4 +259,6 @@ inline ParamWrappers GenerateParameterWrappers( const ParamTypes& pt ) {
 
 inline ReturnWrapper GenerateReturnWrapper( const QString& typeName ) {
     return ReturnWrapper( typeName );
+}
+
 }

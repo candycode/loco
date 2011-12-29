@@ -21,6 +21,7 @@ extern "C" {
 
 #include "Arguments.h"
 
+namespace qlua {
 //------------------------------------------------------------------------------
 class LuaContext {
     struct Method {
@@ -132,3 +133,4 @@ inline QStringList GetValue< QStringList >( const LuaContext& lc, const QString&
 	return ParseLuaTableAsStringList( lc.LuaState(), -1 );
 }
 
+}

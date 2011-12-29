@@ -5,7 +5,7 @@
 //------------------------------------------------------------------------------
 int main() {
 	try {
-	    LuaContext ctx;
+		qlua::LuaContext ctx;
         MyObject myobj;
 		//only add a single method to the Lua table
         ctx.AddQObject( &myobj, "myobj", QStringList() << "emitSignal" );

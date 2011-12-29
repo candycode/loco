@@ -1,5 +1,6 @@
 #include "LuaContext.h"
 
+namespace qlua {
 //------------------------------------------------------------------------------
 void LuaContext::AddQObject( QObject* obj, 
 		             const char* tableName, 
@@ -88,7 +89,7 @@ int LuaContext::QtConnect( lua_State* L ) {
 		const int luaRef = luaL_ref( L, LUA_REGISTRYINDEX );
 		const QString slot = QString("_%1_%2_%3").arg( quint64( obj ) ).arg( luaRef ).arg( signalSignature );
 		lc.dispatcher_.RegisterSlot( slot, types, luaRef );
-		lc.dispatcher_.connectDynamicSlot( obj, signalSignature.toAscii().data(), slot.toAscii().data() ); 
+		lc.dispatcher_.Connect( obj, signalSignature.toAscii().data(), slot.toAscii().data() ); 
 	} else {
 		if( lua_islightuserdata( L, 3 ) ) {
 			if( lua_gettop( L ) < 4 || !lua_isstring( L, 4 ) ) {
@@ -478,4 +479,5 @@ int LuaContext::Invoke10( const Method* mi, lua_State* L ) {
 	lua_pushstring( L, "Slot invocation error" );
 	lua_error( L );
 	return 0;
+}
 }

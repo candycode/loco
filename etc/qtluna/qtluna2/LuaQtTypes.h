@@ -13,6 +13,8 @@ extern "C" {
 #include <QVariantMap>
 #include <QGenericArgument>
 
+namespace qlua {
+
 //------------------------------------------------------------------------------
 inline
 QString LuaKeyToQString( lua_State* L, int idx ) {
@@ -34,9 +36,9 @@ inline
 QVariant LuaValueToQVariant( lua_State* L, int idx ) {
 	if( lua_isboolean( L, idx ) ) {
 		return bool( lua_toboolean( L, idx ) );
-	} else if( lua_isnumber( L, idx ) ) {
-		const double N = lua_tonumber( L, idx );
+	} else if( lua_isnumber( L, idx ) ) {	
 #ifdef QLUA_CONVERT_NUMBER
+		const double N = lua_tonumber( L, idx );
 		if( ConvertibleTo< int >( N ) ) return int( N );
 		else if( ConvertibleTo< unsigned int >( N ) ) return (unsigned int)( N );
 		else if( ConvertibleTo< long long >( N ) ) return long( N );
@@ -44,7 +46,7 @@ QVariant LuaValueToQVariant( lua_State* L, int idx ) {
 		else if( ConvertibleTo< float >( N ) ) return float( N );
 		else return N;
 #else
-		return N;
+		return lua_tonumber( L, idx );
 #endif
 	} else if( lua_islightuserdata( L, idx ) ) {
 		return lua_topointer( L, idx ); 
@@ -192,4 +194,5 @@ void StringListToLuaTable( const QStringList& vl, lua_State* L ) {
 	    lua_pushstring( L, v->toAscii().constData() );
 		lua_rawset( L, -3 );
 	}
+}
 }

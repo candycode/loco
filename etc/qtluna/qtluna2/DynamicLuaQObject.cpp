@@ -1,6 +1,8 @@
 #include "LuaContext.h"
 #include "DynamicLuaQObject.h"
 
+namespace qlua {
+
 void PushLuaValue( LuaContext* lc, QMetaType::Type type, void* arg ) {
     switch( type ) {
     case QMetaType::Bool: lua_pushinteger( lc->LuaState(), *reinterpret_cast< bool* >( arg ) );
@@ -31,11 +33,11 @@ void PushLuaValue( LuaContext* lc, QMetaType::Type type, void* arg ) {
 	}
 }
 
-DynamicSlot *DynamicLuaQObject::createSlot( char *slot ) {
+DynamicSlot *DynamicLuaQObject::createSlot( const char *slot ) {
     return new LuaCBackSlot( lc_, luaRefMap_[ slot ].paramTypes, luaRefMap_[ slot ].luaCBackRef );
 }
 
-void LuaCBackSlot::call(QObject* /*sender*/, void **arguments ) {
+void LuaCBackSlot::Invoke( void **arguments ) {
 	for( ParameterTypes::const_iterator i = paramTypes_.begin();
 		 i != paramTypes_.end(); ++i, ++arguments ) {
 	    PushLuaValue( lc_, *i, *arguments );
@@ -44,6 +46,7 @@ void LuaCBackSlot::call(QObject* /*sender*/, void **arguments ) {
 	lua_pcall( lc_->LuaState(), paramTypes_.size(), 0, 0 );
 }
 
+}
 
 //enum Type {
 //        // these are merged with QVariant

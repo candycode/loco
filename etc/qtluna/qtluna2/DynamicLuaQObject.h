@@ -2,15 +2,18 @@
 
 #include <stdexcept>
 
-#include "DynamicQObject.h"
-
+#include <QHash>
 #include <QMetaType>
+
+#include "DynamicQObject.h"
 
 extern "C" {
 #include "lua.h"
 #include "lauxlib.h"
 #include "lualib.h"
 }
+
+namespace qlua {
 
 class LuaContext;
 
@@ -22,7 +25,7 @@ class LuaCBackSlot : public DynamicSlot {
 public:
 	LuaCBackSlot( LuaContext* lc, const ParameterTypes& p, int luaCBackRef ) 
 		: lc_( lc ), paramTypes_( p ), luaCBackRef_( luaCBackRef ) {}
-	virtual void call(QObject* /*sender*/, void **arguments );
+	void Invoke( void **arguments );
 private:
 	LuaContext* lc_;
 	ParameterTypes paramTypes_;
@@ -35,7 +38,7 @@ struct SlotInfo {
 	SlotInfo() : luaCBackRef( 0 ) {}
 	SlotInfo( int lref, const ParameterTypes& p ) : luaCBackRef( lref ), paramTypes( p ) {}
 };
-typedef QMap< QString, SlotInfo > SlotInfoMap;
+typedef QHash< QString, SlotInfo > SlotInfoMap;
 class DynamicLuaQObject: public DynamicQObject
 {
 public:
@@ -45,8 +48,9 @@ public:
 	void RegisterSlot( const QString& slot, const ParameterTypes& paramTypes, int luaCBackRef ) {
 	    luaRefMap_[ slot ] = SlotInfo( luaCBackRef, paramTypes );
 	}
-	virtual DynamicSlot *createSlot( char *slot );
+	DynamicSlot *createSlot( const char *slot );
 private:
 	LuaContext* lc_;
 	SlotInfoMap luaRefMap_;
 };
+}
