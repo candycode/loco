@@ -5,6 +5,10 @@ void PushLuaValue( LuaContext* lc, QMetaType::Type type, void* arg ) {
     switch( type ) {
     case QMetaType::Bool: lua_pushinteger( lc->LuaState(), *reinterpret_cast< bool* >( arg ) );
 		                 break;
+    case QMetaType::Char: lua_pushnumber( lc->LuaState(), *reinterpret_cast< char* >( arg ) );
+		                  break;
+    case QMetaType::UChar: lua_pushnumber( lc->LuaState(), *reinterpret_cast< unsigned char* >( arg ) );
+		                   break;
 	case QMetaType::UInt: lua_pushnumber( lc->LuaState(), *reinterpret_cast< unsigned* >( arg ) );
 		                 break;
     case QMetaType::Int: lua_pushinteger( lc->LuaState(), *reinterpret_cast< int* >( arg ) );
