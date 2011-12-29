@@ -11,9 +11,9 @@ int main() {
 		//only add a single method to the Lua table
         ctx.AddQObject( &myobj, "myobj", QStringList() << "emitSignal" );
 	    ctx.Eval( "qtconnect( myobj, 'aSignal()', function() print( 'Lua callback called!' ); end )" );
+		ctx.Eval( "print( 'object name: ' .. myobj.objectName )" );
 		//both the following lines work
 		//ctx.Eval( "qtconnect( myobj, 'aSignal()', myobj.qobject__, 'aSlot()' )" );
-		ctx.Eval( "print( 'object name: ' .. myobj.objectName )" );
 		ctx.Eval( "qtconnect( myobj, 'aSignal()', myobj, 'aSlot()' )" );
         ctx.Eval( "myobj.emitSignal()" );
 	} catch( const std::exception& e ) {
