@@ -1,3 +1,8 @@
+#include <QMetaObject>
+#include <QSet>
+#include <QMetaType>
+#include <QMetaProperty>
+
 #include "LuaContext.h"
 
 namespace qlua {
@@ -15,6 +20,7 @@ void LuaContext::AddQObject( QObject* obj,
 		mt.insert( t );
 	}
     lua_newtable( L_ );
+	//methods
 	const QMetaObject* mo = obj->metaObject();
 	for( int i = 0; i != mo->methodCount(); ++i ) {
 		QMetaMethod mm = mo->method( i );
@@ -39,7 +45,13 @@ void LuaContext::AddQObject( QObject* obj,
 	lua_pushstring( L_, "qobject__" );
 	lua_pushlightuserdata( L_, obj );
     lua_rawset( L_, -3 );
-
+	//properties
+	for( int i = 0; i != mo->propertyCount(); ++i ) {
+		QMetaProperty mp = mo->property( i );
+		lua_pushstring( L_, mp.name() );
+		VariantToLuaValue( mp.read( obj ), L_ );
+		lua_rawset( L_, -3 );
+	}
 	if( tableName ) lua_setglobal( L_, tableName );
 }
 

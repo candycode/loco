@@ -116,29 +116,42 @@ QStringList ParseLuaTableAsStringList( lua_State* L, int stackTableIndex, bool r
 	return l;
 }
 
+void VariantMapToLuaTable( const QVariantMap&, lua_State* );
+void VariantListToLuaTable( const QVariantList&, lua_State* );
+
+inline
+void VariantToLuaValue( const QVariant& v, lua_State* L ) {
+
+	switch( v.type() ) {
+		case QVariant::Map: VariantMapToLuaTable( v.toMap(), L );
+		                    break;
+        case QVariant::List: VariantListToLuaTable( v.toList(), L );
+			                 break;
+		case QVariant::String: lua_pushstring( L, v.toString().toAscii().constData() );
+			                   break; 
+		case QVariant::Int: lua_pushinteger( L, v.toInt() );
+                            break;
+        case QVariant::UInt: lua_pushnumber( L, v.toUInt() );
+                             break;
+        case QVariant::LongLong: lua_pushnumber( L, v.toLongLong() );
+                                 break;
+        case QVariant::ULongLong: lua_pushnumber( L, v.toULongLong() );
+                                  break;
+		case QVariant::Bool: lua_pushboolean( L, v.toBool() );
+                             break;
+        case QVariant::Double: lua_pushnumber( L, v.toDouble() );
+                               break;
+		default: break;
+	}
+}
+
 //------------------------------------------------------------------------------
 inline
 void VariantMapToLuaTable( const QVariantMap& vm, lua_State* L ) {
     lua_newtable( L ); 
 	for( QVariantMap::const_iterator i = vm.begin(); i != vm.end(); ++i ) {
 		lua_pushstring( L, i.key().toAscii().constData() );
-		switch( i.value().type() ) {
-			case QVariant::Map: VariantMapToLuaTable( i.value().toMap(), L );
-			                    break;
-			case QVariant::String: lua_pushstring( L, i.value().toString().toAscii().constData() );
-				                   break; 
-			case QVariant::Int: lua_pushinteger( L, i.value().toInt() );
-	                            break;
-            case QVariant::UInt: lua_pushnumber( L, i.value().toUInt() );
-	                             break;
-            case QVariant::LongLong: lua_pushnumber( L, i.value().toLongLong() );
-	                                 break;
-            case QVariant::ULongLong: lua_pushnumber( L, i.value().toULongLong() );
-	                                  break;
-			case QVariant::Bool: lua_pushboolean( L, i.value().toBool() );
-	                             break;
-			default: break;
-		}
+		VariantToLuaValue( i.value(), L );
 		lua_rawset( L, -3 );
 	}
 }
@@ -149,27 +162,7 @@ void VariantListToLuaTable( const QVariantList& vl, lua_State* L ) {
 	int i = 1;
 	for( QVariantList::const_iterator v = vl.begin(); v != vl.end(); ++v, ++i ) {
 		lua_pushinteger( L, i );
-		switch( v->type() ) {
-			case QVariant::Map: VariantMapToLuaTable( v->toMap(), L );
-			                    break;
-            case QVariant::List: VariantListToLuaTable( v->toList(), L );
-			                    break;
-			case QVariant::String: lua_pushstring( L, v->toString().toAscii().constData() );
-				                   break; 
-			case QVariant::Int: lua_pushinteger( L, v->toInt() );
-	                            break;
-            case QVariant::UInt: lua_pushnumber( L, v->toUInt() );
-	                             break;
-            case QVariant::LongLong: lua_pushnumber( L, v->toLongLong() );
-	                                 break;
-            case QVariant::ULongLong: lua_pushnumber( L, v->toULongLong() );
-	                                  break;
-			case QVariant::Bool: lua_pushboolean( L, v->toBool() );
-	                             break;
-			case QVariant::Double: lua_pushnumber( L, v->toDouble() );
-	                             break;
-			default: break;
-		}
+		VariantToLuaValue( *v, L );
 		lua_rawset( L, -3 );
 	}
 }

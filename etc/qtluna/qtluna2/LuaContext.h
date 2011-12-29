@@ -8,13 +8,10 @@ extern "C" {
 #include <stdexcept>
 #include <string>
 
+#include <QMetaMethod>
 #include <QString>
 #include <QMap>
 #include <QList>
-#include <QMetaObject>
-#include <QMetaMethod>
-#include <QSet>
-#include <QMetaType>
 #include <QStringList>
 
 #include "DynamicLuaQObject.h"
