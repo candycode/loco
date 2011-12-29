@@ -19,6 +19,7 @@ typedef QList< QMetaType::Type > ParameterTypes;
 
 void PushLuaValue( LuaContext* lc, QMetaType::Type type, void* arg );
 
+//------------------------------------------------------------------------------
 class LuaCBackSlot {
 public:
 	LuaCBackSlot( LuaContext* lc, const ParameterTypes& p, int luaCBackRef ) 
@@ -30,6 +31,7 @@ private:
 	int luaCBackRef_;
 };
 
+//------------------------------------------------------------------------------
 struct SlotInfo {
     int luaCBackRef;
 	ParameterTypes paramTypes;
@@ -37,28 +39,29 @@ struct SlotInfo {
 	SlotInfo( int lref, const ParameterTypes& p ) : luaCBackRef( lref ), paramTypes( p ) {}
 };
 typedef QHash< QString, SlotInfo > SlotInfoMap;
-class DynamicLuaQObject: public QObject
-{
+
+//------------------------------------------------------------------------------
+class LuaCallbackDispatcher : public QObject {
 public:
-	DynamicLuaQObject( QObject* parent = 0 ) : QObject( parent ), lc_( 0 ) {}
-	DynamicLuaQObject( LuaContext* lc ) : lc_( lc ) {}
+	LuaCallbackDispatcher( QObject* parent = 0 ) : QObject( parent ), lc_( 0 ) {}
+	LuaCallbackDispatcher( LuaContext* lc ) : lc_( lc ) {}
 	int qt_metacall( QMetaObject::Call c, int id, void **arguments ); 
     bool Connect( QObject *obj, const char *signal, const char *slot );
 	void SetLuaContext( LuaContext* lc ) { lc_ = lc; };
 	void RegisterSlot( const QString& slot, const ParameterTypes& paramTypes, int luaCBackRef ) {
-	    luaRefMap_[ slot ] = SlotInfo( luaCBackRef, paramTypes );
+	    luaRefMap_[ QMetaObject::normalizedSignature( slot.toAscii().constData() ) ] = SlotInfo( luaCBackRef, paramTypes );
 	}
-	LuaCBackSlot* CreateLuaCBackSlot( const char *slot );
-	virtual ~DynamicLuaQObject() {
-		for( QList< LuaCBackSlot* >::iterator i = slotList.begin();
-			 i != slotList.end(); ++i ) {
+	virtual ~LuaCallbackDispatcher() {
+		for( QList< LuaCBackSlot* >::iterator i = luaCBackSlots_.begin();
+			 i != luaCBackSlots_.end(); ++i ) {
             delete *i;
 		}
 	}
 private:
 	LuaContext* lc_;
 	SlotInfoMap luaRefMap_;
-	QHash< QByteArray, int > slotIndices;
-    QList< LuaCBackSlot* > slotList;
+	QList< LuaCBackSlot* > luaCBackSlots_;
+	QHash< QByteArray, int > slotIndexMap_;
+   
 };
 }

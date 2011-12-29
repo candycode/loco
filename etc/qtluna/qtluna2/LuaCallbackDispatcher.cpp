@@ -1,5 +1,5 @@
 #include "LuaContext.h"
-#include "DynamicLuaQObject.h"
+#include "LuaCallbackDispatcher.h"
 
 namespace qlua {
 
@@ -32,38 +32,40 @@ void PushLuaValue( LuaContext* lc, QMetaType::Type type, void* arg ) {
 	default: throw std::logic_error( "Type not supported" );
 	}
 }
+//Reference: http://doc.qt.nokia.com/qq/qq16-dynamicqobject.html
+bool LuaCallbackDispatcher::Connect( QObject *obj, const char *signalSig, const char *slotSig ) {
+    const QByteArray signal = QMetaObject::normalizedSignature( signalSig );
+    const QByteArray slot = QMetaObject::normalizedSignature( slotSig );
+	if ( !QMetaObject::checkConnectArgs( signal, slot ) ) {
+		lua_pushstring( lc_->LuaState(), "signal/slot signature mismatch" );
+	    lua_error( lc_->LuaState() );
+		return false;
+	}
 
+    const int signalIdx = obj->metaObject()->indexOfSignal( signal );
+	if( signalIdx < 0 ) {
+		lua_pushstring( lc_->LuaState(), ( "signal " + QString( signal ) + " not found" ).toAscii().constData() );
+	    lua_error( lc_->LuaState() );
+		return false;
+	}
 
-bool DynamicLuaQObject::Connect( QObject *obj, const char *signal, const char *slot ) {
-    QByteArray theSignal = QMetaObject::normalizedSignature(signal);
-    QByteArray theSlot = QMetaObject::normalizedSignature(slot);
-    if ( !QMetaObject::checkConnectArgs(theSignal, theSlot) ) 
-        return false;
-
-    int signalId = obj->metaObject()->indexOfSignal(theSignal);
-    if (signalId < 0) 
-        return false;
-
-    int slotId = slotIndices.value(theSlot, -1);
-    if (slotId < 0) {
-        slotId = slotList.size();
-        slotIndices[theSlot] = slotId;
-        slotList.append(CreateLuaCBackSlot(theSlot.data()));
+    int slotIdx = slotIndexMap_.value( slot, -1 );
+    if( slotIdx < 0 ) {
+        slotIdx = luaCBackSlots_.size();
+        slotIndexMap_[ slot ] = slotIdx;
+        luaCBackSlots_.push_back(
+			new LuaCBackSlot( lc_, luaRefMap_[ slot ].paramTypes, luaRefMap_[ slot ].luaCBackRef ) );
     }
-    return QMetaObject::connect(obj, signalId, this, slotId + metaObject()->methodCount());
+    return QMetaObject::connect( obj, signalIdx, this, slotIdx + metaObject()->methodCount() );
 }
 
-int DynamicLuaQObject::qt_metacall(QMetaObject::Call c, int id, void **arguments) {
+int LuaCallbackDispatcher::qt_metacall(QMetaObject::Call c, int id, void **arguments) {
     id = QObject::qt_metacall(c, id, arguments);
     if (id < 0 || c != QMetaObject::InvokeMetaMethod) 
         return id;
-    Q_ASSERT(id < slotList.size());
-    slotList[id]->Invoke( arguments );
+    Q_ASSERT(id < luaCBackSlots_.size());
+    luaCBackSlots_[id]->Invoke( arguments );
     return -1;
-}
-
-LuaCBackSlot* DynamicLuaQObject::CreateLuaCBackSlot( const char *slot ) {
-    return new LuaCBackSlot( lc_, luaRefMap_[ slot ].paramTypes, luaRefMap_[ slot ].luaCBackRef );
 }
 
 void LuaCBackSlot::Invoke( void **arguments ) {

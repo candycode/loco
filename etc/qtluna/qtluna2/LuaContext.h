@@ -14,7 +14,7 @@ extern "C" {
 #include <QList>
 #include <QStringList>
 
-#include "DynamicLuaQObject.h"
+#include "LuaCallbackDispatcher.h"
 
 #include "Arguments.h"
 
@@ -91,7 +91,7 @@ private:
 private:
     lua_State* L_;	
 	MethodMap methods_;
-	DynamicLuaQObject dispatcher_; //signal->dispatcher_->Lua callback
+	LuaCallbackDispatcher dispatcher_; //signal->dispatcher_->Lua callback
 };
 
 template < typename T >
