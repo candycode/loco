@@ -86,6 +86,40 @@ struct VariantListArgConstructor : IArgConstructor {
 	}
 	mutable QVariantList vl_;
 };
+struct ObjectStarArgConstructor : IArgConstructor {
+	QGenericArgument Create( lua_State* L, int idx ) const {
+		if( lua_istable( L, idx ) ) {
+			lua_pushstring( L, "qobject__" );
+			lua_gettable( L, idx );
+			obj_ = reinterpret_cast< QObject* >( lua_touserdata( L, -1 ) );
+			lua_pop( L, 1 );
+		} else if( lua_islightuserdata( L, idx ) ) {
+		    obj_ = reinterpret_cast< QObject* >( lua_touserdata( L, -1 ) );
+		}
+	    return Q_ARG( QObject*, obj_ );
+ 	}
+	ObjectStarArgConstructor* Clone() const {
+	    return new ObjectStarArgConstructor( *this );
+	}
+	mutable QObject* obj_;
+};
+struct WidgetStarArgConstructor : IArgConstructor {
+	QGenericArgument Create( lua_State* L, int idx ) const {
+		if( lua_istable( L, idx ) ) {
+			lua_pushstring( L, "qobject__" );
+			lua_gettable( L, idx );
+			w_ = reinterpret_cast< QWidget* >( lua_touserdata( L, -1 ) );
+			lua_pop( L, 1 );
+		} else if( lua_islightuserdata( L, idx ) ) {
+		    w_ = reinterpret_cast< QWidget* >( lua_touserdata( L, -1 ) );
+		}
+	    return Q_ARG( QWidget*, w_ );
+ 	}
+	WidgetStarArgConstructor* Clone() const {
+	    return new WidgetStarArgConstructor( *this );
+	}
+	mutable QWidget* w_;
+};
 //template < typename T >
 //struct ListArgConstructor : IArgConstructor {
 //	QGenericArgument Create( lua_State* L, int idx ) const {
@@ -246,6 +280,24 @@ public:
 private:
 	QObject* obj_;
 };
+class WidgetStarReturnConstructor : public ReturnConstructor {
+public:
+	WidgetStarReturnConstructor() {
+	    SetArg( w_ );   
+	}
+	WidgetStarReturnConstructor( const WidgetStarReturnConstructor& other ) : w_( other.w_ ) {
+	    SetArg( w_ );
+	}
+	void Push( lua_State* L ) const {
+		lua_pushlightuserdata( L, w_ );
+	}
+	WidgetStarReturnConstructor* Clone() const {
+	    return new WidgetStarReturnConstructor( *this );
+	}
+	QMetaType::Type Type() const { return QMetaType::QWidgetStar; }
+private:
+	QWidget* w_;
+};
 //Need to specialize list and use Q_DECLARE_METATYPE()/qRegisterMetaType
 //template < typename T >
 //class ListReturnConstructor : public ReturnConstructor {
@@ -279,10 +331,16 @@ public:
 			ac_ = new IntArgConstructor;
 		} else if( type == QMetaType::typeName( QMetaType::Double ) ) {
 			ac_ = new DoubleArgConstructor;
+		} else if( type == QMetaType::typeName( QMetaType::Float ) ) {
+			ac_ = new FloatArgConstructor;
 		} else if( type == QMetaType::typeName( QMetaType::QString ) ) {
 			ac_ = new StringArgConstructor;
 		} else if( type == QMetaType::typeName( QMetaType::QVariantMap ) ) {
 			ac_ = new VariantMapArgConstructor;
+		} else if( type == QMetaType::typeName( QMetaType::QVariantList ) ) {
+			ac_ = new VariantListArgConstructor;
+		} else if( type == QMetaType::typeName( QMetaType::QVariantList ) ) {
+			ac_ = new ObjectStarArgConstructor;
 		} 
 	}
     QGenericArgument Arg( lua_State* L, int idx ) const {
@@ -300,14 +358,18 @@ public:
 		if( other.rc_ ) rc_ = other.rc_->Clone();
 	}
 	ReturnWrapper( const QString& type ) : rc_( 0 ), type_( type ) {
-		if( type_ == "int" ) {
+		if( type_ == QMetaType::typeName( QMetaType::Int ) ) {
 			rc_ = new IntReturnConstructor;
-		} else if( type_ == "double" ) {
+		} else if( type == QMetaType::typeName( QMetaType::Double ) ) {
 			rc_ = new DoubleReturnConstructor;
-		} else if( type_ == "QString" ) {
+		} else if( type == QMetaType::typeName( QMetaType::Float ) ) {
+			rc_ = new FloatReturnConstructor;
+		} else if( type_ == QMetaType::typeName( QMetaType::QString ) ) {
 			rc_ = new StringReturnConstructor;
-		} else if( type_ == "QVariantMap" ) {
+		} else if( type_ == QMetaType::typeName( QMetaType::QVariantMap ) ) {
 			rc_ = new VariantMapReturnConstructor;
+		} else if( type_ == QMetaType::typeName( QMetaType::QVariantList ) ) {
+			rc_ = new VariantListReturnConstructor;
 		} else if( type == QMetaType::typeName( QMetaType::QObjectStar ) ) {
 			rc_ = new ObjectStarReturnConstructor;
 		} else if( type_.isEmpty() ) rc_ = new VoidReturnConstructor;

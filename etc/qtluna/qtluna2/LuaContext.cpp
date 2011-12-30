@@ -221,7 +221,7 @@ int LuaContext::InvokeMethod( lua_State *L ) {
 //==============================================================================
 
 void HandleReturnValue( LuaContext& lc, QMetaType::Type type ) {
-	if( type == QMetaType::QObjectStar ) {
+	if( type == QMetaType::QObjectStar || type == QMetaType::QWidgetStar ) {
 		QObject* obj = reinterpret_cast< QObject* >( lua_touserdata( lc.LuaState(), -1 ) );
 		lua_pop( lc.LuaState(), 1 );
 		lc.AddQObject( obj );

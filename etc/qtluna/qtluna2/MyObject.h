@@ -21,9 +21,9 @@ public slots:
 	QObject* createObject() { 
 		MyObject* mo = new MyObject; 
 		mo->setObjectName( "New Object" );
-		return mo; //WARNING: NOT GARBAGE COLLECTED SINCE DEFAULT IS 'QOBJ_NO_DELETE'
+		return mo; //WARNING: NOT DESTROYED WHEN GARBAGE COLLECTED 
+		           //SINCE DEFAULT IS 'QOBJ_NO_DELETE'
 	}
-
 signals:
 	void aSignal();
 };
