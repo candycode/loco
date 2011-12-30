@@ -76,17 +76,17 @@ private:
 	static int QtConnect( lua_State* L );
 	static int DeleteObject( lua_State* L );
 	static int InvokeMethod( lua_State *L );
-	static int Invoke0( const Method* mi, lua_State* L );
-    static int Invoke1( const Method* mi, lua_State* L );
-	static int Invoke2( const Method* mi, lua_State* L );
-    static int Invoke3( const Method* mi, lua_State* L );
-	static int Invoke4( const Method* mi, lua_State* L );
-    static int Invoke5( const Method* mi, lua_State* L );
-	static int Invoke6( const Method* mi, lua_State* L );
-    static int Invoke7( const Method* mi, lua_State* L );
-	static int Invoke8( const Method* mi, lua_State* L );
-    static int Invoke9( const Method* mi, lua_State* L );
-	static int Invoke10( const Method* mi, lua_State* L );
+	static int Invoke0( const Method* mi, LuaContext& L );
+    static int Invoke1( const Method* mi, LuaContext& L );
+	static int Invoke2( const Method* mi, LuaContext& L );
+    static int Invoke3( const Method* mi, LuaContext& L );
+	static int Invoke4( const Method* mi, LuaContext& L );
+    static int Invoke5( const Method* mi, LuaContext& L );
+	static int Invoke6( const Method* mi, LuaContext& L );
+    static int Invoke7( const Method* mi, LuaContext& L );
+	static int Invoke8( const Method* mi, LuaContext& L );
+    static int Invoke9( const Method* mi, LuaContext& L );
+	static int Invoke10( const Method* mi, LuaContext& L );
     void ReportErrors( int status ) {
     	if( status != 0 ) {
     		std::string err = lua_tostring( L_, -1 );

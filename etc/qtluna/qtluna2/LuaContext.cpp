@@ -39,7 +39,8 @@ void LuaContext::AddQObject( QObject* obj,
 		if( objMethods_[ obj ][ name ].size() == 1 ) {
 			lua_pushstring( L_, name.toAscii().constData() );
 	        lua_pushlightuserdata( L_, &( objMethods_[ obj ][ name ] ) );
-	        lua_pushcclosure( L_, LuaContext::InvokeMethod, 1 );
+			lua_pushlightuserdata( L_, this );
+	        lua_pushcclosure( L_, LuaContext::InvokeMethod, 2 );
 	        lua_rawset( L_, -3 );
 	    }	                            
 	}
@@ -178,6 +179,7 @@ int LuaContext::QtConnect( lua_State* L ) {
 //------------------------------------------------------------------------------
 int LuaContext::InvokeMethod( lua_State *L ) {
 	const Methods& m = *( reinterpret_cast< Methods* >( lua_touserdata( L, lua_upvalueindex( 1 ) ) ) );
+	LuaContext& lc = *( reinterpret_cast< LuaContext* >( lua_touserdata( L, lua_upvalueindex( 2 ) ) ) );
     const int numArgs = lua_gettop( L );
 	int idx = -1;
 	const Method* mi = 0;
@@ -189,27 +191,27 @@ int LuaContext::InvokeMethod( lua_State *L ) {
 	}
 	if( !mi ) throw std::runtime_error( "Method not found" );
 	switch( numArgs ) {
-		case  0: return Invoke0( mi, L );
+		case  0: return Invoke0( mi, lc );
 		         break;
-		case  1: return Invoke1( mi, L );
+		case  1: return Invoke1( mi, lc );
 		         break;
-		case  2: return Invoke2( mi, L );
+		case  2: return Invoke2( mi, lc );
 		        break;
-		case  3: return Invoke3( mi, L );
+		case  3: return Invoke3( mi, lc );
 		        break;
-		case  4: return Invoke4( mi, L );
+		case  4: return Invoke4( mi, lc );
 		         break;
-		case  5: return Invoke5( mi, L );
+		case  5: return Invoke5( mi, lc );
 		         break;
-		case  6: return Invoke6( mi, L );
+		case  6: return Invoke6( mi, lc );
 		         break;
-        case  7: return Invoke7( mi, L );
+        case  7: return Invoke7( mi, lc );
 			     break;
-        case  8: return Invoke8( mi, L );
+        case  8: return Invoke8( mi, lc );
 			     break;
-        case  9: return Invoke8( mi, L );
+        case  9: return Invoke8( mi, lc );
 			     break;
-        case 10: return Invoke10( mi, L );
+        case 10: return Invoke10( mi, lc );
 			     break;
 		default: break;                                                         
 	}
@@ -217,8 +219,18 @@ int LuaContext::InvokeMethod( lua_State *L ) {
 }
 
 //==============================================================================
-int LuaContext::Invoke0( const Method* mi, lua_State* L ) {
+
+void HandleReturnValue( LuaContext& lc, QMetaType::Type type ) {
+	if( type == QMetaType::QObjectStar ) {
+		QObject* obj = reinterpret_cast< QObject* >( lua_touserdata( lc.LuaState(), -1 ) );
+		lua_pop( lc.LuaState(), 1 );
+		lc.AddQObject( obj );
+	}
+}
+
+int LuaContext::Invoke0( const Method* mi, LuaContext& lc ) {
 	bool ok = false;
+	lua_State* L = lc.LuaState();
 	if( mi->returnWrapper_.Type().isEmpty() ) {
 		ok = mi->metaMethod_.invoke( mi->obj_, Qt::DirectConnection );
 	    if( ok ) return 0;
@@ -227,6 +239,7 @@ int LuaContext::Invoke0( const Method* mi, lua_State* L ) {
     		                         mi->returnWrapper_.Arg() ); //passes the location (void*) where return data will be stored
 		if( ok ) {
 			mi->returnWrapper_.Push( L );
+			HandleReturnValue( lc, mi->returnWrapper_.MetaType() );
 		    return 1;
 		}
 	}
@@ -234,8 +247,9 @@ int LuaContext::Invoke0( const Method* mi, lua_State* L ) {
 	lua_error( L );
 	return 0;
 }
-int LuaContext::Invoke1( const Method* mi, lua_State* L ) {
+int LuaContext::Invoke1( const Method* mi, LuaContext& lc ) {
 	bool ok = false;
+	lua_State* L = lc.LuaState();
 	if( mi->returnWrapper_.Type().isEmpty() ) {
 		ok = mi->metaMethod_.invoke( mi->obj_, Qt::DirectConnection,
           			                 mi->paramWrappers_[ 0 ].Arg( L, 1 ) );
@@ -246,6 +260,7 @@ int LuaContext::Invoke1( const Method* mi, lua_State* L ) {
           			                 mi->paramWrappers_[ 0 ].Arg( L, 1 ) );
 		if( ok ) {
 			mi->returnWrapper_.Push( L );
+			HandleReturnValue( lc, mi->returnWrapper_.MetaType() );
 		    return 1;
 		}
 	}
@@ -253,8 +268,9 @@ int LuaContext::Invoke1( const Method* mi, lua_State* L ) {
 	lua_error( L );
 	return 0;
 }
-int LuaContext::Invoke2( const Method* mi, lua_State* L ) {
+int LuaContext::Invoke2( const Method* mi, LuaContext& lc ) {
 	bool ok = false;
+	lua_State* L = lc.LuaState();
 	if( mi->returnWrapper_.Type().isEmpty() ) {
 		ok = mi->metaMethod_.invoke( mi->obj_, Qt::DirectConnection,
           			                 mi->paramWrappers_[ 0 ].Arg( L, 1 ),
@@ -267,6 +283,7 @@ int LuaContext::Invoke2( const Method* mi, lua_State* L ) {
 									 mi->paramWrappers_[ 1 ].Arg( L, 2 ) );
 		if( ok ) {
 			mi->returnWrapper_.Push( L );
+			HandleReturnValue( lc, mi->returnWrapper_.MetaType() );
 		    return 1;
 		}
 	}
@@ -274,8 +291,9 @@ int LuaContext::Invoke2( const Method* mi, lua_State* L ) {
 	lua_error( L );
 	return 0;
 }
-int LuaContext::Invoke3( const Method* mi, lua_State* L ) {
+int LuaContext::Invoke3( const Method* mi, LuaContext& lc ) {
 	bool ok = false;
+	lua_State* L = lc.LuaState();
 	if( mi->returnWrapper_.Type().isEmpty() ) {
 		ok = mi->metaMethod_.invoke( mi->obj_, Qt::DirectConnection,
           			                 mi->paramWrappers_[ 0 ].Arg( L, 1 ),
@@ -290,6 +308,7 @@ int LuaContext::Invoke3( const Method* mi, lua_State* L ) {
 									 mi->paramWrappers_[ 2 ].Arg( L, 3 ) );
 		if( ok ) {
 			mi->returnWrapper_.Push( L );
+			HandleReturnValue( lc, mi->returnWrapper_.MetaType() );
 		    return 1;
 		}
 	}
@@ -297,8 +316,9 @@ int LuaContext::Invoke3( const Method* mi, lua_State* L ) {
 	lua_error( L );
 	return 0;
 }
-int LuaContext::Invoke4( const Method* mi, lua_State* L ) {
+int LuaContext::Invoke4( const Method* mi, LuaContext& lc ) {
 	bool ok = false;
+	lua_State* L = lc.LuaState();
 	if( mi->returnWrapper_.Type().isEmpty() ) {
 		ok = mi->metaMethod_.invoke( mi->obj_, Qt::DirectConnection,
           			                 mi->paramWrappers_[ 0 ].Arg( L, 1 ),
@@ -315,6 +335,7 @@ int LuaContext::Invoke4( const Method* mi, lua_State* L ) {
 									 mi->paramWrappers_[ 3 ].Arg( L, 4 ) );
 		if( ok ) {
 			mi->returnWrapper_.Push( L );
+			HandleReturnValue( lc, mi->returnWrapper_.MetaType() );
 		    return 1;
 		}
 	}
@@ -322,8 +343,9 @@ int LuaContext::Invoke4( const Method* mi, lua_State* L ) {
 	lua_error( L );
 	return 0;
 }
-int LuaContext::Invoke5( const Method* mi, lua_State* L ) {
+int LuaContext::Invoke5( const Method* mi, LuaContext& lc ) {
 	bool ok = false;
+	lua_State* L = lc.LuaState();
 	if( mi->returnWrapper_.Type().isEmpty() ) {
 		ok = mi->metaMethod_.invoke( mi->obj_, Qt::DirectConnection,
           			                 mi->paramWrappers_[ 0 ].Arg( L, 1 ),
@@ -342,6 +364,7 @@ int LuaContext::Invoke5( const Method* mi, lua_State* L ) {
 									 mi->paramWrappers_[ 4 ].Arg( L, 5 ) );
 		if( ok ) {
 			mi->returnWrapper_.Push( L );
+			HandleReturnValue( lc, mi->returnWrapper_.MetaType() );
 		    return 1;
 		}
 	}
@@ -349,8 +372,9 @@ int LuaContext::Invoke5( const Method* mi, lua_State* L ) {
 	lua_error( L );
 	return 0;
 }
-int LuaContext::Invoke6( const Method* mi, lua_State* L ) {
+int LuaContext::Invoke6( const Method* mi, LuaContext& lc ) {
 	bool ok = false;
+	lua_State* L = lc.LuaState();
 	if( mi->returnWrapper_.Type().isEmpty() ) {
 		ok = mi->metaMethod_.invoke( mi->obj_, Qt::DirectConnection,
           			                 mi->paramWrappers_[ 0 ].Arg( L, 1 ),
@@ -371,6 +395,7 @@ int LuaContext::Invoke6( const Method* mi, lua_State* L ) {
 									 mi->paramWrappers_[ 5 ].Arg( L, 6 ) );
 		if( ok ) {
 			mi->returnWrapper_.Push( L );
+			HandleReturnValue( lc, mi->returnWrapper_.MetaType() );
 		    return 1;
 		}
 	}
@@ -378,8 +403,9 @@ int LuaContext::Invoke6( const Method* mi, lua_State* L ) {
 	lua_error( L );
 	return 0;
 }
-int LuaContext::Invoke7( const Method* mi, lua_State* L ) {
+int LuaContext::Invoke7( const Method* mi, LuaContext& lc ) {
 	bool ok = false;
+	lua_State* L = lc.LuaState();
 	if( mi->returnWrapper_.Type().isEmpty() ) {
 		ok = mi->metaMethod_.invoke( mi->obj_, Qt::DirectConnection,
           			                 mi->paramWrappers_[ 0 ].Arg( L, 1 ),
@@ -402,6 +428,7 @@ int LuaContext::Invoke7( const Method* mi, lua_State* L ) {
 									 mi->paramWrappers_[ 6 ].Arg( L, 7 ) );
 		if( ok ) {
 			mi->returnWrapper_.Push( L );
+			HandleReturnValue( lc, mi->returnWrapper_.MetaType() );
 		    return 1;
 		}
 	}
@@ -409,8 +436,9 @@ int LuaContext::Invoke7( const Method* mi, lua_State* L ) {
 	lua_error( L );
 	return 0;
 }
-int LuaContext::Invoke8( const Method* mi, lua_State* L ) {
+int LuaContext::Invoke8( const Method* mi, LuaContext& lc ) {
 	bool ok = false;
+	lua_State* L = lc.LuaState();
 	if( mi->returnWrapper_.Type().isEmpty() ) {
 		ok = mi->metaMethod_.invoke( mi->obj_, Qt::DirectConnection,
           			                 mi->paramWrappers_[ 0 ].Arg( L, 1 ),
@@ -435,6 +463,7 @@ int LuaContext::Invoke8( const Method* mi, lua_State* L ) {
 									 mi->paramWrappers_[ 7 ].Arg( L, 8 ) );
 		if( ok ) {
 			mi->returnWrapper_.Push( L );
+			HandleReturnValue( lc, mi->returnWrapper_.MetaType() );
 		    return 1;
 		}
 	}
@@ -442,8 +471,9 @@ int LuaContext::Invoke8( const Method* mi, lua_State* L ) {
 	lua_error( L );
 	return 0;
 }
-int LuaContext::Invoke9( const Method* mi, lua_State* L ) {
+int LuaContext::Invoke9( const Method* mi, LuaContext& lc ) {
 	bool ok = false;
+	lua_State* L = lc.LuaState();
 	if( mi->returnWrapper_.Type().isEmpty() ) {
 		ok = mi->metaMethod_.invoke( mi->obj_, Qt::DirectConnection,
           			                 mi->paramWrappers_[ 0 ].Arg( L, 1 ),
@@ -470,6 +500,7 @@ int LuaContext::Invoke9( const Method* mi, lua_State* L ) {
 									 mi->paramWrappers_[ 8 ].Arg( L, 9 ) );
 		if( ok ) {
 			mi->returnWrapper_.Push( L );
+			HandleReturnValue( lc, mi->returnWrapper_.MetaType() );
 		    return 1;
 		}
 	}
@@ -477,8 +508,9 @@ int LuaContext::Invoke9( const Method* mi, lua_State* L ) {
 	lua_error( L );
 	return 0;
 }
-int LuaContext::Invoke10( const Method* mi, lua_State* L ) {
+int LuaContext::Invoke10( const Method* mi, LuaContext& lc ) {
 	bool ok = false;
+	lua_State* L = lc.LuaState();
 	if( mi->returnWrapper_.Type().isEmpty() ) {
 		ok = mi->metaMethod_.invoke( mi->obj_, Qt::DirectConnection,
           			                 mi->paramWrappers_[ 0 ].Arg( L,  1 ),
@@ -507,6 +539,7 @@ int LuaContext::Invoke10( const Method* mi, lua_State* L ) {
 									 mi->paramWrappers_[ 9 ].Arg( L, 10 ) );
 		if( ok ) {
 			mi->returnWrapper_.Push( L );
+			HandleReturnValue( lc, mi->returnWrapper_.MetaType() );
 		    return 1;
 		}
 	}

@@ -99,15 +99,26 @@ struct VariantListArgConstructor : IArgConstructor {
 //};
 
 //------------------------------------------------------------------------------
-struct IReturnConstructor {
+class ReturnConstructor {
+public:
     virtual void Push( lua_State* ) const = 0;
-	virtual ~IReturnConstructor() {}
-	virtual IReturnConstructor* Clone() const = 0;
+	virtual ~ReturnConstructor() {}
+	virtual ReturnConstructor* Clone() const = 0;
+	virtual QMetaType::Type Type() const = 0;
+	QGenericReturnArgument Argument() const { return ga_; }
+	template < typename T > void SetArg( T& arg ) {
+		ga_ = QReturnArgument< T >( QMetaType::typeName( Type() ), arg );
+	}
+protected:
 	QGenericReturnArgument ga_; 
 };
-struct IntReturnConstructor : IReturnConstructor {
+class IntReturnConstructor : public ReturnConstructor {
+public:
 	IntReturnConstructor() {
-	    ga_ = Q_RETURN_ARG( int, i_ );
+	    SetArg( i_ );
+	}
+	IntReturnConstructor( const IntReturnConstructor& other ) : i_( other.i_ ) {
+	    SetArg( i_ );
 	}
 	void Push( lua_State* L ) const {
 		lua_pushinteger( L, i_ );
@@ -115,11 +126,17 @@ struct IntReturnConstructor : IReturnConstructor {
 	IntReturnConstructor* Clone() const {
 	    return new IntReturnConstructor( *this );
 	}
+	QMetaType::Type Type() const { return QMetaType::Int; }
+private:
 	int i_;	
 };
-struct DoubleReturnConstructor : IReturnConstructor {
+class DoubleReturnConstructor : public ReturnConstructor {
+public:
 	DoubleReturnConstructor() {
-	   ga_ = Q_RETURN_ARG( double, d_ ); 
+	   SetArg( d_ ); 
+	}
+	DoubleReturnConstructor( const DoubleReturnConstructor& other ) : d_( other.d_ ) {
+	   SetArg( d_ );
 	}
 	void Push( lua_State* L ) const {
 	    lua_pushnumber( L, d_ );
@@ -127,11 +144,17 @@ struct DoubleReturnConstructor : IReturnConstructor {
 	DoubleReturnConstructor* Clone() const {
 	    return new DoubleReturnConstructor( *this );
 	}
+	QMetaType::Type Type() const { return QMetaType::Double; }
+private:
 	double d_;
 };
-struct FloatReturnConstructor : IReturnConstructor {
+class FloatReturnConstructor : public ReturnConstructor {
+public:
 	FloatReturnConstructor() {
-	   ga_ = Q_RETURN_ARG( float, f_ ); 
+	   SetArg( f_ ); 
+	}
+	FloatReturnConstructor( const FloatReturnConstructor& other ) : f_( other.f_ ) {
+	   SetArg( f_ );
 	}
 	void Push( lua_State* L ) const {
 	    lua_pushnumber( L, f_ );
@@ -139,11 +162,17 @@ struct FloatReturnConstructor : IReturnConstructor {
 	FloatReturnConstructor* Clone() const {
 	    return new FloatReturnConstructor( *this );
 	}
+	QMetaType::Type Type() const { return QMetaType::Float; }
+private:
 	float f_;
 };
-struct StringReturnConstructor : IReturnConstructor {
+class StringReturnConstructor : public ReturnConstructor {
+public:
 	StringReturnConstructor() {
-	    ga_ = Q_RETURN_ARG( QString, s_ );   
+		SetArg( s_ );
+	}
+	StringReturnConstructor( const StringReturnConstructor& other ) : s_( other.s_ ) {
+		SetArg( s_ );
 	}
 	void Push( lua_State* L ) const {
 		lua_pushstring( L, s_.toAscii().constData() );
@@ -151,17 +180,25 @@ struct StringReturnConstructor : IReturnConstructor {
 	StringReturnConstructor* Clone() const {
 	    return new StringReturnConstructor( *this );
 	}
+	QMetaType::Type Type() const { return QMetaType::QString; }
+private:
 	QString s_;
 };
-struct VoidReturnConstructor : IReturnConstructor {
+class VoidReturnConstructor : public ReturnConstructor {
+public:
 	void Push( lua_State*  ) const {}
 	VoidReturnConstructor* Clone() const {
 	    return new VoidReturnConstructor( *this );
 	}
+	QMetaType::Type Type() const { return QMetaType::Void; }
 };
-struct VariantMapReturnConstructor : IReturnConstructor {
+class VariantMapReturnConstructor : public ReturnConstructor {
+public:
 	VariantMapReturnConstructor() {
-	    ga_ = Q_RETURN_ARG( QVariantMap, vm_ );   
+	    SetArg( vm_ );   
+	}
+	VariantMapReturnConstructor( const VariantMapReturnConstructor& other ) : vm_( other.vm_ ) {
+	    SetArg( vm_ );
 	}
 	void Push( lua_State* L ) const {
 		VariantMapToLuaTable( vm_, L );
@@ -169,11 +206,17 @@ struct VariantMapReturnConstructor : IReturnConstructor {
 	VariantMapReturnConstructor* Clone() const {
 	    return new VariantMapReturnConstructor( *this );
 	}
+	QMetaType::Type Type() const { return QMetaType::QVariantMap; }
+private:
 	QVariantMap vm_;
 };
-struct VariantListReturnConstructor : IReturnConstructor {
+class VariantListReturnConstructor : public ReturnConstructor {
+public:
 	VariantListReturnConstructor() {
-	    ga_ = Q_RETURN_ARG( QVariantList, vl_ );   
+	    SetArg( vl_ );   
+	}
+	VariantListReturnConstructor( const VariantListReturnConstructor& other ) : vl_( other.vl_ ) {
+	    SetArg( vl_ );
 	}
 	void Push( lua_State* L ) const {
 		VariantListToLuaTable( vl_, L );
@@ -181,12 +224,37 @@ struct VariantListReturnConstructor : IReturnConstructor {
 	VariantListReturnConstructor* Clone() const {
 	    return new VariantListReturnConstructor( *this );
 	}
+	QMetaType::Type Type() const { return QMetaType::QVariantList; }
+private:
 	QVariantList vl_;
 };
+class ObjectStarReturnConstructor : public ReturnConstructor {
+public:
+	ObjectStarReturnConstructor() {
+	    SetArg( obj_ );   
+	}
+	ObjectStarReturnConstructor( const ObjectStarReturnConstructor& other ) : obj_( other.obj_ ) {
+	    SetArg( obj_ );
+	}
+	void Push( lua_State* L ) const {
+		lua_pushlightuserdata( L, obj_ );
+	}
+	ObjectStarReturnConstructor* Clone() const {
+	    return new ObjectStarReturnConstructor( *this );
+	}
+	QMetaType::Type Type() const { return QMetaType::QObjectStar; }
+private:
+	QObject* obj_;
+};
+//Need to specialize list and use Q_DECLARE_METATYPE()/qRegisterMetaType
 //template < typename T >
-//struct ListReturnConstructor : IReturnConstructor {
+//class ListReturnConstructor : public ReturnConstructor {
+//public:
 //	ListReturnConstructor() {
 //	    ga_ = Q_RETURN_ARG( QList< T >, l_ );   
+//	}
+//	ListReturnConstructor( const VariantMapReturnConstructor& other ) : l_( other.l_ ) {
+//	    ga_ = Q_RETURN_ARG( QList< T >, l_ );
 //	}
 //	void Push( lua_State* L ) const {
 //		ListToLuaTable< T >( L, l_ );
@@ -194,7 +262,9 @@ struct VariantListReturnConstructor : IReturnConstructor {
 //	ListReturnConstructor* Clone() const {
 //	    return new ListReturnConstructor( *this );
 //	}
-//	QList< T > vl_;
+//	const char* Type() const { return QMetaType::typeName( ??? ); }
+//private:
+//	QList< T > l_;
 //};
 
 //------------------------------------------------------------------------------
@@ -211,10 +281,12 @@ public:
 			ac_ = new DoubleArgConstructor;
 		} else if( type == "QString" ) {
 			ac_ = new StringArgConstructor;
+		} else if( type == "QVariantMap" ) {
+			ac_ = new VariantMapArgConstructor;
 		}
 	}
     QGenericArgument Arg( lua_State* L, int idx ) const {
-    	return ac_->Create( L, idx );
+		return ac_ ? ac_->Create( L, idx ) : QGenericArgument();
     }
     ~ParameterWrapper() { delete ac_; }
 private:
@@ -224,7 +296,7 @@ private:
 class ReturnWrapper {
 public:
 	ReturnWrapper() : rc_( 0 ) {}
-	ReturnWrapper( const ReturnWrapper& other ) : rc_( 0 ) {
+	ReturnWrapper( const ReturnWrapper& other ) : rc_( 0 ), type_( other.type_ ) {
 		if( other.rc_ ) rc_ = other.rc_->Clone();
 	}
 	ReturnWrapper( const QString& type ) : rc_( 0 ), type_( type ) {
@@ -234,16 +306,21 @@ public:
 			rc_ = new DoubleReturnConstructor;
 		} else if( type_ == "QString" ) {
 			rc_ = new StringReturnConstructor;
+		} else if( type_ == "QVariantMap" ) {
+			rc_ = new VariantMapReturnConstructor;
 		} else if( type_.isEmpty() ) rc_ = new VoidReturnConstructor;
 	}
     void Push( lua_State* L ) const {
     	rc_->Push( L );
     }
-	QGenericReturnArgument Arg() const { return rc_->ga_; }
-	const QString& Type() const { return type_; }
+	QGenericReturnArgument Arg() const { return rc_->Argument(); }
+	const QString& Type() const { 
+		return type_;
+	}
+	QMetaType::Type MetaType() const { return rc_->Type(); }
     ~ReturnWrapper() { delete rc_; }
 private:
-    IReturnConstructor* rc_;
+    ReturnConstructor* rc_;
 	QString type_;
 };
 
