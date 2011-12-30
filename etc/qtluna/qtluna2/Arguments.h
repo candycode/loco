@@ -275,15 +275,15 @@ public:
 		if( other.ac_ ) ac_ = other.ac_->Clone();
 	}
 	ParameterWrapper( const QString& type ) : ac_( 0 ) {
-		if( type == "int" ) {
+		if( type == QMetaType::typeName( QMetaType::Int ) ) {
 			ac_ = new IntArgConstructor;
-		} else if( type == "double" ) {
+		} else if( type == QMetaType::typeName( QMetaType::Double ) ) {
 			ac_ = new DoubleArgConstructor;
-		} else if( type == "QString" ) {
+		} else if( type == QMetaType::typeName( QMetaType::QString ) ) {
 			ac_ = new StringArgConstructor;
-		} else if( type == "QVariantMap" ) {
+		} else if( type == QMetaType::typeName( QMetaType::QVariantMap ) ) {
 			ac_ = new VariantMapArgConstructor;
-		}
+		} 
 	}
     QGenericArgument Arg( lua_State* L, int idx ) const {
 		return ac_ ? ac_->Create( L, idx ) : QGenericArgument();
@@ -308,6 +308,8 @@ public:
 			rc_ = new StringReturnConstructor;
 		} else if( type_ == "QVariantMap" ) {
 			rc_ = new VariantMapReturnConstructor;
+		} else if( type == QMetaType::typeName( QMetaType::QObjectStar ) ) {
+			rc_ = new ObjectStarReturnConstructor;
 		} else if( type_.isEmpty() ) rc_ = new VoidReturnConstructor;
 	}
     void Push( lua_State* L ) const {

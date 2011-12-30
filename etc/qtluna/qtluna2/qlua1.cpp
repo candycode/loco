@@ -33,8 +33,8 @@ int main() {
 		ctx.AddQObject( &myobj3, "myobj3", qlua::LuaContext::QOBJ_NO_DELETE );
 		ctx.Eval( "print( myobj3.copyString( 'hi' ) );\n"
 		          "vm = myobj3.copyVariantMap( {key1=1,key2='hello'} );\n" 
-		          "print( vm['key1'] .. ' ' .. vm['key2'] );\n" );
-				  //"print( myobj3.createObject().objectName );" );
+		          "print( vm['key1'] .. ' ' .. vm['key2'] );\n"
+				  "print( myobj3.createObject().objectName );" );
 
 
 	} catch( const std::exception& e ) {
