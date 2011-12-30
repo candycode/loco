@@ -30,11 +30,12 @@ class LuaContext {
 	    obj_( obj ), metaMethod_( mm ), paramWrappers_( pw ), returnWrapper_( rw ) {}
     };
 public:
+	enum ObjectDeleteMode { QOBJ_NO_DELETE, QOBJ_IMMEDIATE_DELETE, QOBJ_DELETE_LATER };
 	typedef QList< Method > Methods;
-	typedef QMap< QString, Methods > MethodMap;
+	typedef QMap< QObject*, QMap< QString, Methods > > ObjectMethodMap;
 	LuaContext() {
 		L_ = luaL_newstate();
-		luaL_openlibs(L_);
+		luaL_openlibs( L_);
 		lua_pushlightuserdata( L_, this );
 		lua_pushcclosure( L_, &LuaContext::QtConnect , 1);
 		lua_setglobal( L_, "qtconnect" );
@@ -62,13 +63,18 @@ public:
 	}
 	void AddQObject( QObject* obj, 
 		             const char* tableName = 0, //not setting a global name allows to use this method to push a table on the stack
+					 ObjectDeleteMode deleteMode = QOBJ_NO_DELETE, //destroys QObject instance
 					 const QStringList& methodNames = QStringList(),
 					 const QList< QMetaMethod::MethodType >& methodTypes = QList< QMetaMethod::MethodType >()  );
 	~LuaContext() {
 		lua_close( L_ );
 	}
 private:
+	void RemoveObject( QObject* obj ) {
+	    objMethods_.remove( obj );
+	}
 	static int QtConnect( lua_State* L );
+	static int DeleteObject( lua_State* L );
 	static int InvokeMethod( lua_State *L );
 	static int Invoke0( const Method* mi, lua_State* L );
     static int Invoke1( const Method* mi, lua_State* L );
@@ -90,7 +96,7 @@ private:
     }
 private:
     lua_State* L_;	
-	MethodMap methods_;
+	ObjectMethodMap objMethods_;
 	LuaCallbackDispatcher dispatcher_; //signal->dispatcher_->Lua callback
 };
 

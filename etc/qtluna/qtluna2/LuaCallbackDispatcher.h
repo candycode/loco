@@ -1,8 +1,7 @@
 #pragma once
 
-#include <stdexcept>
-
-#include <QHash>
+#include <QMap>
+#include <QList>
 #include <QMetaType>
 
 extern "C" {
@@ -20,9 +19,9 @@ typedef QList< QMetaType::Type > ParameterTypes;
 void PushLuaValue( LuaContext* lc, QMetaType::Type type, void* arg );
 
 //------------------------------------------------------------------------------
-class LuaCBackSlot {
+class LuaCBackMethod {
 public:
-	LuaCBackSlot( LuaContext* lc, const ParameterTypes& p, int luaCBackRef ) 
+	LuaCBackMethod( LuaContext* lc, const ParameterTypes& p, int luaCBackRef ) 
 		: lc_( lc ), paramTypes_( p ), luaCBackRef_( luaCBackRef ) {}
 	void Invoke( void **arguments );
 private:
@@ -31,14 +30,9 @@ private:
 	int luaCBackRef_;
 };
 
-//------------------------------------------------------------------------------
-struct SlotInfo {
-    int luaCBackRef;
-	ParameterTypes paramTypes;
-	SlotInfo() : luaCBackRef( 0 ) {}
-	SlotInfo( int lref, const ParameterTypes& p ) : luaCBackRef( lref ), paramTypes( p ) {}
-};
-typedef QHash< QString, SlotInfo > SlotInfoMap;
+
+typedef int LuaCBackRef;
+typedef int MethodId;
 
 //------------------------------------------------------------------------------
 class LuaCallbackDispatcher : public QObject {
@@ -46,22 +40,21 @@ public:
 	LuaCallbackDispatcher( QObject* parent = 0 ) : QObject( parent ), lc_( 0 ) {}
 	LuaCallbackDispatcher( LuaContext* lc ) : lc_( lc ) {}
 	int qt_metacall( QMetaObject::Call c, int id, void **arguments ); 
-    bool Connect( QObject *obj, const char *signal, const char *slot );
+    bool Connect( QObject *obj, 
+		          int signalIdx,
+				  const QList< QMetaType::Type >& paramTypes,
+				  int luaCBackRef );
 	void SetLuaContext( LuaContext* lc ) { lc_ = lc; };
-	void RegisterSlot( const QString& slot, const ParameterTypes& paramTypes, int luaCBackRef ) {
-	    luaRefMap_[ QMetaObject::normalizedSignature( slot.toAscii().constData() ) ] = SlotInfo( luaCBackRef, paramTypes );
-	}
 	virtual ~LuaCallbackDispatcher() {
-		for( QList< LuaCBackSlot* >::iterator i = luaCBackSlots_.begin();
-			 i != luaCBackSlots_.end(); ++i ) {
+		for( QList< LuaCBackMethod* >::iterator i = luaCBackMethods_.begin();
+			 i != luaCBackMethods_.end(); ++i ) {
             delete *i;
 		}
 	}
 private:
 	LuaContext* lc_;
-	SlotInfoMap luaRefMap_;
-	QList< LuaCBackSlot* > luaCBackSlots_;
-	QHash< QByteArray, int > slotIndexMap_;
+	QList< LuaCBackMethod* > luaCBackMethods_;
+	QMap< LuaCBackRef, MethodId > cbackToMethodIndex_;
    
 };
 }

@@ -3,6 +3,7 @@
 
 namespace qlua {
 
+//------------------------------------------------------------------------------
 void PushLuaValue( LuaContext* lc, QMetaType::Type type, void* arg ) {
     switch( type ) {
     case QMetaType::Bool: lua_pushinteger( lc->LuaState(), *reinterpret_cast< bool* >( arg ) );
@@ -32,43 +33,29 @@ void PushLuaValue( LuaContext* lc, QMetaType::Type type, void* arg ) {
 	default: throw std::logic_error( "Type not supported" );
 	}
 }
-//Reference: http://doc.qt.nokia.com/qq/qq16-dynamicqobject.html
-bool LuaCallbackDispatcher::Connect( QObject *obj, const char *signalSig, const char *slotSig ) {
-    const QByteArray signal = QMetaObject::normalizedSignature( signalSig );
-    const QByteArray slot = QMetaObject::normalizedSignature( slotSig );
-	if ( !QMetaObject::checkConnectArgs( signal, slot ) ) {
-		lua_pushstring( lc_->LuaState(), "signal/slot signature mismatch" );
-	    lua_error( lc_->LuaState() );
-		return false;
-	}
-
-    const int signalIdx = obj->metaObject()->indexOfSignal( signal );
-	if( signalIdx < 0 ) {
-		lua_pushstring( lc_->LuaState(), ( "signal " + QString( signal ) + " not found" ).toAscii().constData() );
-	    lua_error( lc_->LuaState() );
-		return false;
-	}
-
-    int slotIdx = slotIndexMap_.value( slot, -1 );
-    if( slotIdx < 0 ) {
-        slotIdx = luaCBackSlots_.size();
-        slotIndexMap_[ slot ] = slotIdx;
-        luaCBackSlots_.push_back(
-			new LuaCBackSlot( lc_, luaRefMap_[ slot ].paramTypes, luaRefMap_[ slot ].luaCBackRef ) );
+//------------------------------------------------------------------------------
+bool LuaCallbackDispatcher::Connect( QObject *obj, 
+									 int signalIdx,
+									 const QList< QMetaType::Type >& paramTypes,
+									 LuaCBackRef luaCBackRef ) {
+    int methodIdx = cbackToMethodIndex_.value( luaCBackRef, -1 );
+    if( methodIdx < 0 ) {
+        methodIdx = luaCBackMethods_.size();
+        cbackToMethodIndex_[ luaCBackRef ] = methodIdx;
+        luaCBackMethods_.push_back(
+			new LuaCBackMethod( lc_, paramTypes, luaCBackRef ) );
     }
-    return QMetaObject::connect( obj, signalIdx, this, slotIdx + metaObject()->methodCount() );
+    return QMetaObject::connect( obj, signalIdx, this, methodIdx + metaObject()->methodCount() );
 }
-
-int LuaCallbackDispatcher::qt_metacall(QMetaObject::Call c, int id, void **arguments) {
-    id = QObject::qt_metacall(c, id, arguments);
-    if (id < 0 || c != QMetaObject::InvokeMetaMethod) 
-        return id;
-    Q_ASSERT(id < luaCBackSlots_.size());
-    luaCBackSlots_[id]->Invoke( arguments );
+//------------------------------------------------------------------------------
+int LuaCallbackDispatcher::qt_metacall( QMetaObject::Call invoke, MethodId methodIndex, void **arguments ) {
+    methodIndex = QObject::qt_metacall( invoke, methodIndex, arguments );
+    if( methodIndex < 0 || invoke != QMetaObject::InvokeMetaMethod ) return methodIndex;
+	luaCBackMethods_[ methodIndex ]->Invoke( arguments );
     return -1;
 }
-
-void LuaCBackSlot::Invoke( void **arguments ) {
+//------------------------------------------------------------------------------
+void LuaCBackMethod::Invoke( void **arguments ) {
 	for( ParameterTypes::const_iterator i = paramTypes_.begin();
 		 i != paramTypes_.end(); ++i, ++arguments ) {
 	    PushLuaValue( lc_, *i, *arguments );
@@ -78,6 +65,7 @@ void LuaCBackSlot::Invoke( void **arguments ) {
 }
 
 }
+
 
 //enum Type {
 //        // these are merged with QVariant

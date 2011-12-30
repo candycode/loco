@@ -8,9 +8,10 @@
 namespace qlua {
 //------------------------------------------------------------------------------
 void LuaContext::AddQObject( QObject* obj, 
-		             const char* tableName, 
-					 const QStringList& methodNames,
-					 const QList< QMetaMethod::MethodType >& methodTypes ) {
+		                     const char* tableName, 
+					         ObjectDeleteMode deleteMode,
+							 const QStringList& methodNames,
+					         const QList< QMetaMethod::MethodType >& methodTypes ) {
     QSet< QString > mn;
 	QSet< QMetaMethod::MethodType > mt;
     foreach( QString s, methodNames ) {
@@ -31,13 +32,13 @@ void LuaContext::AddQObject( QObject* obj,
 		typedef QList< QByteArray > Params;
 		Params params = mm.parameterTypes();
 		const QString returnType = mm.typeName();
-		methods_[ name ].push_back( Method( obj,
+		objMethods_[ obj ][ name ].push_back( Method( obj,
 		                            mm, 
 		                            GenerateParameterWrappers( params ),
 		                            GenerateReturnWrapper( returnType ) ) );
-		if( methods_[ name ].size() == 1 ) {
+		if( objMethods_[ obj ][ name ].size() == 1 ) {
 			lua_pushstring( L_, name.toAscii().constData() );
-	        lua_pushlightuserdata( L_, &methods_[ name ] );
+	        lua_pushlightuserdata( L_, &( objMethods_[ obj ][ name ] ) );
 	        lua_pushcclosure( L_, LuaContext::InvokeMethod, 1 );
 	        lua_rawset( L_, -3 );
 	    }	                            
@@ -52,7 +53,30 @@ void LuaContext::AddQObject( QObject* obj,
 		VariantToLuaValue( mp.read( obj ), L_ );
 		lua_rawset( L_, -3 );
 	}
+	if( deleteMode == QOBJ_IMMEDIATE_DELETE ||
+		deleteMode == QOBJ_DELETE_LATER ) { //add __gc method
+        lua_newtable( L_ ); // push metatable
+        lua_pushlightuserdata( L_, obj );
+		lua_pushlightuserdata( L_, this );
+		lua_pushinteger( L_, int( deleteMode ) );
+		lua_pushcclosure( L_, &LuaContext::DeleteObject, 3 ); // push __gc method
+        lua_setfield( L_, -2, "__gc" ); // set table['__gc'] = function
+        lua_setmetatable( L_, -2 ); // set metatable QObject table
+	}
+
 	if( tableName ) lua_setglobal( L_, tableName );
+}
+
+//------------------------------------------------------------------------------
+int LuaContext::DeleteObject( lua_State* L ) {
+    QObject* obj = reinterpret_cast< QObject* >( lua_touserdata( L, lua_upvalueindex( 1 ) ) );
+	LuaContext* lc = reinterpret_cast< LuaContext* >( lua_touserdata( L, lua_upvalueindex( 2 ) ) );
+	ObjectDeleteMode dm = ObjectDeleteMode( lua_tointeger( L, lua_upvalueindex( 3 ) ) );
+	lc->RemoveObject( obj );
+	//std::clog << "deleting QObject at " << obj << std::endl;
+	if( dm == QOBJ_IMMEDIATE_DELETE ) delete obj;
+	else if( dm == QOBJ_DELETE_LATER ) obj->deleteLater();
+	return 0;
 }
 
 //------------------------------------------------------------------------------
@@ -99,9 +123,7 @@ int LuaContext::QtConnect( lua_State* L ) {
 		//push lua callback onto top of stack
 		lua_pushvalue( L, 3 );
 		const int luaRef = luaL_ref( L, LUA_REGISTRYINDEX );
-		const QString slot = QString("_%1_%2_%3").arg( quint64( obj ) ).arg( luaRef ).arg( signalSignature );
-		lc.dispatcher_.RegisterSlot( slot, types, luaRef );
-		lc.dispatcher_.Connect( obj, signalSignature.toAscii().data(), slot.toAscii().data() ); 
+		lc.dispatcher_.Connect( obj, signalIndex, types, luaRef ); 
 	} else {
 		if( lua_islightuserdata( L, 3 ) ) {
 			if( lua_gettop( L ) < 4 || !lua_isstring( L, 4 ) ) {
