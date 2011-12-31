@@ -1,9 +1,9 @@
 #include <cassert>
 #include <QPointer>
 #include <iostream>
-#include "LuaContext.h"
+#include "../LuaContext.h"
 
-#include "MyObject.h"
+#include "TestObject.h"
 
 //------------------------------------------------------------------------------
 int main() {
