@@ -12,8 +12,31 @@ extern "C" {
 #include <QVariant>
 #include <QVariantMap>
 #include <QGenericArgument>
+#include <QList>
+#include <QVector>
+
+#define QLUA_LIST_FLOAT64 "QList<double>"
+#define QLUA_LIST_FLOAT32 "QList<float>"
+#define QLUA_LIST_INT "QList<int>"
+#define QLUA_LIST_SHORT "QList<short>"
+#define QLUA_VECTOR_FLOAT64 "QVector<double>"
+#define QLUA_VECTOR_FLOAT32 "QVector<float>"
+#define QLUA_VECTOR_INT "QVector<int>"
+#define QLUA_VECTOR_SHORT "QVector<short>"
 
 namespace qlua {
+
+//------------------------------------------------------------------------------
+template < typename T > const char* TypeName();
+
+template <> inline const char* TypeName< QList< double > >() { return QLUA_LIST_FLOAT64; }
+template <> inline const char* TypeName< QList< float > >() { return QLUA_LIST_FLOAT32; }
+template <> inline const char* TypeName< QList< int > >() { return QLUA_LIST_INT; }
+template <> inline const char* TypeName< QList< short > >() { return QLUA_LIST_SHORT; }
+template <> inline const char* TypeName< QVector< double > >() { return QLUA_VECTOR_FLOAT64; }
+template <> inline const char* TypeName< QVector< float > >() { return QLUA_VECTOR_FLOAT32; }
+template <> inline const char* TypeName< QVector< int > >() { return QLUA_VECTOR_INT; }
+template <> inline const char* TypeName< QVector< short > >() { return QLUA_VECTOR_SHORT; }
 
 //------------------------------------------------------------------------------
 inline
@@ -56,8 +79,40 @@ QVariant LuaValueToQVariant( lua_State* L, int idx ) {
 }
 
 //------------------------------------------------------------------------------
+template < typename T >
+QList< T > ParseLuaTableAsNumberList( lua_State* L, int stackTableIndex ) {
+	luaL_checktype( L, stackTableIndex, LUA_TTABLE );
+    int tableSize = int( lua_objlen( L, stackTableIndex ) );
+	QList< T > list;
+	list.reserve( int( tableSize ) );
+	++tableSize;
+	for( int i = 1; i != tableSize; ++i ) {
+		lua_rawgeti( L, stackTableIndex, i );
+		list.push_back( T( lua_tonumber( L, -1 ) ) );
+		lua_pop( L, 1 );
+	}
+	return list;
+}
+template < typename T >
+QVector< T > ParseLuaTableAsNumberVector( lua_State* L, int stackTableIndex ) {
+	luaL_checktype( L, stackTableIndex, LUA_TTABLE );
+    int tableSize = int( lua_objlen( L, stackTableIndex ) );
+	QVector< T > v;
+	v.resize( int( tableSize ) );
+	++tableSize;
+	QVector< T >::iterator vi = v.begin();
+	for( int i = 1; i != tableSize; ++i, ++vi ) {
+		lua_rawgeti( L, stackTableIndex, i );
+		*vi = T( lua_tonumber( L, -1 ) );
+		lua_pop( L, 1 );
+	}
+	return v;
+}
+
+//------------------------------------------------------------------------------
 inline
 QVariantMap ParseLuaTable( lua_State* L, int stackTableIndex, bool removeTable = true ) {
+	luaL_checktype( L, stackTableIndex, LUA_TTABLE );
     QVariantMap m;
     lua_pushnil(L);  // first key
 	stackTableIndex = stackTableIndex < 0 ? stackTableIndex - 1 : stackTableIndex;
@@ -74,6 +129,7 @@ QVariantMap ParseLuaTable( lua_State* L, int stackTableIndex, bool removeTable =
 }
 inline
 QVariantList ParseLuaTableAsVariantList( lua_State* L, int stackTableIndex, bool removeTable = true ) {
+	luaL_checktype( L, stackTableIndex, LUA_TTABLE );
     QVariantList l;
     lua_pushnil(L);  // first key
 	stackTableIndex = stackTableIndex < 0 ? stackTableIndex - 1 : stackTableIndex;
@@ -82,20 +138,6 @@ QVariantList ParseLuaTableAsVariantList( lua_State* L, int stackTableIndex, bool
 		QVariant value = lua_istable( L, -1 ) ? ParseLuaTable( L, -1, false ) : 
 			             LuaValueToQVariant( L, -1 );
 		l.push_back( value );
-		lua_pop(L, 1);
-    }
-	if( removeTable ) lua_pop( L, 1 ); // remvove table
-	return l;
-}
-
-template < typename T >
-QList< T > ParseLuaTableAsNumberList( lua_State* L, int stackTableIndex, bool removeTable = true ) {
-    QList< T > l;
-    lua_pushnil(L);  // first key
-	stackTableIndex = stackTableIndex < 0 ? stackTableIndex - 1 : stackTableIndex;
-    while( lua_next( L, stackTableIndex ) != 0 ) {
-		/* uses 'key' (at index -2) and 'value' (at index -1) */
-	    l.push_back( T( luaL_checknumber( L, -1 ) ) );
 		lua_pop(L, 1);
     }
 	if( removeTable ) lua_pop( L, 1 ); // remvove table
@@ -168,13 +210,22 @@ void VariantListToLuaTable( const QVariantList& vl, lua_State* L ) {
 }
 
 template < typename T >
-void ListToLuaTable( const QList< T >& vl, lua_State* L ) {
+void NumberListToLuaTable( const QList< T >& vl, lua_State* L ) {
     lua_newtable( L ); 
 	int i = 1;
 	for( QList< T >::const_iterator v = vl.begin(); v != vl.end(); ++v, ++i ) {
-		lua_pushinteger( L, i );
-	    lua_pushnumber( L, *v );
-		lua_rawset( L, -3 );
+		lua_pushnumber( L, *v );
+		lua_rawseti( L, -2, -1 );
+	}
+}
+
+template < typename T >
+void NumberVectorToLuaTable( const QVector< T >& vl, lua_State* L ) {
+    lua_newtable( L ); 
+	int i = 1;
+	for( QVector< T >::const_iterator v = vl.begin(); v != vl.end(); ++v, ++i ) {
+		lua_pushnumber( L, *v );
+		lua_rawseti( L, -2, -1 );
 	}
 }
 

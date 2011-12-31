@@ -80,6 +80,17 @@ int LuaContext::DeleteObject( lua_State* L ) {
 	return 0;
 }
 
+void LuaContext::RegisterTypes() {
+    qRegisterMetaType< QList< double > >( QLUA_LIST_FLOAT64 );
+	qRegisterMetaType< QList< float > > ( QLUA_LIST_FLOAT32 );
+	qRegisterMetaType< QList< int > >   ( QLUA_LIST_INT );
+	qRegisterMetaType< QList< short > >( QLUA_LIST_SHORT );
+	qRegisterMetaType< QVector< double > >( QLUA_VECTOR_FLOAT64 );
+	qRegisterMetaType< QVector< float > >( QLUA_VECTOR_FLOAT32 );
+	qRegisterMetaType< QVector< int > >( QLUA_VECTOR_INT );
+	qRegisterMetaType< QVector< short > >( QLUA_VECTOR_SHORT );
+}
+
 //------------------------------------------------------------------------------
 int LuaContext::QtConnect( lua_State* L ) {
 	LuaContext& lc = *reinterpret_cast< LuaContext* >( lua_touserdata( L, lua_upvalueindex( 1 ) ) );
@@ -88,19 +99,22 @@ int LuaContext::QtConnect( lua_State* L ) {
 	    lua_error( L );
 		return 0;
 	}
-	if( !lua_istable( L, 1 ) ) {
-	    lua_pushstring( L, "First parameter to function 'qtconnect' is not a table" );
-	    lua_error( L );
+	if( !lua_istable( L, 1 ) && !lua_islightuserdata( L, 1 ) ) {
+		RaiseLuaError( L, "First parameter to function 'qtconnect' is not a table nor a pointer" );
 		return 0;
 	}
-	lua_pushstring( L, "qobject__" );
-	lua_gettable( L, 1 );
-	if( lua_isnil( L, -1 ) ) {
-		lua_pushstring( L, "qtconnect: Wrong table format: reference to QObject not found" );
-	    lua_error( L );
-		return 0;
-	}
-	QObject* obj = reinterpret_cast< QObject* >( lua_touserdata( L, -1 ) );
+
+	QObject* obj = 0;
+	if( lua_istable( L, 1 ) ) {
+	    lua_pushstring( L, "qobject__" );
+	    lua_gettable( L, 1 );
+	    if( lua_isnil( L, -1 ) ) {
+		    RaiseLuaError( L, "qtconnect: Wrong table format: reference to QObject not found" );
+		    return 0;
+	    }
+		obj = reinterpret_cast< QObject* >( lua_touserdata( L, -1 ) );
+	} else obj = reinterpret_cast< QObject* >( lua_touserdata( L, 1 ) );
+	
 	const char* signal = lua_tostring( L, 2 );
 	//extract signal arguments info
 	const QMetaObject* mo = obj->metaObject();
@@ -108,8 +122,7 @@ int LuaContext::QtConnect( lua_State* L ) {
 	QString signalSignature = QMetaObject::normalizedSignature( signal );
 	const int signalIndex = mo->indexOfSignal( signalSignature.toAscii().constData() );
 	if( signalIndex < 0 ) {
-		lua_pushstring( L, QString( "Signal '" + signalSignature + "' not found" ).toAscii().constData() );
-	    lua_error( L );
+		RaiseLuaError( L, "Signal '" + signalSignature + "' not found" );
 		return 0;
 	} 
     QMetaMethod mm = mo->method( signalIndex );
@@ -128,8 +141,7 @@ int LuaContext::QtConnect( lua_State* L ) {
 	} else {
 		if( lua_islightuserdata( L, 3 ) ) {
 			if( lua_gettop( L ) < 4 || !lua_isstring( L, 4 ) ) {
-				lua_pushstring( L, "qtconnect: missing target method" );
-	            lua_error( L );
+				RaiseLuaError( L, "qtconnect: missing target method" );
 				return 0;
 			}
 		    //fetch QObject* and method/signal signature to invoke in parameter 4
@@ -138,9 +150,7 @@ int LuaContext::QtConnect( lua_State* L ) {
 			const QMetaObject* mo = targetObj->metaObject();
 			const int targetMethodIdx = mo->indexOfMethod( QMetaObject::normalizedSignature( targetMethod ) ); 
 			if( targetMethodIdx < 0 ) {
-			    lua_pushstring( L, QString( "Method '" + QString( targetMethod ) + 
-					                        "' not found" ).toAscii().constData() );
-	            lua_error( L );
+			    RaiseLuaError( L, "Method '" + QString( targetMethod ) + "' not found"  );
 				return 0;
 			}
 			QMetaObject::connect( obj, signalIndex, targetObj, targetMethodIdx );
@@ -155,8 +165,7 @@ int LuaContext::QtConnect( lua_State* L ) {
 			lua_pushstring( L, "qobject__" );
 	        lua_gettable( L, 1 );
 	        if( lua_isnil( L, -1 ) ) {
-		        lua_pushstring( L, "qtconnect: Wrong table format: reference to QObject not found" );
-	            lua_error( L );
+		        RaiseLuaError( L, "qtconnect: Wrong table format: reference to QObject not found" );
 		        return 0;
 			}
 			QObject* targetObj = reinterpret_cast< QObject* >( lua_touserdata( L, -1 ) );
@@ -164,9 +173,7 @@ int LuaContext::QtConnect( lua_State* L ) {
 			const QMetaObject* mo = targetObj->metaObject();
 			const int targetMethodIdx = mo->indexOfMethod( QMetaObject::normalizedSignature( targetMethod ) ); 
 			if( targetMethodIdx < 0 ) {
-			    lua_pushstring( L, QString( "Method '" + QString( targetMethod ) + 
-					                        "' not found" ).toAscii().constData() );
-	            lua_error( L );
+			    RaiseLuaError( L, "Method '" + QString( targetMethod ) + "' not found" );
 				return 0;
 			}
 			QMetaObject::connect( obj, signalIndex, targetObj, targetMethodIdx );

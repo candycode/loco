@@ -19,6 +19,18 @@ extern "C" {
 #include "Arguments.h"
 
 namespace qlua {
+inline void RaiseLuaError( lua_State* L, const char* errMsg ) {
+	lua_pushstring( L, errMsg );
+	lua_error( L );
+}
+inline void RaiseLuaError( lua_State* L, const QString& errMsg ) {
+	RaiseLuaError( L, errMsg.toAscii().constData() );
+}
+inline void RaiseLuaError( lua_State* L, const std::string& errMsg ) {
+	RaiseLuaError( L, errMsg.c_str() );
+}
+
+
 //------------------------------------------------------------------------------
 class LuaContext {
     struct Method {
@@ -40,6 +52,7 @@ public:
 		lua_pushcclosure( L_, &LuaContext::QtConnect , 1);
 		lua_setglobal( L_, "qtconnect" );
 		dispatcher_.SetLuaContext( this );
+		RegisterTypes();
 	}
 	lua_State* LuaState() const { return L_; }
 	void Eval( const char* code ) {
@@ -94,6 +107,7 @@ private:
     		throw std::runtime_error( err );
     	}
     }
+	static void RegisterTypes();
 private:
     lua_State* L_;	
 	ObjectMethodMap objMethods_;

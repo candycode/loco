@@ -36,6 +36,9 @@ int main() {
 		          "print( vm['key1'] .. ' ' .. vm['key2'] );\n"
 				  "print( myobj3.createObject().objectName );" );
 
+        ctx.Eval( "print( myobj3.copyString( 'hi' ) );\n"
+		          "fl = myobj3.copyFloatList( {1.0,2.0,3.0} );\n" 
+				  "print( #fl );\n" );
 
 	} catch( const std::exception& e ) {
 		std::cerr << e.what() << std::endl;

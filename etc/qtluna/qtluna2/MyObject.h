@@ -6,6 +6,8 @@
 #include <QString>
 #include <QVariantMap>
 #include <QVariantList>
+#include <QList>
+#include <QVector>
 
 class MyObject : public QObject {
 	Q_OBJECT
@@ -24,6 +26,8 @@ public slots:
 		return mo; //WARNING: NOT DESTROYED WHEN GARBAGE COLLECTED 
 		           //SINCE DEFAULT IS 'QOBJ_NO_DELETE'
 	}
+	QList< float > copyFloatList( const QList< float >& l ) { return l; }
+	QVector< float > copyFloatVector( const QVector< float >& v ) { return v; }
 signals:
 	void aSignal();
 };

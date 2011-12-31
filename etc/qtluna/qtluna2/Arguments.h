@@ -13,10 +13,13 @@ extern "C" {
 #include <QList>
 #include <QGenericArgument>
 #include <QGenericReturnArgument>
+#include <QVector>
 
 #include "LuaQtTypes.h"
 
 namespace qlua {
+
+
 
 //------------------------------------------------------------------------------
 struct IArgConstructor {
@@ -120,17 +123,38 @@ struct WidgetStarArgConstructor : IArgConstructor {
 	}
 	mutable QWidget* w_;
 };
-//template < typename T >
-//struct ListArgConstructor : IArgConstructor {
-//	QGenericArgument Create( lua_State* L, int idx ) const {
-//		l = ParseLuaTableAsList< T >( L, idx );
-//	    return Q_ARG( QString, l_ );
-// 	}
-//	VariantListArgConstructor* Clone() const {
-//	    return new VariantListArgConstructor( *this );
-//	}
-//	mutable QList< T > l_;
-//};
+struct VoidStarArgConstructor : IArgConstructor {
+	QGenericArgument Create( lua_State* L, int idx ) const {
+		v_ = const_cast< void* >( lua_topointer( L, idx ) );
+	    return Q_ARG( void*, v_ );
+ 	}
+	VoidStarArgConstructor* Clone() const {
+	    return new VoidStarArgConstructor( *this );
+	}
+	mutable void* v_;
+};
+template< typename T >
+struct ListArgConstructor : IArgConstructor {
+	QGenericArgument Create( lua_State* L, int idx ) const {
+		l_ = ParseLuaTableAsNumberList< T >( L, idx );
+	    return Q_ARG( QList< T >, l_ );
+ 	}
+	ListArgConstructor* Clone() const {
+	    return new ListArgConstructor< T >( *this );
+	}
+	mutable QList< T > l_;
+};
+template< typename T >
+struct VectorArgConstructor : IArgConstructor {
+	QGenericArgument Create( lua_State* L, int idx ) const {
+		v_ = ParseLuaTableAsNumberVector< T >( L, idx );
+	    return Q_ARG( QVector< T >, v_ );
+ 	}
+	VectorArgConstructor* Clone() const {
+	    return new VectorArgConstructor< T >( *this );
+	}
+	mutable QVector< T > v_;
+};
 
 //------------------------------------------------------------------------------
 class ReturnConstructor {
@@ -298,26 +322,65 @@ public:
 private:
 	QWidget* w_;
 };
-//Need to specialize list and use Q_DECLARE_METATYPE()/qRegisterMetaType
-//template < typename T >
-//class ListReturnConstructor : public ReturnConstructor {
-//public:
-//	ListReturnConstructor() {
-//	    ga_ = Q_RETURN_ARG( QList< T >, l_ );   
-//	}
-//	ListReturnConstructor( const VariantMapReturnConstructor& other ) : l_( other.l_ ) {
-//	    ga_ = Q_RETURN_ARG( QList< T >, l_ );
-//	}
-//	void Push( lua_State* L ) const {
-//		ListToLuaTable< T >( L, l_ );
-//	}
-//	ListReturnConstructor* Clone() const {
-//	    return new ListReturnConstructor( *this );
-//	}
-//	const char* Type() const { return QMetaType::typeName( ??? ); }
-//private:
-//	QList< T > l_;
-//};
+class VoidStarReturnConstructor : public ReturnConstructor {
+public:
+	VoidStarReturnConstructor() {
+	    SetArg( v_ );   
+	}
+	VoidStarReturnConstructor( const VoidStarReturnConstructor& other ) : v_( other.v_ ) {
+	    SetArg( v_ );
+	}
+	void Push( lua_State* L ) const {
+		lua_pushlightuserdata( L, v_ );
+	}
+	VoidStarReturnConstructor* Clone() const {
+	    return new VoidStarReturnConstructor( *this );
+	}
+	QMetaType::Type Type() const { return QMetaType::VoidStar; }
+private:
+	void* v_;
+};
+
+template < typename T >
+class ListReturnConstructor : public ReturnConstructor {
+public:
+	ListReturnConstructor() {
+	    SetArg( l_ );   
+	}
+	ListReturnConstructor( const ListReturnConstructor& other ) : l_( other.l_ ) {
+	    SetArg( l_ );
+	}
+	void Push( lua_State* L ) const {
+		NumberListToLuaTable< T >( l_, L );
+	}
+	ListReturnConstructor* Clone() const {
+	    return new ListReturnConstructor( *this );
+	}
+	QMetaType::Type Type() const { return QMetaType::Type( QMetaType::type( TypeName< QList< T > >() ) ); }
+private:
+	QList< T > l_;
+};
+
+template < typename T >
+class VectorReturnConstructor : public ReturnConstructor {
+public:
+	VectorReturnConstructor() {
+	    SetArg( v_ );   
+	}
+	VectorReturnConstructor( const VectorReturnConstructor& other ) : v_( other.v_ ) {
+	    SetArg( v_ );
+	}
+	void Push( lua_State* L ) const {
+		NumberVectorToLuaTable< T >( v_, L );
+	}
+	VectorReturnConstructor* Clone() const {
+	    return new VectorReturnConstructor( *this );
+	}
+	QMetaType::Type Type() const { return QMetaType::Type( QMetaType::type( TypeName< QVector< T > >() ) ); }
+private:
+	QVector< T > v_;
+};
+
 
 //------------------------------------------------------------------------------
 class ParameterWrapper {
@@ -339,9 +402,25 @@ public:
 			ac_ = new VariantMapArgConstructor;
 		} else if( type == QMetaType::typeName( QMetaType::QVariantList ) ) {
 			ac_ = new VariantListArgConstructor;
-		} else if( type == QMetaType::typeName( QMetaType::QVariantList ) ) {
+		} else if( type == QMetaType::typeName( QMetaType::QObjectStar ) ) {
 			ac_ = new ObjectStarArgConstructor;
-		} 
+		} else if( type == QMetaType::typeName( QMetaType::QWidgetStar ) ) {
+			ac_ = new WidgetStarArgConstructor;
+		} else if( type == QMetaType::typeName( QMetaType::VoidStar ) ) {
+			ac_ = new VoidStarArgConstructor;
+		} else if( type == QLUA_LIST_FLOAT64 ) {
+			ac_ = new ListArgConstructor< double >;
+		} else if( type == QLUA_LIST_FLOAT32 ) {
+			ac_ = new ListArgConstructor< float >;
+		} else if( type == QLUA_LIST_INT ) {
+			ac_ = new ListArgConstructor< int >;
+		} else if( type == QLUA_VECTOR_FLOAT64 ) {
+			ac_ = new VectorArgConstructor< double >;
+		} else if( type == QLUA_VECTOR_FLOAT32 ) {
+			ac_ = new VectorArgConstructor< float >;
+		} else if( type == QLUA_VECTOR_INT ) {
+			ac_ = new VectorArgConstructor< int >;
+		} else throw std::logic_error( ( "Type " + type + " unknown" ).toStdString() );
 	}
     QGenericArgument Arg( lua_State* L, int idx ) const {
 		return ac_ ? ac_->Create( L, idx ) : QGenericArgument();
@@ -372,7 +451,24 @@ public:
 			rc_ = new VariantListReturnConstructor;
 		} else if( type == QMetaType::typeName( QMetaType::QObjectStar ) ) {
 			rc_ = new ObjectStarReturnConstructor;
+		} else if( type == QMetaType::typeName( QMetaType::QWidgetStar ) ) {
+			rc_ = new WidgetStarReturnConstructor;
+		} else if( type == QMetaType::typeName( QMetaType::VoidStar ) ) {
+			rc_ = new VoidStarReturnConstructor;
+		} else if( type == QLUA_LIST_FLOAT64 ) {
+			rc_ = new ListReturnConstructor< double >;
+		} else if( type == QLUA_LIST_FLOAT32 ) {
+			rc_ = new ListReturnConstructor< float >;
+		} else if( type == QLUA_LIST_INT ) {
+			rc_ = new ListReturnConstructor< int >;
+		} else if( type == QLUA_VECTOR_FLOAT64 ) {
+			rc_ = new VectorReturnConstructor< double >;
+		} else if( type == QLUA_VECTOR_FLOAT32 ) {
+			rc_ = new VectorReturnConstructor< float >;
+		} else if( type == QLUA_VECTOR_INT ) {
+			rc_ = new VectorReturnConstructor< int >;
 		} else if( type_.isEmpty() ) rc_ = new VoidReturnConstructor;
+	    else throw std::logic_error( ( "Type " + type + " unknown" ).toStdString() );
 	}
     void Push( lua_State* L ) const {
     	rc_->Push( L );
