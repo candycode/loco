@@ -95,8 +95,7 @@ void LuaContext::RegisterTypes() {
 int LuaContext::QtConnect( lua_State* L ) {
 	LuaContext& lc = *reinterpret_cast< LuaContext* >( lua_touserdata( L, lua_upvalueindex( 1 ) ) );
 	if( lua_gettop( L ) != 3 && lua_gettop( L ) != 4  ) {
-		lua_pushstring( L, "qtconnect: Three or four parameters required" );
-	    lua_error( L );
+		RaiseLuaError( L, "qlua.connect: Three or four parameters required" );
 		return 0;
 	}
 	if( !lua_istable( L, 1 ) && !lua_islightuserdata( L, 1 ) ) {
@@ -109,7 +108,7 @@ int LuaContext::QtConnect( lua_State* L ) {
 	    lua_pushstring( L, "qobject__" );
 	    lua_gettable( L, 1 );
 	    if( lua_isnil( L, -1 ) ) {
-		    RaiseLuaError( L, "qtconnect: Wrong table format: reference to QObject not found" );
+		    RaiseLuaError( L, "qlua.connect: Wrong table format: reference to QObject not found" );
 		    return 0;
 	    }
 		obj = reinterpret_cast< QObject* >( lua_touserdata( L, -1 ) );
@@ -141,7 +140,7 @@ int LuaContext::QtConnect( lua_State* L ) {
 	} else {
 		if( lua_islightuserdata( L, 3 ) ) {
 			if( lua_gettop( L ) < 4 || !lua_isstring( L, 4 ) ) {
-				RaiseLuaError( L, "qtconnect: missing target method" );
+				RaiseLuaError( L, "qlua.connect: missing target method" );
 				return 0;
 			}
 		    //fetch QObject* and method/signal signature to invoke in parameter 4
@@ -157,7 +156,7 @@ int LuaContext::QtConnect( lua_State* L ) {
 			return 0;
 		} else if( lua_istable( L, 3 ) ) {
 			if( lua_gettop( L ) < 4 || !lua_isstring( L, 4 ) ) {
-				lua_pushstring( L, "qtconnect: missing target method" );
+				lua_pushstring( L, "qlua.connect: missing target method" );
 	            lua_error( L );
 				return 0;
 			}
@@ -165,7 +164,7 @@ int LuaContext::QtConnect( lua_State* L ) {
 			lua_pushstring( L, "qobject__" );
 	        lua_gettable( L, 1 );
 	        if( lua_isnil( L, -1 ) ) {
-		        RaiseLuaError( L, "qtconnect: Wrong table format: reference to QObject not found" );
+		        RaiseLuaError( L, "qlua.connect: Wrong table format: reference to QObject not found" );
 		        return 0;
 			}
 			QObject* targetObj = reinterpret_cast< QObject* >( lua_touserdata( L, -1 ) );
@@ -183,12 +182,22 @@ int LuaContext::QtConnect( lua_State* L ) {
     return 0;
 }
 
-
+//------------------------------------------------------------------------------
 int LuaContext::SetQObjectsOwnership( lua_State* L ) {
+	LuaContext& lc = *reinterpret_cast< LuaContext* >( lua_touserdata( L, lua_upvalueindex( 1 ) ) );
+	lc.ownQObjects_ = lua_toboolean( L, 1 );
     return 0;
 }
 
+//------------------------------------------------------------------------------
 int LuaContext::QtDisconnect( lua_State* L ) {
+	LuaContext& lc = *reinterpret_cast< LuaContext* >( lua_touserdata( L, lua_upvalueindex( 1 ) ) );
+	//1) get source object(as table or pointer)
+	//2) get signal
+	//3) get target object(as table or pointer) or Lua cback
+	//4) get method or lua callback
+	//5) if method call QObject::disconnect, if lua cback remove
+	//   associated dynamic slot
     return 0;
 }
 
