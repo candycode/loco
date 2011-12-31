@@ -183,6 +183,18 @@ int LuaContext::QtConnect( lua_State* L ) {
     return 0;
 }
 
+
+int LuaContext::SetQObjectsOwnership( lua_State* L ) {
+    return 0;
+}
+
+int LuaContext::QtDisconnect( lua_State* L ) {
+    return 0;
+}
+
+
+
+
 //------------------------------------------------------------------------------
 int LuaContext::InvokeMethod( lua_State *L ) {
 	const Methods& m = *( reinterpret_cast< Methods* >( lua_touserdata( L, lua_upvalueindex( 1 ) ) ) );
@@ -231,7 +243,7 @@ void HandleReturnValue( LuaContext& lc, QMetaType::Type type ) {
 	if( type == QMetaType::QObjectStar || type == QMetaType::QWidgetStar ) {
 		QObject* obj = reinterpret_cast< QObject* >( lua_touserdata( lc.LuaState(), -1 ) );
 		lua_pop( lc.LuaState(), 1 );
-		lc.AddQObject( obj );
+		lc.AddQObject( obj, 0, lc.OwnQObjects() ? LuaContext::QOBJ_IMMEDIATE_DELETE : LuaContext::QOBJ_NO_DELETE );
 	}
 }
 

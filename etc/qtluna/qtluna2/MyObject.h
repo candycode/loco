@@ -9,7 +9,7 @@
 #include <QList>
 #include <QVector>
 
-class MyObject : public QObject {
+class TestObject : public QObject {
 	Q_OBJECT
 public slots:
 	void method( const QString& msg ) {
@@ -21,7 +21,7 @@ public slots:
 	QVariantMap copyVariantMap( const QVariantMap& vm ) { return vm; }
 	QVariantList copyVariantList( const QVariantList& vl ) { return vl; }
 	QObject* createObject() { 
-		MyObject* mo = new MyObject; 
+		TestObject* mo = new TestObject; 
 		mo->setObjectName( "New Object" );
 		return mo; //WARNING: NOT DESTROYED WHEN GARBAGE COLLECTED 
 		           //SINCE DEFAULT IS 'QOBJ_NO_DELETE'

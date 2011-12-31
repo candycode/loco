@@ -45,12 +45,27 @@ public:
 	enum ObjectDeleteMode { QOBJ_NO_DELETE, QOBJ_IMMEDIATE_DELETE, QOBJ_DELETE_LATER };
 	typedef QList< Method > Methods;
 	typedef QMap< QObject*, QMap< QString, Methods > > ObjectMethodMap;
-	LuaContext() {
+	LuaContext() : L_( 0 ), ownQObjects_( false ) {
 		L_ = luaL_newstate();
 		luaL_openlibs( L_);
+		lua_newtable(L_);
+
+		lua_pushstring( L_,  "connect" );
 		lua_pushlightuserdata( L_, this );
 		lua_pushcclosure( L_, &LuaContext::QtConnect , 1);
-		lua_setglobal( L_, "qtconnect" );
+		lua_settable( L_, -3 );
+		
+		lua_pushstring( L_,  "disconnect" );
+		lua_pushlightuserdata( L_, this );
+		lua_pushcclosure( L_, &LuaContext::QtDisconnect , 1);
+		lua_settable( L_, -3 );
+
+		lua_pushstring( L_,  "ownQObjects" );
+		lua_pushlightuserdata( L_, this );
+		lua_pushcclosure( L_, &LuaContext::SetQObjectsOwnership , 1);
+		lua_settable( L_, -3 );
+
+		lua_setglobal( L_, "qlua" );
 		dispatcher_.SetLuaContext( this );
 		RegisterTypes();
 	}
@@ -79,6 +94,7 @@ public:
 					 ObjectDeleteMode deleteMode = QOBJ_NO_DELETE, //destroys QObject instance
 					 const QStringList& methodNames = QStringList(),
 					 const QList< QMetaMethod::MethodType >& methodTypes = QList< QMetaMethod::MethodType >()  );
+	bool OwnQObjects() const { return ownQObjects_; }
 	~LuaContext() {
 		lua_close( L_ );
 	}
@@ -87,8 +103,10 @@ private:
 	    objMethods_.remove( obj );
 	}
 	static int QtConnect( lua_State* L );
+	static int QtDisconnect( lua_State* L );
 	static int DeleteObject( lua_State* L );
-	static int InvokeMethod( lua_State *L );
+	static int InvokeMethod( lua_State* L );
+	static int SetQObjectsOwnership( lua_State* L );
 	static int Invoke0( const Method* mi, LuaContext& L );
     static int Invoke1( const Method* mi, LuaContext& L );
 	static int Invoke2( const Method* mi, LuaContext& L );
@@ -110,6 +128,7 @@ private:
 	static void RegisterTypes();
 private:
     lua_State* L_;	
+	bool ownQObjects_;
 	ObjectMethodMap objMethods_;
 	LuaCallbackDispatcher dispatcher_; //signal->dispatcher_->Lua callback
 };
