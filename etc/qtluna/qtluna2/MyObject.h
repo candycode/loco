@@ -28,6 +28,8 @@ public slots:
 	}
 	QList< float > copyFloatList( const QList< float >& l ) { return l; }
 	QVector< float > copyFloatVector( const QVector< float >& v ) { return v; }
+	QList< short > copyShortList( const QList< short >& l ) { return l; }
+	QVector< short > copyShortVector( const QVector< short >& v ) { return v; }
 signals:
 	void aSignal();
 };

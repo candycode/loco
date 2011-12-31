@@ -26,7 +26,7 @@ int main() {
 		myobj2->setObjectName( "MyObject2" );
 		ctx.AddQObject( myobj2, "myobj2", qlua::LuaContext::QOBJ_IMMEDIATE_DELETE );
 		ctx.Eval( "print( 'object 2 name: '..myobj2.objectName )" );
-		ctx.Eval( "getmetatable(myobj2).__gc()" );
+		ctx.Eval( "getmetatable( myobj2 ).__gc()" );
 		assert( pMyObject.isNull() );
 
 		MyObject myobj3;
@@ -36,9 +36,8 @@ int main() {
 		          "print( vm['key1'] .. ' ' .. vm['key2'] );\n"
 				  "print( myobj3.createObject().objectName );" );
 
-        ctx.Eval( "print( myobj3.copyString( 'hi' ) );\n"
-		          "fl = myobj3.copyFloatList( {1.0,2.0,3.0} );\n" 
-				  "print( #fl );\n" );
+        ctx.Eval( "fl = myobj3.copyShortList( {1,2,3} );\n" 
+				  "print( fl[1] .. ' ' .. fl[ 3 ] );\n" );
 
 	} catch( const std::exception& e ) {
 		std::cerr << e.what() << std::endl;

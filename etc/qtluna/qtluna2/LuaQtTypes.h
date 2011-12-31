@@ -215,7 +215,7 @@ void NumberListToLuaTable( const QList< T >& vl, lua_State* L ) {
 	int i = 1;
 	for( QList< T >::const_iterator v = vl.begin(); v != vl.end(); ++v, ++i ) {
 		lua_pushnumber( L, *v );
-		lua_rawseti( L, -2, -1 );
+		lua_rawseti( L, -2, i );
 	}
 }
 
@@ -225,7 +225,7 @@ void NumberVectorToLuaTable( const QVector< T >& vl, lua_State* L ) {
 	int i = 1;
 	for( QVector< T >::const_iterator v = vl.begin(); v != vl.end(); ++v, ++i ) {
 		lua_pushnumber( L, *v );
-		lua_rawseti( L, -2, -1 );
+		lua_rawseti( L, -2, i );
 	}
 }
 

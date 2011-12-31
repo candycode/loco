@@ -19,9 +19,7 @@ extern "C" {
 
 namespace qlua {
 
-
-
-//------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------
 struct IArgConstructor {
 	virtual QGenericArgument Create( lua_State*, int ) const = 0;
 	virtual ~IArgConstructor() {}
@@ -414,12 +412,16 @@ public:
 			ac_ = new ListArgConstructor< float >;
 		} else if( type == QLUA_LIST_INT ) {
 			ac_ = new ListArgConstructor< int >;
+		} else if( type == QLUA_LIST_SHORT ) {
+			ac_ = new ListArgConstructor< short >;
 		} else if( type == QLUA_VECTOR_FLOAT64 ) {
 			ac_ = new VectorArgConstructor< double >;
 		} else if( type == QLUA_VECTOR_FLOAT32 ) {
 			ac_ = new VectorArgConstructor< float >;
 		} else if( type == QLUA_VECTOR_INT ) {
 			ac_ = new VectorArgConstructor< int >;
+		} else if( type == QLUA_VECTOR_SHORT ) {
+			ac_ = new VectorArgConstructor< short >;
 		} else throw std::logic_error( ( "Type " + type + " unknown" ).toStdString() );
 	}
     QGenericArgument Arg( lua_State* L, int idx ) const {
@@ -461,12 +463,16 @@ public:
 			rc_ = new ListReturnConstructor< float >;
 		} else if( type == QLUA_LIST_INT ) {
 			rc_ = new ListReturnConstructor< int >;
+		} else if( type == QLUA_LIST_SHORT ) {
+			rc_ = new ListReturnConstructor< short >;
 		} else if( type == QLUA_VECTOR_FLOAT64 ) {
 			rc_ = new VectorReturnConstructor< double >;
 		} else if( type == QLUA_VECTOR_FLOAT32 ) {
 			rc_ = new VectorReturnConstructor< float >;
 		} else if( type == QLUA_VECTOR_INT ) {
 			rc_ = new VectorReturnConstructor< int >;
+		} else if( type == QLUA_VECTOR_SHORT ) {
+			rc_ = new VectorReturnConstructor< short >;
 		} else if( type_.isEmpty() ) rc_ = new VoidReturnConstructor;
 	    else throw std::logic_error( ( "Type " + type + " unknown" ).toStdString() );
 	}
