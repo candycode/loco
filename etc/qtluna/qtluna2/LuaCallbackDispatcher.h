@@ -24,6 +24,7 @@ public:
 	LuaCBackMethod( LuaContext* lc, const ParameterTypes& p, int luaCBackRef ) 
 		: lc_( lc ), paramTypes_( p ), luaCBackRef_( luaCBackRef ) {}
 	void Invoke( void **arguments );
+	int CBackRef() const{ return luaCBackRef_; } 
 private:
 	LuaContext* lc_;
 	ParameterTypes paramTypes_;
@@ -44,6 +45,9 @@ public:
 		          int signalIdx,
 				  const QList< QMetaType::Type >& paramTypes,
 				  int luaCBackRef );
+	bool Disconnect( QObject *obj, 
+					 int signalIdx,
+					 int cbackStackIndex );
 	void SetLuaContext( LuaContext* lc ) { lc_ = lc; };
 	virtual ~LuaCallbackDispatcher() {
 		for( QList< LuaCBackMethod* >::iterator i = luaCBackMethods_.begin();

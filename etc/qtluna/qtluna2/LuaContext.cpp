@@ -99,7 +99,7 @@ int LuaContext::QtConnect( lua_State* L ) {
 		return 0;
 	}
 	if( !lua_istable( L, 1 ) && !lua_islightuserdata( L, 1 ) ) {
-		RaiseLuaError( L, "First parameter to function 'qtconnect' is not a table nor a pointer" );
+		RaiseLuaError( L, "First parameter to function 'qlua.connect' is not a table nor a pointer" );
 		return 0;
 	}
 
@@ -132,52 +132,134 @@ int LuaContext::QtConnect( lua_State* L ) {
 		 i != params.end(); ++i ) {
 			 types.push_back( QMetaType::Type( QMetaType::type( i->constData() ) ) );
 	}
-	if( !lua_istable( L, 3 ) && !lua_islightuserdata( L, 3 ) ) {
+	if( lua_isfunction( L, 3 ) ) {
 		//push lua callback onto top of stack
 		lua_pushvalue( L, 3 );
 		const int luaRef = luaL_ref( L, LUA_REGISTRYINDEX );
 		lc.dispatcher_.Connect( obj, signalIndex, types, luaRef ); 
-	} else {
-		if( lua_islightuserdata( L, 3 ) ) {
-			if( lua_gettop( L ) < 4 || !lua_isstring( L, 4 ) ) {
-				RaiseLuaError( L, "qlua.connect: missing target method" );
-				return 0;
-			}
-		    //fetch QObject* and method/signal signature to invoke in parameter 4
-			QObject* targetObj = reinterpret_cast< QObject* >( lua_touserdata( L, 3 ) );
-			const char* targetMethod = lua_tostring( L, 4 );
-			const QMetaObject* mo = targetObj->metaObject();
-			const int targetMethodIdx = mo->indexOfMethod( QMetaObject::normalizedSignature( targetMethod ) ); 
-			if( targetMethodIdx < 0 ) {
-			    RaiseLuaError( L, "Method '" + QString( targetMethod ) + "' not found"  );
-				return 0;
-			}
-			QMetaObject::connect( obj, signalIndex, targetObj, targetMethodIdx );
-			return 0;
-		} else if( lua_istable( L, 3 ) ) {
-			if( lua_gettop( L ) < 4 || !lua_isstring( L, 4 ) ) {
-				lua_pushstring( L, "qlua.connect: missing target method" );
-	            lua_error( L );
-				return 0;
-			}
-			//table wrapping QObject*: extract qobject__ field and signal/slot signature in parameter 4 
-			lua_pushstring( L, "qobject__" );
-	        lua_gettable( L, 1 );
-	        if( lua_isnil( L, -1 ) ) {
-		        RaiseLuaError( L, "qlua.connect: Wrong table format: reference to QObject not found" );
-		        return 0;
-			}
-			QObject* targetObj = reinterpret_cast< QObject* >( lua_touserdata( L, -1 ) );
-			const char* targetMethod = lua_tostring( L, 4 );
-			const QMetaObject* mo = targetObj->metaObject();
-			const int targetMethodIdx = mo->indexOfMethod( QMetaObject::normalizedSignature( targetMethod ) ); 
-			if( targetMethodIdx < 0 ) {
-			    RaiseLuaError( L, "Method '" + QString( targetMethod ) + "' not found" );
-				return 0;
-			}
-			QMetaObject::connect( obj, signalIndex, targetObj, targetMethodIdx );
+	} else if( lua_islightuserdata( L, 3 ) ) {
+		if( lua_gettop( L ) < 4 || !lua_isstring( L, 4 ) ) {
+			RaiseLuaError( L, "qlua.connect: missing target method" );
 			return 0;
 		}
+		//fetch QObject* and method/signal signature to invoke in parameter 4
+		QObject* targetObj = reinterpret_cast< QObject* >( lua_touserdata( L, 3 ) );
+		const char* targetMethod = lua_tostring( L, 4 );
+		const QMetaObject* mo = targetObj->metaObject();
+		const int targetMethodIdx = mo->indexOfMethod( QMetaObject::normalizedSignature( targetMethod ) ); 
+		if( targetMethodIdx < 0 ) {
+			RaiseLuaError( L, "Method '" + QString( targetMethod ) + "' not found"  );
+			return 0;
+		}
+		QMetaObject::connect( obj, signalIndex, targetObj, targetMethodIdx );
+		return 0;
+	} else if( lua_istable( L, 3 ) ) {
+		if( lua_gettop( L ) < 4 || !lua_isstring( L, 4 ) ) {
+			lua_pushstring( L, "qlua.connect: missing target method" );
+            lua_error( L );
+			return 0;
+		}
+		//table wrapping QObject*: extract qobject__ field and signal/slot signature in parameter 4 
+		lua_pushstring( L, "qobject__" );
+        lua_gettable( L, 1 );
+        if( lua_isnil( L, -1 ) ) {
+	        RaiseLuaError( L, "qlua.connect: Wrong table format: reference to QObject not found" );
+	        return 0;
+		}
+		QObject* targetObj = reinterpret_cast< QObject* >( lua_touserdata( L, -1 ) );
+		const char* targetMethod = lua_tostring( L, 4 );
+		const QMetaObject* mo = targetObj->metaObject();
+		const int targetMethodIdx = mo->indexOfMethod( QMetaObject::normalizedSignature( targetMethod ) ); 
+		if( targetMethodIdx < 0 ) {
+		    RaiseLuaError( L, "Method '" + QString( targetMethod ) + "' not found" );
+			return 0;
+		}
+		QMetaObject::connect( obj, signalIndex, targetObj, targetMethodIdx );
+		return 0;
+	} else {
+	    RaiseLuaError( L, "qlua.connect: Parameter 3 must be a pointer to QObject, a QObject instance or a lua function" );
+	    return 0;
+	}
+    return 0;
+}
+
+//------------------------------------------------------------------------------
+int LuaContext::QtDisconnect( lua_State* L ) {
+	LuaContext& lc = *reinterpret_cast< LuaContext* >( lua_touserdata( L, lua_upvalueindex( 1 ) ) );
+	if( lua_gettop( L ) != 3 && lua_gettop( L ) != 4  ) {
+		RaiseLuaError( L, "qlua.disconnect: Three or four parameters required" );
+		return 0;
+	}
+	if( !lua_istable( L, 1 ) && !lua_islightuserdata( L, 1 ) ) {
+		RaiseLuaError( L, "First parameter to function 'qlua.disconnect' is not a table nor a pointer" );
+		return 0;
+	}
+	QObject* obj = 0;
+	if( lua_istable( L, 1 ) ) {
+	    lua_pushstring( L, "qobject__" );
+	    lua_gettable( L, 1 );
+	    if( lua_isnil( L, -1 ) ) {
+		    RaiseLuaError( L, "qlua.connect: Wrong table format: reference to QObject not found" );
+		    return 0;
+	    }
+		obj = reinterpret_cast< QObject* >( lua_touserdata( L, -1 ) );
+	} else obj = reinterpret_cast< QObject* >( lua_touserdata( L, 1 ) );
+	
+	const char* signal = lua_tostring( L, 2 );
+	//extract signal arguments info
+	const QMetaObject* mo = obj->metaObject();
+	QString signalSignature = QMetaObject::normalizedSignature( signal );
+
+
+	const int signalIndex = mo->indexOfSignal( signalSignature.toAscii().constData() );
+	if( signalIndex < 0 ) {
+		RaiseLuaError( L, "Signal '" + signalSignature + "' not found" );
+		return 0;
+	} 
+	if( lua_isfunction( L, 3 ) ) {
+		lc.dispatcher_.Disconnect( obj, signalIndex, 3 ); 
+	} else if( lua_islightuserdata( L, 3 ) ) {
+		if( lua_gettop( L ) < 4 || !lua_isstring( L, 4 ) ) {
+			RaiseLuaError( L, "qlua.connect: missing target method" );
+			return 0;
+		}
+		//fetch QObject* and method/signal signature to invoke in parameter 4
+		QObject* targetObj = reinterpret_cast< QObject* >( lua_touserdata( L, 3 ) );
+		const char* targetMethod = lua_tostring( L, 4 );
+		const QMetaObject* mo = targetObj->metaObject();
+		const int targetMethodIdx = mo->indexOfMethod( QMetaObject::normalizedSignature( targetMethod ) ); 
+		if( targetMethodIdx < 0 ) {
+			RaiseLuaError( L, "Method '" + QString( targetMethod ) + "' not found"  );
+			return 0;
+		}
+		QMetaObject::disconnect( obj, signalIndex, targetObj, targetMethodIdx );
+		return 0;
+	} else if( lua_istable( L, 3 ) ) {
+		if( lua_gettop( L ) < 4 || !lua_isstring( L, 4 ) ) {
+			lua_pushstring( L, "qlua.connect: missing target method" );
+            lua_error( L );
+			return 0;
+		}
+		//table wrapping QObject*: extract qobject__ field and signal/slot signature in parameter 4 
+		lua_pushstring( L, "qobject__" );
+        lua_gettable( L, 1 );
+        if( lua_isnil( L, -1 ) ) {
+	        RaiseLuaError( L, "qlua.connect: Wrong table format: reference to QObject not found" );
+	        return 0;
+		}
+		QObject* targetObj = reinterpret_cast< QObject* >( lua_touserdata( L, -1 ) );
+		const char* targetMethod = lua_tostring( L, 4 );
+		const QMetaObject* mo = targetObj->metaObject();
+		const int targetMethodIdx = mo->indexOfMethod( QMetaObject::normalizedSignature( targetMethod ) ); 
+		if( targetMethodIdx < 0 ) {
+		    RaiseLuaError( L, "Method '" + QString( targetMethod ) + "' not found" );
+			return 0;
+		}
+		QMetaObject::disconnect( obj, signalIndex, targetObj, targetMethodIdx );
+		return 0;
+	} else {
+	    RaiseLuaError( L, "qlua.connect: Parameter 3 must be a pointer to QObject, a QObject instance or a lua function" );
+	    return 0;
 	}
     return 0;
 }
@@ -188,21 +270,6 @@ int LuaContext::SetQObjectsOwnership( lua_State* L ) {
 	lc.ownQObjects_ = lua_toboolean( L, 1 );
     return 0;
 }
-
-//------------------------------------------------------------------------------
-int LuaContext::QtDisconnect( lua_State* L ) {
-	LuaContext& lc = *reinterpret_cast< LuaContext* >( lua_touserdata( L, lua_upvalueindex( 1 ) ) );
-	//1) get source object(as table or pointer)
-	//2) get signal
-	//3) get target object(as table or pointer) or Lua cback
-	//4) get method or lua callback
-	//5) if method call QObject::disconnect, if lua cback remove
-	//   associated dynamic slot
-    return 0;
-}
-
-
-
 
 //------------------------------------------------------------------------------
 int LuaContext::InvokeMethod( lua_State *L ) {

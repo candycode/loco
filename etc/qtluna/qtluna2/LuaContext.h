@@ -93,7 +93,8 @@ public:
 		             const char* tableName = 0, //not setting a global name allows to use this method to push a table on the stack
 					 ObjectDeleteMode deleteMode = QOBJ_NO_DELETE, //destroys QObject instance
 					 const QStringList& methodNames = QStringList(),
-					 const QList< QMetaMethod::MethodType >& methodTypes = QList< QMetaMethod::MethodType >()  );
+					 const QList< QMetaMethod::MethodType >& methodTypes =
+					     QList< QMetaMethod::MethodType >()  );
 	bool OwnQObjects() const { return ownQObjects_; }
 	~LuaContext() {
 		lua_close( L_ );

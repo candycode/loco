@@ -35,9 +35,9 @@ void PushLuaValue( LuaContext* lc, QMetaType::Type type, void* arg ) {
 }
 //------------------------------------------------------------------------------
 bool LuaCallbackDispatcher::Connect( QObject *obj, 
-									 int signalIdx,
-									 const QList< QMetaType::Type >& paramTypes,
-									 LuaCBackRef luaCBackRef ) {
+									int signalIdx,
+									const QList< QMetaType::Type >& paramTypes,
+									LuaCBackRef luaCBackRef ) {
     int methodIdx = cbackToMethodIndex_.value( luaCBackRef, -1 );
     if( methodIdx < 0 ) {
         methodIdx = luaCBackMethods_.size();
@@ -46,6 +46,25 @@ bool LuaCallbackDispatcher::Connect( QObject *obj,
 			new LuaCBackMethod( lc_, paramTypes, luaCBackRef ) );
     }
     return QMetaObject::connect( obj, signalIdx, this, methodIdx + metaObject()->methodCount() );
+}
+//------------------------------------------------------------------------------
+// precondition: value referenced object (i.e. function must already be on the stack at index idx )
+bool LuaCallbackDispatcher::Disconnect( QObject *obj, 
+									    int signalIdx,
+									    int cbackStackIndex ) {
+    int m = 0;
+	bool ok = true;
+	for( QList< LuaCBackMethod* >::iterator i = luaCBackMethods_.begin();
+		 i != luaCBackMethods_.end(); ++i, ++m ) {
+	    lua_rawgeti( lc_->LuaState(), LUA_REGISTRYINDEX, ( *i )->CBackRef() );
+		if( cbackStackIndex < 0 ) --cbackStackIndex;
+		if( lua_equal( lc_->LuaState(), cbackStackIndex, -1 ) ) {
+			ok = ok && QMetaObject::disconnect( obj, signalIdx, this, m + metaObject()->methodCount() );
+			luaL_unref( lc_->LuaState(), LUA_REGISTRYINDEX, lua_tointeger( lc_->LuaState(), -1 ) );
+			lua_pop( lc_->LuaState(), 1 );
+		} else lua_pop( lc_->LuaState(), 1 );
+	}
+	return ok;
 }
 //------------------------------------------------------------------------------
 int LuaCallbackDispatcher::qt_metacall( QMetaObject::Call invoke, MethodId methodIndex, void **arguments ) {

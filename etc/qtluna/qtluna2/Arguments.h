@@ -19,15 +19,15 @@ extern "C" {
 
 namespace qlua {
 
-	//------------------------------------------------------------------------------
-struct IArgConstructor {
+//------------------------------------------------------------------------------
+struct ArgConstructor {
 	virtual QGenericArgument Create( lua_State*, int ) const = 0;
-	virtual ~IArgConstructor() {}
-	virtual IArgConstructor* Clone() const = 0;
-	QGenericArgument ga_;
+	virtual ~ArgConstructor() {}
+	virtual ArgConstructor* Clone() const = 0;
 };
 
-struct IntArgConstructor : IArgConstructor {
+class IntArgConstructor : public ArgConstructor {
+public:
 	QGenericArgument Create( lua_State* L, int idx ) const {
 	    i_ = luaL_checkint( L, idx );
 		return Q_ARG( int, i_ );
@@ -35,9 +35,11 @@ struct IntArgConstructor : IArgConstructor {
 	IntArgConstructor* Clone() const {
 	    return new IntArgConstructor( *this );
 	}
+private:
 	mutable int i_;
 };
-struct FloatArgConstructor : IArgConstructor {
+class FloatArgConstructor : public ArgConstructor {
+public:
 	QGenericArgument Create( lua_State* L, int idx ) const {
 	    f_ = float( luaL_checknumber( L, idx ) );
 		return Q_ARG( double, f_ );
@@ -47,7 +49,8 @@ struct FloatArgConstructor : IArgConstructor {
 	}
 	mutable float f_;
 };
-struct DoubleArgConstructor : IArgConstructor {
+class DoubleArgConstructor : public ArgConstructor {
+public:
 	QGenericArgument Create( lua_State* L, int idx ) const {
 	    d_ = luaL_checknumber( L, idx );
 		return Q_ARG( double, d_ );
@@ -55,9 +58,11 @@ struct DoubleArgConstructor : IArgConstructor {
 	DoubleArgConstructor* Clone() const {
 	    return new DoubleArgConstructor( *this );
 	}
+private:
 	mutable double d_;
 };
-struct StringArgConstructor : IArgConstructor {
+class StringArgConstructor : public ArgConstructor {
+public:
 	QGenericArgument Create( lua_State* L, int idx ) const {
 		s_ = luaL_checkstring( L, idx ); 
 	    return Q_ARG( QString, s_ );
@@ -65,9 +70,11 @@ struct StringArgConstructor : IArgConstructor {
 	StringArgConstructor* Clone() const {
 	    return new StringArgConstructor( *this );
 	}
+private:
 	mutable QString s_;
 };
-struct VariantMapArgConstructor : IArgConstructor {
+class VariantMapArgConstructor : public ArgConstructor {
+public:
     QGenericArgument Create( lua_State* L, int idx ) const {
 		vm_ = ParseLuaTable( L, idx );
 	    return Q_ARG( QVariantMap, vm_ );
@@ -75,9 +82,11 @@ struct VariantMapArgConstructor : IArgConstructor {
 	VariantMapArgConstructor* Clone() const {
 	    return new VariantMapArgConstructor( *this );
 	}
+private:
 	mutable QVariantMap vm_;
 };
-struct VariantListArgConstructor : IArgConstructor {
+class VariantListArgConstructor : public ArgConstructor {
+public:
 	QGenericArgument Create( lua_State* L, int idx ) const {
 		vl_ = ParseLuaTableAsVariantList( L, idx );
 	    return Q_ARG( QVariantList, vl_ );
@@ -85,9 +94,11 @@ struct VariantListArgConstructor : IArgConstructor {
 	VariantListArgConstructor* Clone() const {
 	    return new VariantListArgConstructor( *this );
 	}
+private:
 	mutable QVariantList vl_;
 };
-struct ObjectStarArgConstructor : IArgConstructor {
+class ObjectStarArgConstructor : public ArgConstructor {
+public:
 	QGenericArgument Create( lua_State* L, int idx ) const {
 		if( lua_istable( L, idx ) ) {
 			lua_pushstring( L, "qobject__" );
@@ -102,9 +113,11 @@ struct ObjectStarArgConstructor : IArgConstructor {
 	ObjectStarArgConstructor* Clone() const {
 	    return new ObjectStarArgConstructor( *this );
 	}
+private:
 	mutable QObject* obj_;
 };
-struct WidgetStarArgConstructor : IArgConstructor {
+class WidgetStarArgConstructor : public ArgConstructor {
+public:
 	QGenericArgument Create( lua_State* L, int idx ) const {
 		if( lua_istable( L, idx ) ) {
 			lua_pushstring( L, "qobject__" );
@@ -119,9 +132,11 @@ struct WidgetStarArgConstructor : IArgConstructor {
 	WidgetStarArgConstructor* Clone() const {
 	    return new WidgetStarArgConstructor( *this );
 	}
+private:
 	mutable QWidget* w_;
 };
-struct VoidStarArgConstructor : IArgConstructor {
+class VoidStarArgConstructor : public ArgConstructor {
+public:
 	QGenericArgument Create( lua_State* L, int idx ) const {
 		v_ = const_cast< void* >( lua_topointer( L, idx ) );
 	    return Q_ARG( void*, v_ );
@@ -129,10 +144,12 @@ struct VoidStarArgConstructor : IArgConstructor {
 	VoidStarArgConstructor* Clone() const {
 	    return new VoidStarArgConstructor( *this );
 	}
+private:
 	mutable void* v_;
 };
 template< typename T >
-struct ListArgConstructor : IArgConstructor {
+class ListArgConstructor : public ArgConstructor {
+public:
 	QGenericArgument Create( lua_State* L, int idx ) const {
 		l_ = ParseLuaTableAsNumberList< T >( L, idx );
 	    return Q_ARG( QList< T >, l_ );
@@ -140,10 +157,12 @@ struct ListArgConstructor : IArgConstructor {
 	ListArgConstructor* Clone() const {
 	    return new ListArgConstructor< T >( *this );
 	}
+private:
 	mutable QList< T > l_;
 };
 template< typename T >
-struct VectorArgConstructor : IArgConstructor {
+class VectorArgConstructor : public ArgConstructor {
+public:
 	QGenericArgument Create( lua_State* L, int idx ) const {
 		v_ = ParseLuaTableAsNumberVector< T >( L, idx );
 	    return Q_ARG( QVector< T >, v_ );
@@ -151,6 +170,7 @@ struct VectorArgConstructor : IArgConstructor {
 	VectorArgConstructor* Clone() const {
 	    return new VectorArgConstructor< T >( *this );
 	}
+private:
 	mutable QVector< T > v_;
 };
 
@@ -429,7 +449,7 @@ public:
     }
     ~ParameterWrapper() { delete ac_; }
 private:
-    IArgConstructor* ac_;	
+    ArgConstructor* ac_;	
 };
 
 class ReturnWrapper {
