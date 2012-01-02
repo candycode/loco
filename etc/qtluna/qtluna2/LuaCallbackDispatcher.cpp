@@ -6,81 +6,86 @@ namespace qlua {
 //------------------------------------------------------------------------------
 void PushLuaValue( LuaContext* lc, QMetaType::Type type, void* arg ) {
     switch( type ) {
-    case QMetaType::Bool: lua_pushinteger( lc->LuaState(), *reinterpret_cast< bool* >( arg ) );
-		                 break;
-    case QMetaType::Char: lua_pushnumber( lc->LuaState(), *reinterpret_cast< char* >( arg ) );
-		                  break;
-    case QMetaType::UChar: lua_pushnumber( lc->LuaState(), *reinterpret_cast< unsigned char* >( arg ) );
-		                   break;
-	case QMetaType::UInt: lua_pushnumber( lc->LuaState(), *reinterpret_cast< unsigned* >( arg ) );
-		                 break;
-    case QMetaType::Int: lua_pushinteger( lc->LuaState(), *reinterpret_cast< int* >( arg ) );
-		                 break;
-    case QMetaType::LongLong: lua_pushnumber( lc->LuaState(), *reinterpret_cast< long long * >( arg ) );
-		                      break;
-    case QMetaType::ULongLong: lua_pushnumber( lc->LuaState(), *reinterpret_cast< unsigned long long * >( arg ) );
-		                       break;
-    case QMetaType::Float: lua_pushnumber( lc->LuaState(), *reinterpret_cast< float* >( arg ) );
-		                    break;
-	case QMetaType::Double: lua_pushnumber( lc->LuaState(), *reinterpret_cast< double* >( arg ) );
-		                    break;
-	case QMetaType::QString: lua_pushstring( lc->LuaState(), (reinterpret_cast< QString* >( arg ))->toAscii().constData() );
-		                     break;
-    case QMetaType::QWidgetStar: lc->AddQObject( reinterpret_cast< QObject* >( arg ) );
-		                         break;
-    case QMetaType::QObjectStar: lc->AddQObject( reinterpret_cast< QObject* >( arg ) );
-		                         break;
-	default: throw std::logic_error( "Type not supported" );
-	}
+        case QMetaType::Bool: lua_pushinteger( lc->LuaState(), *reinterpret_cast< bool* >( arg ) );
+                              break;
+        case QMetaType::Char: lua_pushnumber( lc->LuaState(), *reinterpret_cast< char* >( arg ) );
+                              break;
+        case QMetaType::UChar: lua_pushnumber( lc->LuaState(), *reinterpret_cast< unsigned char* >( arg ) );
+                               break;
+        case QMetaType::UInt: lua_pushnumber( lc->LuaState(), *reinterpret_cast< unsigned* >( arg ) );
+                              break;
+        case QMetaType::Int: lua_pushinteger( lc->LuaState(), *reinterpret_cast< int* >( arg ) );
+                             break;
+        case QMetaType::LongLong: lua_pushnumber( lc->LuaState(), *reinterpret_cast< long long * >( arg ) );
+                                  break;
+        case QMetaType::ULongLong: lua_pushnumber( lc->LuaState(), *reinterpret_cast< unsigned long long * >( arg ) );
+                                   break;
+        case QMetaType::Float: lua_pushnumber( lc->LuaState(), *reinterpret_cast< float* >( arg ) );
+                               break;
+        case QMetaType::Double: lua_pushnumber( lc->LuaState(), *reinterpret_cast< double* >( arg ) );
+                                break;
+        case QMetaType::QString: lua_pushstring( lc->LuaState(), (reinterpret_cast< QString* >( arg ))->toAscii().constData() );
+                                 break;
+        case QMetaType::QWidgetStar: lc->AddQObject( reinterpret_cast< QObject* >( arg ) );
+                                     break;
+        case QMetaType::QObjectStar: lc->AddQObject( reinterpret_cast< QObject* >( arg ) );
+                                     break;
+        default: throw std::logic_error( "Type not supported" );
+    }
 }
 //------------------------------------------------------------------------------
 bool LuaCallbackDispatcher::Connect( QObject *obj, 
-									int signalIdx,
-									const QList< QMetaType::Type >& paramTypes,
-									LuaCBackRef luaCBackRef ) {
+                                    int signalIdx,
+                                    const QList< QMetaType::Type >& paramTypes,
+                                    LuaCBackRef luaCBackRef ) {
     int methodIdx = cbackToMethodIndex_.value( luaCBackRef, -1 );
     if( methodIdx < 0 ) {
         methodIdx = luaCBackMethods_.size();
         cbackToMethodIndex_[ luaCBackRef ] = methodIdx;
         luaCBackMethods_.push_back(
-			new LuaCBackMethod( lc_, paramTypes, luaCBackRef ) );
+            new LuaCBackMethod( lc_, paramTypes, luaCBackRef ) );
     }
     return QMetaObject::connect( obj, signalIdx, this, methodIdx + metaObject()->methodCount() );
 }
 //------------------------------------------------------------------------------
 // precondition: value referenced object (i.e. function must already be on the stack at index idx )
 bool LuaCallbackDispatcher::Disconnect( QObject *obj, 
-									    int signalIdx,
-									    int cbackStackIndex ) {
+                                        int signalIdx,
+                                        int cbackStackIndex ) {
     int m = 0;
-	bool ok = true;
-	for( QList< LuaCBackMethod* >::iterator i = luaCBackMethods_.begin();
-		 i != luaCBackMethods_.end(); ++i, ++m ) {
-	    lua_rawgeti( lc_->LuaState(), LUA_REGISTRYINDEX, ( *i )->CBackRef() );
-		if( cbackStackIndex < 0 ) --cbackStackIndex;
-		if( lua_equal( lc_->LuaState(), cbackStackIndex, -1 ) ) {
-			ok = ok && QMetaObject::disconnect( obj, signalIdx, this, m + metaObject()->methodCount() );
-			luaL_unref( lc_->LuaState(), LUA_REGISTRYINDEX, lua_tointeger( lc_->LuaState(), -1 ) );
-			lua_pop( lc_->LuaState(), 1 );
-		} else lua_pop( lc_->LuaState(), 1 );
-	}
-	return ok;
+     bool ok = true;
+    for( QList< LuaCBackMethod* >::iterator i = luaCBackMethods_.begin();
+          i != luaCBackMethods_.end(); ++i, ++m ) {
+         lua_rawgeti( lc_->LuaState(), LUA_REGISTRYINDEX, ( *i )->CBackRef() );
+         if( cbackStackIndex < 0 ) --cbackStackIndex;
+#if LUA_VERSION_NUM > 501
+         const bool same = lua_compare( lc_->LuaState(), cbackStackIndex, -1, LUA_OPEQ );
+#else
+         const bool same = lua_equal( lc_->LuaState(), cbackStackIndex, -1 );
+#endif
+         if( same ) {
+             ok = ok && QMetaObject::disconnect( obj, signalIdx, this, m + metaObject()->methodCount() );
+             luaL_unref( lc_->LuaState(), LUA_REGISTRYINDEX, lua_tointeger( lc_->LuaState(), -1 ) );
+             lua_pop( lc_->LuaState(), 1 );
+         } else lua_pop( lc_->LuaState(), 1 );
+    }   
+    return ok;
 }
 //------------------------------------------------------------------------------
 int LuaCallbackDispatcher::qt_metacall( QMetaObject::Call invoke, MethodId methodIndex, void **arguments ) {
     methodIndex = QObject::qt_metacall( invoke, methodIndex, arguments );
     if( methodIndex < 0 || invoke != QMetaObject::InvokeMetaMethod ) return methodIndex;
-	luaCBackMethods_[ methodIndex ]->Invoke( arguments );
+    luaCBackMethods_[ methodIndex ]->Invoke( arguments );
     return -1;
 }
 //------------------------------------------------------------------------------
 void LuaCBackMethod::Invoke( void **arguments ) {
-	for( ParameterTypes::const_iterator i = paramTypes_.begin();
-		 i != paramTypes_.end(); ++i, ++arguments ) {
-	    PushLuaValue( lc_, *i, *arguments );
-	}
-	lua_rawgeti( lc_->LuaState(), LUA_REGISTRYINDEX, luaCBackRef_ );
-	lua_pcall( lc_->LuaState(), paramTypes_.size(), 0, 0 );
+    for( ParameterTypes::const_iterator i = paramTypes_.begin();
+         i != paramTypes_.end(); ++i, ++arguments ) {
+        PushLuaValue( lc_, *i, *arguments );
+    }
+    lua_rawgeti( lc_->LuaState(), LUA_REGISTRYINDEX, luaCBackRef_ );
+    lua_pcall( lc_->LuaState(), paramTypes_.size(), 0, 0 );
 }
 
 }

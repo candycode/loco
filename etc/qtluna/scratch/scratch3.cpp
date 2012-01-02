@@ -43,7 +43,7 @@ QVariant LuaValueToQVariant( lua_State* L, int idx ) {
 		const double N = lua_tonumber( L, idx );
 		if( ConvertibleTo< int >( N ) ) return int( N );
 		else if( ConvertibleTo< unsigned int >( N ) ) return (unsigned int)( N );
-		else if( ConvertibleTo< long long >( N ) ) return long( N );
+		else if( ConvertibleTo< long long >( N ) ) return (long long)( N );
 		else if( ConvertibleTo< unsigned long long >( N ) ) return (unsigned long long)( N );
 		else if( ConvertibleTo< float >( N ) ) return float( N );
 		else return N;
