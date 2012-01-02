@@ -19,6 +19,11 @@ extern "C" {
 #include "Arguments.h"
 #include "LuaQtTypes.h"
 
+
+#define QLUA_VERSION "0.2"
+#define QLUA_VERSION_MAJ 0
+#define QLUA_VERSION_MIN 2
+
 namespace qlua {
 inline void RaiseLuaError( lua_State* L, const char* errMsg ) {
     lua_pushstring( L, errMsg );
@@ -46,8 +51,11 @@ public:
     enum ObjectDeleteMode { QOBJ_NO_DELETE, QOBJ_IMMEDIATE_DELETE, QOBJ_DELETE_LATER };
     typedef QList< Method > Methods;
     typedef QMap< QObject*, QMap< QString, Methods > > ObjectMethodMap;
-    LuaContext() : L_( 0 ), ownQObjects_( false ) {
-        L_ = luaL_newstate();
+    LuaContext( lua_State* L = 0 ) : L_( L ), wrappedContext_( false ), ownQObjects_( false ) {
+        
+        if( L_ == 0 ) L_ = luaL_newstate();
+        else wrappedContext_ = true;
+        
         luaL_openlibs( L_);
         lua_newtable(L_);
 
@@ -64,6 +72,10 @@ public:
         lua_pushstring( L_,  "ownQObjects" );
         lua_pushlightuserdata( L_, this );
         lua_pushcclosure( L_, &LuaContext::SetQObjectsOwnership , 1);
+        lua_settable( L_, -3 );
+
+        lua_pushstring( L_, "version" );
+        lua_pushstring( L_, QLUA_VERSION );
         lua_settable( L_, -3 );
 
         lua_setglobal( L_, "qlua" );
@@ -98,7 +110,7 @@ public:
                          QList< QMetaMethod::MethodType >()  );
     bool OwnQObjects() const { return ownQObjects_; }
     ~LuaContext() {
-        lua_close( L_ );
+        if( !wrappedContext_ ) lua_close( L_ );
     }
 private:
     void RemoveObject( QObject* obj ) {
@@ -129,7 +141,8 @@ private:
     }
     static void RegisterTypes();
 private:
-    lua_State* L_;  
+    lua_State* L_;
+    bool wrappedContext_;   
     bool ownQObjects_;
     ObjectMethodMap objMethods_;
     LuaCallbackDispatcher dispatcher_; //signal->dispatcher_->Lua callback

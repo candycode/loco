@@ -53,7 +53,7 @@ bool LuaCallbackDispatcher::Disconnect( QObject *obj,
                                         int signalIdx,
                                         int cbackStackIndex ) {
     int m = 0;
-     bool ok = true;
+    bool ok = true;
     for( QList< LuaCBackMethod* >::iterator i = luaCBackMethods_.begin();
           i != luaCBackMethods_.end(); ++i, ++m ) {
          lua_rawgeti( lc_->LuaState(), LUA_REGISTRYINDEX, ( *i )->CBackRef() );
@@ -80,11 +80,13 @@ int LuaCallbackDispatcher::qt_metacall( QMetaObject::Call invoke, MethodId metho
 }
 //------------------------------------------------------------------------------
 void LuaCBackMethod::Invoke( void **arguments ) {
+    lua_rawgeti( lc_->LuaState(), LUA_REGISTRYINDEX, luaCBackRef_ ); 
+    ++arguments; // first parameter is return argument!
     for( ParameterTypes::const_iterator i = paramTypes_.begin();
          i != paramTypes_.end(); ++i, ++arguments ) {
         PushLuaValue( lc_, *i, *arguments );
     }
-    lua_rawgeti( lc_->LuaState(), LUA_REGISTRYINDEX, luaCBackRef_ );
+    //std::cout << lua_tostring( lc_->LuaState(), -1 ) << std::endl;
     lua_pcall( lc_->LuaState(), paramTypes_.size(), 0, 0 );
 }
 

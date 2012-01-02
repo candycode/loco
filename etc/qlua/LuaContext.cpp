@@ -59,8 +59,13 @@ void LuaContext::AddQObject( QObject* obj,
         lua_newtable( L_ ); // push metatable
         lua_pushlightuserdata( L_, obj );
         lua_pushlightuserdata( L_, this );
-        lua_pushinteger( L_, int( deleteMode ) );
+        lua_pushinteger( L_, int( deleteMode ) ); 
+#ifdef QLUA_REMOVE_GC        
+        lua_pushvalue( L_, -4 );
+        lua_pushcclosure( L_, &LuaContext::DeleteObject, 4 ); // push __gc method
+#else
         lua_pushcclosure( L_, &LuaContext::DeleteObject, 3 ); // push __gc method
+#endif                
         lua_setfield( L_, -2, "__gc" ); // set table['__gc'] = function
         lua_setmetatable( L_, -2 ); // set metatable QObject table
     }
@@ -74,9 +79,15 @@ int LuaContext::DeleteObject( lua_State* L ) {
     LuaContext* lc = reinterpret_cast< LuaContext* >( lua_touserdata( L, lua_upvalueindex( 2 ) ) );
     ObjectDeleteMode dm = ObjectDeleteMode( lua_tointeger( L, lua_upvalueindex( 3 ) ) );
     lc->RemoveObject( obj );
-    //std::clog << "deleting QObject at " << obj << std::endl;
+#ifdef QLUA_REMOVE_GC    
+    lua_pushvalue( L, lua_upvalueindex( 4 ) ); //push metatable on the stack
+    //remove __gc method 
+    lua_pushnil( L );
+    lua_setfield( L, -2, "__gc" );
+    lua_pop( L, 1 );
+#endif
     if( dm == QOBJ_IMMEDIATE_DELETE ) delete obj;
-    else if( dm == QOBJ_DELETE_LATER ) obj->deleteLater();
+    else if( dm == QOBJ_DELETE_LATER ) obj->deleteLater();    
     return 0;
 }
 

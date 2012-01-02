@@ -15,8 +15,9 @@ public slots:
     void method( const QString& msg ) {
         std::cout << msg.toStdString() << std::endl;
     }
-    void emitSignal() { emit aSignal(); }
-    void aSlot() { std::cout << "aSlot() called" << std::endl; }
+    void emitSignal( const QString& msg ) { std::cout << "emitting signal aSignal(" << msg.toStdString() << ")" << std::endl;
+                                            emit aSignal( msg ); }
+    void aSlot( const QString& msg ) { std::cout << "aSlot() called with data: " << msg.toStdString() << std::endl; }
     QString copyString( const QString& s ) { return s; }
     QVariantMap copyVariantMap( const QVariantMap& vm ) { return vm; }
     QVariantList copyVariantList( const QVariantList& vl ) { return vl; }
@@ -31,5 +32,5 @@ public slots:
     QList< short > copyShortList( const QList< short >& l ) { return l; }
     QVector< short > copyShortVector( const QVector< short >& v ) { return v; }
 signals:
-    void aSignal();
+    void aSignal(const QString&);
 };
