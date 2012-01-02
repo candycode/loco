@@ -1,0 +1,71 @@
+========
+QLua 0.2
+=======
+
+QLua is a binding between lua 5.1/5.2/luajit and Qt(tested with versions 4.7 & 4.8).
+
+License & Copyright
+-------------------
+
+QLua is Copyright (c) 2012 by Ugo Varetto and distributed under the terms of the
+BSD three-clause lincese (i.e. do what you want with it, just please add copyright
+information).
+Complete license information included in the file 'LICENSE', part of this source
+code distribution.
+
+Features
+--------
+QLua features:
+- add QObjects to Lua context: QObject instances are translated to Lua tables,
+  and invokable methods are automatically added as functions to the table
+- specify the subset of methods/method types to be added to the Lua table
+- invoke QObject methods exposed as signals, slots or through the Q_INVOKABLE macro
+- connect QObject signals to Lua callback functions
+- connect QObject signals to QObject methods
+- optionally have Lua destroy the added QObjects when tables are garbage collected
+
+QLua *is not* a Lua wrapper for the Qt toolkit; its main use is to
+expose pre-created QObjects instances to the Lua environment.
+It is however fairly easy to use QLua as a Qt toolkit wrapper, you could e.g.
+1) Create a QObject factory and add it to the Lua context
+2) Add methods to the QObject factory to create QObject wrappers which
+   expose a signal/slot interface to Lua
+
+Not that (2) is required to access QObject/QWidget features not exposed
+through slots.
+
+Usage
+-----
+
+#include "LuaContext.h"
+
+...
+LuaContext lc;
+lc.AddQObject( qobjPtr, "obj1" );
+...
+
+
+Build
+-----
+
+A CMake configuration file is provided to build the library and sample code.
+Since however there are no pre-compilation configuration steps you can very
+easily copy and paste the source code directly into any project.
+
+Being a binding between Qt and Lua the only dependencies are a Lua and Qt 
+distribution.
+You should be able to build QLua on any platform that works with Qt >= 4.7 
+and Lua >= 5.1.
+I am personally using it on the following platforms (64bit versions only):
+- Windows 7
+- Mac OX X Snow Leopard
+- Ubuntu Linux 11.x
+With Qt 4.8 and Lua versions 5.1.4, 5.2 as well as luajit-beta9.
+
+
+
+
+
+
+
+
