@@ -27,7 +27,7 @@ extern "C" {
 namespace qlua {
 inline void RaiseLuaError( lua_State* L, const char* errMsg ) {
     lua_pushstring( L, errMsg );
-      lua_error( L );
+    lua_error( L );
 }
 inline void RaiseLuaError( lua_State* L, const QString& errMsg ) {
     RaiseLuaError( L, errMsg.toAscii().constData() );

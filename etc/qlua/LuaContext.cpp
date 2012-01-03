@@ -4,6 +4,7 @@
 #include <QMetaProperty>
 
 #include "LuaContext.h"
+#include "Arguments.h"
 
 namespace qlua {
 //------------------------------------------------------------------------------
@@ -138,10 +139,10 @@ int LuaContext::QtConnect( lua_State* L ) {
     QMetaMethod mm = mo->method( signalIndex );
 
     QList< QByteArray > params = mm.parameterTypes();
-    QList< QMetaType::Type > types;
+    QList< ReturnWrapper  > types;
     for( QList< QByteArray >::const_iterator i = params.begin();
          i != params.end(); ++i ) {
-             types.push_back( QMetaType::Type( QMetaType::type( i->constData() ) ) );
+             types.push_back( ReturnWrapper( i->constData() ) );
     }
     if( lua_isfunction( L, 3 ) ) {
         //push lua callback onto top of stack

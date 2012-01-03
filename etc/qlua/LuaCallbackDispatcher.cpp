@@ -1,43 +1,22 @@
+
+
+extern "C" {
+#include "lua.h"
+#include "lauxlib.h"
+#include "lualib.h"
+}
+
+
 #include "LuaContext.h"
 #include "LuaCallbackDispatcher.h"
 
 namespace qlua {
 
 //------------------------------------------------------------------------------
-void PushLuaValue( LuaContext* lc, QMetaType::Type type, void* arg ) {
-    switch( type ) {
-        case QMetaType::Bool: lua_pushinteger( lc->LuaState(), *reinterpret_cast< bool* >( arg ) );
-                              break;
-        case QMetaType::Char: lua_pushnumber( lc->LuaState(), *reinterpret_cast< char* >( arg ) );
-                              break;
-        case QMetaType::UChar: lua_pushnumber( lc->LuaState(), *reinterpret_cast< unsigned char* >( arg ) );
-                               break;
-        case QMetaType::UInt: lua_pushnumber( lc->LuaState(), *reinterpret_cast< unsigned* >( arg ) );
-                              break;
-        case QMetaType::Int: lua_pushinteger( lc->LuaState(), *reinterpret_cast< int* >( arg ) );
-                             break;
-        case QMetaType::LongLong: lua_pushnumber( lc->LuaState(), *reinterpret_cast< long long * >( arg ) );
-                                  break;
-        case QMetaType::ULongLong: lua_pushnumber( lc->LuaState(), *reinterpret_cast< unsigned long long * >( arg ) );
-                                   break;
-        case QMetaType::Float: lua_pushnumber( lc->LuaState(), *reinterpret_cast< float* >( arg ) );
-                               break;
-        case QMetaType::Double: lua_pushnumber( lc->LuaState(), *reinterpret_cast< double* >( arg ) );
-                                break;
-        case QMetaType::QString: lua_pushstring( lc->LuaState(), (reinterpret_cast< QString* >( arg ))->toAscii().constData() );
-                                 break;
-        case QMetaType::QWidgetStar: lc->AddQObject( reinterpret_cast< QObject* >( arg ) );
-                                     break;
-        case QMetaType::QObjectStar: lc->AddQObject( reinterpret_cast< QObject* >( arg ) );
-                                     break;
-        default: throw std::logic_error( "Type not supported" );
-    }
-}
-//------------------------------------------------------------------------------
 bool LuaCallbackDispatcher::Connect( QObject *obj, 
-                                    int signalIdx,
-                                    const QList< QMetaType::Type >& paramTypes,
-                                    LuaCBackRef luaCBackRef ) {
+                                     int signalIdx,
+                                     const CBackParameterTypes& paramTypes,
+                                     LuaCBackRef luaCBackRef ) {
     int methodIdx = cbackToMethodIndex_.value( luaCBackRef, -1 );
     if( methodIdx < 0 ) {
         methodIdx = luaCBackMethods_.size();
@@ -82,11 +61,10 @@ int LuaCallbackDispatcher::qt_metacall( QMetaObject::Call invoke, MethodId metho
 void LuaCBackMethod::Invoke( void **arguments ) {
     lua_rawgeti( lc_->LuaState(), LUA_REGISTRYINDEX, luaCBackRef_ ); 
     ++arguments; // first parameter is return argument!
-    for( ParameterTypes::const_iterator i = paramTypes_.begin();
+    for( CBackParameterTypes::const_iterator i = paramTypes_.begin();
          i != paramTypes_.end(); ++i, ++arguments ) {
-        PushLuaValue( lc_, *i, *arguments );
+        i->Push( lc_->LuaState(), *arguments );
     }
-    //std::cout << lua_tostring( lc_->LuaState(), -1 ) << std::endl;
     lua_pcall( lc_->LuaState(), paramTypes_.size(), 0, 0 );
 }
 

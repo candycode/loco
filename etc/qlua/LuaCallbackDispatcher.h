@@ -2,32 +2,28 @@
 
 #include <QMap>
 #include <QList>
-#include <QMetaType>
 
-extern "C" {
-#include "lua.h"
-#include "lauxlib.h"
-#include "lualib.h"
-}
+#include "Arguments.h"
+
 
 namespace qlua {
 
 class LuaContext;
 
-typedef QList< QMetaType::Type > ParameterTypes;
+typedef QList< ReturnWrapper  > CBackParameterTypes;
 
 void PushLuaValue( LuaContext* lc, QMetaType::Type type, void* arg );
 
 //------------------------------------------------------------------------------
 class LuaCBackMethod {
 public:
-    LuaCBackMethod( LuaContext* lc, const ParameterTypes& p, int luaCBackRef ) 
+    LuaCBackMethod( LuaContext* lc, const CBackParameterTypes& p, int luaCBackRef ) 
         : lc_( lc ), paramTypes_( p ), luaCBackRef_( luaCBackRef ) {}
     void Invoke( void **arguments );
     int CBackRef() const{ return luaCBackRef_; } 
 private:
     LuaContext* lc_;
-    ParameterTypes paramTypes_;
+    CBackParameterTypes paramTypes_;
     int luaCBackRef_;
 };
 
@@ -43,7 +39,7 @@ public:
     int qt_metacall( QMetaObject::Call c, int id, void **arguments ); 
     bool Connect( QObject *obj, 
                   int signalIdx,
-                  const QList< QMetaType::Type >& paramTypes,
+                  const CBackParameterTypes& paramTypes,
                   int luaCBackRef );
     bool Disconnect( QObject *obj, 
                      int signalIdx,

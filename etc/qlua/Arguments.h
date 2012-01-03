@@ -178,6 +178,7 @@ private:
 class ReturnConstructor {
 public:
     virtual void Push( lua_State* ) const = 0;
+    virtual void Push( lua_State* , void* ) const = 0;
     virtual ~ReturnConstructor() {}
     virtual ReturnConstructor* Clone() const = 0;
     virtual QMetaType::Type Type() const = 0;
@@ -199,6 +200,9 @@ public:
     void Push( lua_State* L ) const {
         lua_pushinteger( L, i_ );
     }
+    void Push( lua_State* L, void* value ) const {
+        lua_pushinteger( L, *reinterpret_cast< int* >( value ) );
+    }
     IntReturnConstructor* Clone() const {
         return new IntReturnConstructor( *this );
     }
@@ -216,6 +220,9 @@ public:
     }
     void Push( lua_State* L ) const {
         lua_pushnumber( L, d_ );
+    }
+    void Push( lua_State* L, void* value ) const {
+        lua_pushnumber( L, *reinterpret_cast< double* >( value ) );
     }
     DoubleReturnConstructor* Clone() const {
         return new DoubleReturnConstructor( *this );
@@ -235,6 +242,9 @@ public:
     void Push( lua_State* L ) const {
         lua_pushnumber( L, f_ );
     }
+    void Push( lua_State* L, void* value ) const {
+        lua_pushnumber( L, *reinterpret_cast< float* >( value ) );
+    }
     FloatReturnConstructor* Clone() const {
         return new FloatReturnConstructor( *this );
     }
@@ -253,6 +263,9 @@ public:
     void Push( lua_State* L ) const {
         lua_pushstring( L, s_.toAscii().constData() );
     }
+    void Push( lua_State* L, void* value ) const {
+        lua_pushstring( L, reinterpret_cast< QString* >( value )->toAscii().constData() );
+    }
     StringReturnConstructor* Clone() const {
         return new StringReturnConstructor( *this );
     }
@@ -263,6 +276,7 @@ private:
 class VoidReturnConstructor : public ReturnConstructor {
 public:
     void Push( lua_State*  ) const {}
+    void Push( lua_State*, void* ) const {}
     VoidReturnConstructor* Clone() const {
         return new VoidReturnConstructor( *this );
     }
@@ -278,6 +292,9 @@ public:
     }
     void Push( lua_State* L ) const {
         VariantMapToLuaTable( vm_, L );
+    }
+    void Push( lua_State* L, void* value ) const {
+        VariantMapToLuaTable( *reinterpret_cast< QVariantMap* >( value ), L );
     }
     VariantMapReturnConstructor* Clone() const {
         return new VariantMapReturnConstructor( *this );
@@ -297,6 +314,9 @@ public:
     void Push( lua_State* L ) const {
         VariantListToLuaTable( vl_, L );
     }
+    void Push( lua_State* L, void* value ) const {
+        VariantListToLuaTable( *reinterpret_cast< QVariantList* >( value ), L );
+    }
     VariantListReturnConstructor* Clone() const {
         return new VariantListReturnConstructor( *this );
     }
@@ -314,6 +334,9 @@ public:
     }
     void Push( lua_State* L ) const {
         lua_pushlightuserdata( L, obj_ );
+    }
+    void Push( lua_State* L, void* value ) const {
+        lua_pushlightuserdata( L,  value );
     }
     ObjectStarReturnConstructor* Clone() const {
         return new ObjectStarReturnConstructor( *this );
@@ -333,6 +356,9 @@ public:
     void Push( lua_State* L ) const {
         lua_pushlightuserdata( L, w_ );
     }
+    void Push( lua_State* L, void* value ) const {
+        lua_pushlightuserdata( L,  value );
+    }
     WidgetStarReturnConstructor* Clone() const {
         return new WidgetStarReturnConstructor( *this );
     }
@@ -350,6 +376,9 @@ public:
     }
     void Push( lua_State* L ) const {
         lua_pushlightuserdata( L, v_ );
+    }
+    void Push( lua_State* L, void* value ) const {
+        lua_pushlightuserdata( L,  value );
     }
     VoidStarReturnConstructor* Clone() const {
         return new VoidStarReturnConstructor( *this );
@@ -371,6 +400,9 @@ public:
     void Push( lua_State* L ) const {
         NumberListToLuaTable< T >( l_, L );
     }
+    void Push( lua_State* L, void* value ) const {
+        NumberListToLuaTable< T >( *reinterpret_cast< QList< T >* >( value ), L );
+    }
     ListReturnConstructor* Clone() const {
         return new ListReturnConstructor( *this );
     }
@@ -390,6 +422,9 @@ public:
     }
     void Push( lua_State* L ) const {
         NumberVectorToLuaTable< T >( v_, L );
+    }
+    void Push( lua_State* L, void* value ) const {
+        NumberVectorToLuaTable< T >( *reinterpret_cast< QVector< T >* >( value ), L );
     }
     VectorReturnConstructor* Clone() const {
         return new VectorReturnConstructor( *this );
@@ -498,6 +533,9 @@ public:
     }
     void Push( lua_State* L ) const {
         rc_->Push( L );
+    }
+    void Push( lua_State* L, void* value ) const {
+        rc_->Push( L, value ); // called from the callback dispatcher method
     }
     QGenericReturnArgument Arg() const { return rc_->Argument(); }
     const QString& Type() const { 
