@@ -15,6 +15,7 @@ namespace loco {
 
 class  WrappedWidget : public Object {
 	Q_OBJECT
+    Q_PROPERTY( bool fullScreen READ IsFullScreen )
 public:
 	WrappedWidget( Context* c = 0, 
 		           const QString& n = "LocoWrappedWidget",
@@ -22,6 +23,8 @@ public:
 			       const QString& module = "",
                    bool destroyable = false,
 				   ObjectInfo* objInfo = 0 ) : Object( c, n, type, module, destroyable, objInfo ) {}
+private:
+    bool IsFullScreen() const { return Widget()->isFullScreen(); }
 public:
 	virtual QWidget* Widget()  = 0;
 	virtual const QWidget* Widget() const = 0;
@@ -39,7 +42,7 @@ protected:
 	    connect( Widget(), SIGNAL( closing() ), this, SIGNAL( closing() ) );
 	}
 public slots:
-	void resize( int w, int h ) { Widget()->resize( w, h ); }
+    void resize( int w, int h ) { Widget()->resize( w, h ); }
     bool setParentWidget( QObject* obj ) {
     	if( !qobject_cast< WrappedWidget* >( obj ) ) {
     		error( "'setParentWidget' requires a WrappedWidget derived object" );

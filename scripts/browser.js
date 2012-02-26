@@ -14,7 +14,7 @@ try {
   var menu = {
      "_1_Actions": {
        "_1_Toggle fullscreen": {
-        cback: "mainWindow.toggleFullScreen()",
+        cback: "if( mainWindow.fullScreen ) mainWindow.showNormal(); else mainWindow.showFullScreen();",
         tooltip: "Toggle fullscreen",
         status: "Show fullscreen/normal",
         icon: ""
@@ -55,7 +55,6 @@ try {
   var ww = Loco.gui.create( "WebWindow" );
   mainWindow.setCentralWidget( ww );
   ww.onError.connect( function( err ) { print( err ); } );
-  ww.addParentObjsToContext
   ww.addObjectToContext( mainWindow, "mainWindow" );
   ww.addObjectToContext( ww, "webWindow" );
   if( logRequests ) {
