@@ -4,10 +4,11 @@ var ppath = "";
 if( Loco.ctx.os() === "WINDOWS" ) 
   ppath = "/cmakebuilds/project-loco/modules/plugins/osgview/Release/osgview.dll";
 else
-  ppath = Loco.ctx.homeDir() + "~/build/loco/modules/plugins/osgview/libosgview.so";
+  ppath = Loco.ctx.homeDir() + "/build/loco/modules/plugins/osgview/libosgview.so";
 
 var osgview = Loco.ctx.loadObject( ppath );
-osgview.loadScene( "cow.osg" );
+if( !osgview ) throw "Canno create OSG view";
+//osgview.loadScene( "cow.osg" );
 //osgview.loadPage( "file:///projects/loco/modules/plugins/osgview/test/loadtest.html" );
 //osgview.loadPage( "file:///projects/loco/modules/plugins/osgview/test/loadtest.html", true );
 osgview.loadPage( "./loadtest.html", true );

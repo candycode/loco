@@ -11,9 +11,9 @@ ww.setAttributes( { DeveloperExtrasEnabled: true,
 ww.setEnableContextMenu( true );
 
 if( !Loco.ctx.os() === "WINDOWS" )
-  ww.load( "./loadtest.html" );
-else
   ww.load( "./loadtest-win.html" );
+else
+  ww.load( "./loadtest.html" );
 
 ww.show();
 
