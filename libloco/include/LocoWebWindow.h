@@ -227,7 +227,7 @@ public slots:
     void setUserAgentForUrl( const QRegExp& url, const QString& userAgent ) {
 	    webView_->SetUserAgentForUrl( url, userAgent );
 	}
-	void SetAllowInterruptJavaScript( bool yes ) {
+	void setAllowInterruptJavaScript( bool yes ) {
 		webView_->SetAllowInterruptJavaScript( yes );
 	}
     bool syncLoad( const QString& url, int timeout ) { return webView_->SyncLoad( url,  timeout ); }
@@ -360,7 +360,7 @@ public slots:
 
 signals:
     void linkClicked( const QUrl& );
-	void linkHovered( const QString&, const QString&, const QString& );
+    void linkHovered( const QString&, const QString&, const QString& );
     void loadFinished( bool );
     void loadProgress( int );
     void loadStarted();

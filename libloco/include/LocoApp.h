@@ -33,34 +33,34 @@ class App : public QObject {
 private:
     enum RuleType { NetDeny, NetAllow, FileDeny, FileAllow };
 public:
-	App( LocoQtApp& app, int argc, char** argv, ObjectInfo* oi ); 
+    App( LocoQtApp& app, int argc, char** argv, ObjectInfo* oi ); 
 
-	void AddResources( const QString& path ) {
-	    QResource::registerResource( path );
-	}
+    void AddResources( const QString& path ) {
+        QResource::registerResource( path );
+    }
 
-	void MapToFilters( const QRegExp& rx, const QStringList& filterIds ) {
+    void MapToFilters( const QRegExp& rx, const QStringList& filterIds ) {
         ctx_.AddNameFilterMapping( rx, filterIds );
-	}
+    }
 
-	bool GetEventLoopEnable() const { return startEventLoop_; }
+    bool GetEventLoopEnable() const { return startEventLoop_; }
 
-	void SetEventLoopEnable( bool yes ) { startEventLoop_ = yes; }
+    void SetEventLoopEnable( bool yes ) { startEventLoop_ = yes; }
 
-	void SetInterpreter( IJSInterpreter* i );
+    void SetInterpreter( IJSInterpreter* i );
     
-	void SetMapFiltersToFileNames( bool on ) { ctx_.SetAutoMapFilters( on ); }
+    void SetMapFiltersToFileNames( bool on ) { ctx_.SetAutoMapFilters( on ); }
 
-	void AddModuleToJS( Object* obj ) {
-		ctx_.AddJSStdObject( obj ); // context owns module
-	}
+    void AddModuleToJS( Object* obj ) {
+        ctx_.AddJSStdObject( obj ); // context owns module
+    }
 
-	void AddContextToJS() { //adds context to the list of objects accessible from javascript
-	    ctx_.AddContextToJS();
-	}
+    void AddContextToJS() { //adds context to the list of objects accessible from javascript
+        ctx_.AddContextToJS();
+    }
     
     const QVariant& GetResult() const { return execResult_; }
-	
+    
     void SetAllowNetAccess( bool na ) { netAccess_.SetAllowNetAccess( na ); }
 
     void SetFilterNetRequests( bool fr ) { netAccess_.SetFilterRequests( fr ); }
@@ -94,18 +94,18 @@ public:
     void InitContext() {
         ctx_.Init( jsInterpreter_, &app_, cmdLine_ );
     }
-	void SetScriptFileNameMatchingExpression( const QRegExp& rx )  { scriptNameRX_ = rx; }
+    void SetScriptFileNameMatchingExpression( const QRegExp& rx )  { scriptNameRX_ = rx; }
     int Execute( bool forceDefault = false );
     int Execute( const QString& code, const QStringList& filters = QStringList() );
     void ConfigNetAccessFromFile( const QString& deny,
-    		                      const QString& allow ) {
-    	ReadRules( deny, NetDeny );
-    	ReadRules( allow, NetAllow );
+                                  const QString& allow ) {
+        ReadRules( deny, NetDeny );
+        ReadRules( allow, NetAllow );
     }
     void ConfigFileAccessFromFile( const QString& deny,
-    		                       const QString& allow ) {
-    	ReadRules( deny, FileDeny );
-    	ReadRules( allow, FileAllow );
+                                   const QString& allow ) {
+        ReadRules( deny, FileDeny );
+        ReadRules( allow, FileAllow );
     }
     void AddNameFilterMapping( const QRegExp& rx, const QStringList& filterIds ) {
         ctx_.AddNameFilterMapping( rx, filterIds );
@@ -117,9 +117,9 @@ public:
         ctx_.LoadFilter( id, uri );
     }
     void PreloadScriptFilter( const QString& id,
-    		                  const QString& uri,
-    		                  const QString& jfun,
-			                  const QString& jcode = "",
+                              const QString& uri,
+                              const QString& jfun,
+                              const QString& jcode = "",
                               const QString& jerrfun = "",
                               const QString& codePlaceHolder = "" ) {
         ctx_.LoadScriptFilter( id, uri, jfun, jcode, jerrfun, codePlaceHolder );
@@ -129,35 +129,35 @@ public:
         ctx_.LoadObject( uri, PERSISTENT );
     }
     void PreloadQtPlugin( QString filePath,
-                              QString jsInstanceName,
-                              const QString& initMethodName = "Init",
-                              const QVariantMap& params = QVariantMap() ) {
+                          QString jsInstanceName,
+                          const QString& initMethodName = "Init",
+                          const QVariantMap& params = QVariantMap() ) {
         ctx_.LoadQtPlugin( filePath, jsInstanceName, initMethodName, params );
     }
     void SetDocHandler( const QRegExp& rx, const QString& scriptURI ) {
-    	docHandlers_.push_back( qMakePair( rx, scriptURI ) );
+        docHandlers_.push_back( qMakePair( rx, scriptURI ) );
     }
 signals:
     void OnException( const QString& );
 private slots:
-	void OnJavaScriptConsoleMessage( const QString& t, int l, const QString& s );
+    void OnJavaScriptConsoleMessage( const QString& t, int l, const QString& s );
 private:
     void ReadRules( const QString& fname, RuleType target );
 
 private:
-	CMDLine cmdLine_;
-	LocoQtApp& app_;
-	IJSInterpreter* jsInterpreter_;
-	Context ctx_;
-	QString defaultScript_;
-	mutable QString scriptFileName_; 
+    CMDLine cmdLine_;
+    LocoQtApp& app_;
+    IJSInterpreter* jsInterpreter_;
+    Context ctx_;
+    QString defaultScript_;
+    mutable QString scriptFileName_; 
     QPointer< ObjectInfo > info_;
-	QString helpText_;
-	QVariant execResult_;
+    QString helpText_;
+    QVariant execResult_;
     NetworkAccessManager netAccess_;
     FileAccessManager fileAccess_;
     bool startEventLoop_;
-	QRegExp scriptNameRX_;
-	DocHandlers docHandlers_;
+    QRegExp scriptNameRX_;
+    DocHandlers docHandlers_;
 };
 }

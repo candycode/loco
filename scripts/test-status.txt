@@ -1,6 +1,4 @@
 TODO
-test2-plugin.js 
 test4-process.js
-test6-gui.js - check if gui available, if not print error msg
 test9-gui.js
 test10-gui.js

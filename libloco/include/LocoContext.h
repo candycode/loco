@@ -73,38 +73,38 @@ public:
     Context( IJSInterpreter* jsi, LocoQtApp* app, const QStringList& cmdLine,
              Context* parent = 0 );
     void Init( IJSInterpreter* jsi, LocoQtApp* app = 0,
-    		   const QStringList& cmdLine = QStringList(), Context* parent = 0 );
+               const QStringList& cmdLine = QStringList(), Context* parent = 0 );
 // called from C++
 public:
     void ConnectSigToSlot( QObject* srcObj,
-    		               const QString& sigSignature,
-    		               QObject* targetObj,
-    		               const QString& slotSignature ) {
+                           const QString& sigSignature,
+                           QObject* targetObj,
+                           const QString& slotSignature ) {
         QObject::connect( srcObj, SignalSignature( sigSignature ).toAscii().constData(),
-        		          targetObj, SlotSignature( slotSignature ).toAscii().constData() );
+                          targetObj, SlotSignature( slotSignature ).toAscii().constData() );
     }
     void ConnectSigToSig( QObject* srcObj,
-        		          const QString& sig1Signature,
-        		          QObject* targetObj,
-        		          const QString& sig2Signature ) {
+                          const QString& sig1Signature,
+                          QObject* targetObj,
+                          const QString& sig2Signature ) {
             QObject::connect( srcObj, SignalSignature( sig1Signature ).toAscii().constData(),
-            		          targetObj, SignalSignature( sig2Signature ).toAscii().constData() );
+                              targetObj, SignalSignature( sig2Signature ).toAscii().constData() );
     }
     void Connect( QObject* srcObj,
-            	  const QString& sigSignature,
-            	  QObject* targetObj,
-            	  const QString& sigOrSlotSignature ) {
+                  const QString& sigSignature,
+                  QObject* targetObj,
+                  const QString& sigOrSlotSignature ) {
                 QObject::connect( srcObj, sigSignature.toAscii().constData(),
-                		          targetObj, sigOrSlotSignature.toAscii().constData() );
+                                  targetObj, sigOrSlotSignature.toAscii().constData() );
     }
-	QString SignalSignature( const QString& sig ) { //returns mangled signature
-	    QString placeHolder = SIGNAL( () );
-		return placeHolder.replace( "()", sig );
-	}
-	QString SlotSignature( const QString& sig ) { //returns mangled signature
-	    QString placeHolder = SLOT( () );
-		return placeHolder.replace( "()", sig );
-	}
+    QString SignalSignature( const QString& sig ) { //returns mangled signature
+        QString placeHolder = SIGNAL( () );
+        return placeHolder.replace( "()", sig );
+    }
+    QString SlotSignature( const QString& sig ) { //returns mangled signature
+        QString placeHolder = SLOT( () );
+        return placeHolder.replace( "()", sig );
+    }
     void Yeld() { app_->processEvents(); }
     const QString& LastReadURI() const { return lastReadURI_; }
     bool SetAllowInterrupt( bool yes ) { return jsInterpreter_->SetAllowInterrupt( yes ); }
@@ -115,17 +115,17 @@ public:
     bool GetStoreCode() const { return storeCode_; }
     void AddNetworkRequestHandler( const QString& scheme, QObject* handler );
     void SetEnableCustomNetRequestHandlers( bool yes ) {
-    	netAccessMgr_->SetEnableCustomRequestHandlers( yes );
+        netAccessMgr_->SetEnableCustomRequestHandlers( yes );
     }
     QVariant Create( const QString& className, const QVariantMap& init = QVariantMap() );
-	bool RegisterResources( const QString& path, const QString& rootPath = QString() ) {
-		return QResource::registerResource( path, rootPath );
-	}
-	bool UnRegisterResources( const QString& path, const QString& rootPath = QString() ) {
-		return QResource::unregisterResource( path, rootPath );
-	}
-   	void SetAddObjectsFromParentContext( bool yes ) { addParentObjs_ = yes; }
-	void SetParentContext( Context* pc ) { parent_ = pc; }
+    bool RegisterResources( const QString& path, const QString& rootPath = QString() ) {
+        return QResource::registerResource( path, rootPath );
+    }
+    bool UnRegisterResources( const QString& path, const QString& rootPath = QString() ) {
+        return QResource::unregisterResource( path, rootPath );
+    }
+    void SetAddObjectsFromParentContext( bool yes ) { addParentObjs_ = yes; }
+    void SetParentContext( Context* pc ) { parent_ = pc; }
     QString GetJSInitCode() const { return jsInitGenerator_->GenerateCode(); }
     void AddNameFilterMapping( const QRegExp& rx, const QStringList& filterIds ) {
         nameFilterMap_.push_back( qMakePair( rx, filterIds ) );
@@ -139,7 +139,7 @@ public:
     void AddJSStdObject( Object* obj, bool immediateAdd = false );    
     QVariant AddObjToJSContext( Object* obj, bool ownedByJavascript = true );
     // this method is intended to insert objects from other contexts
-	void AddQObjectToJSContext( QObject* obj, const QString& name, bool ownedByJavascript = false );
+    void AddQObjectToJSContext( QObject* obj, const QString& name, bool ownedByJavascript = false );
     void AddFilter( const QString& id, Filter* f ) { 
         if( f->GetPluginLoader() == 0 && f->parent() == 0 ) f->setParent( this );
         filters_[ id ] = f;
@@ -150,7 +150,7 @@ public:
     const QString& GetJSGlobalNameForContext() const {
         return globalContextJSName_;
     }
-	void SetJSErrCBack( const QString& code,
+    void SetJSErrCBack( const QString& code,
                         const QStringList& filterIds = QStringList() ) {
         jsErrCBack_ = ApplyFilter( code, filterIds );
     }
@@ -162,7 +162,7 @@ public:
         jsInitGenerator_->setParent( this ); 
     }
     IJavaScriptInit* GetJSInitGenerator() const { return jsInitGenerator_; }
-	const JScriptObjCtxInstances& GetStdJSObjects() const { return jscriptStdObjects_; }
+    const JScriptObjCtxInstances& GetStdJSObjects() const { return jscriptStdObjects_; }
 
     void SetNetworkAccessManager( NetworkAccessManager* nam );
     QNetworkAccessManager* GetNetworkAccessManager() const { return netAccessMgr_; }
@@ -172,16 +172,16 @@ public:
     int GetMaxRedirection() const { return maxNetRedirections_; }
     void SetNetReadTimeout( int ms ) { readNetworkTimeout_ = ms; }
     int GetNetReadTimeout() const { return readNetworkTimeout_; }
-	void Exit( int r ) { app_->exit( r ); exit( r ); }
-	void SetJSContextName( const QString& n ); 
-	void Quit() { app_->quit(); }
-	QString JSInterpreterName() const { return jsInterpreter_->Name(); }
-	//adds both a hidden QPluginLoader wrapper and an object created through QPluginLoader::instance()
-	//the object created through ::instance() method is set to be the child of the QPluginLoader instance.
-	//The QPluginLoader lifetime is handled by the JS interpreter i.e. it dies when the JS wrapper dies.
-	//If the object has a QString Init(QVariantMap) method then such method is invoked with the parameters
-	//stored in 'params' before the object is added to the javascript interpreter.
-	QVariant LoadQtPlugin( QString filePath,
+    void Exit( int r ) { app_->exit( r ); exit( r ); }
+    void SetJSContextName( const QString& n ); 
+    void Quit() { app_->quit(); }
+    QString JSInterpreterName() const { return jsInterpreter_->Name(); }
+    //adds both a hidden QPluginLoader wrapper and an object created through QPluginLoader::instance()
+    //the object created through ::instance() method is set to be the child of the QPluginLoader instance.
+    //The QPluginLoader lifetime is handled by the JS interpreter i.e. it dies when the JS wrapper dies.
+    //If the object has a QString Init(QVariantMap) method then such method is invoked with the parameters
+    //stored in 'params' before the object is added to the javascript interpreter.
+    QVariant LoadQtPlugin( QString filePath,
                            QString jsInstanceName = QString(),
                            const QString& initMethodName = "Init",
                            const QVariantMap& params = QVariantMap() );
@@ -203,14 +203,14 @@ private slots:
         if( addParentObjs_ && parent_ != 0  ) {
             parent_->AddJSStdObjects( jsInterpreter_ );
         }
-		AddJSStdObjects( jsInterpreter_ );
+        AddJSStdObjects( jsInterpreter_ );
     }
     void RemoveStdObjects();
-    void RemoveFilters();	
+    void RemoveFilters();   
     void OnJSContextCleared();
 signals:
     void JSContextCleared();
-	void JavaScriptConsoleMessage( const QString&, int, const QString& );
+    void JavaScriptConsoleMessage( const QString&, int, const QString& );
 public slots:
     // loco::Objects should be connected to this slot to have errors handled by the context
     // and indirectly by javascript
@@ -256,8 +256,8 @@ public:
                 if( fp->error() ) break;                 
             }
             else {
-    	        error( "filter id " + *f + " not found" );
-    	        break;
+                error( "filter id " + *f + " not found" );
+                break;
             }
         }
         return error() ? DataT() : data; 
@@ -277,7 +277,7 @@ private:
     bool HasFilter( const QString& id ) { return filters_.find( id ) != filters_.end(); }
     void AddScriptFilter( const QString& id,
                           const QString& jfun,
-						  const QString& jcode = "",
+                          const QString& jcode = "",
                           const QString& jerrfun = "",
                           const QString& codePlaceHolder = "" ) {
         Filter* lf = new ScriptFilter( jsInterpreter_.data(), jfun, jcode, jerrfun, codePlaceHolder );
@@ -286,9 +286,9 @@ private:
         filters_[ id ] = lf;
     }
     void LoadScriptFilter( const QString& id,
-		                   const QString& uri,
-						   const QString& jfun,
-						   const QString& jcode = "",
+                           const QString& uri,
+                           const QString& jfun,
+                           const QString& jcode = "",
                            const QString& jerrfun = "",
                            const QString& codePlaceHolder = "" );
     QStringList CmdLine() const { return cmdLine_; }
@@ -331,7 +331,7 @@ private:
     QString globalContextJSName_;
     NameFilterMap nameFilterMap_;
     bool autoMapFilters_;
-	bool addParentObjs_;
+    bool addParentObjs_;
 private: 
     IJavaScriptInit* jsInitGenerator_; 
     QPointer< NetworkAccessManager > netAccessMgr_;

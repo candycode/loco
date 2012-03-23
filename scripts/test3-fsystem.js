@@ -2,13 +2,21 @@
 var c = Loco.console;
 var fs = Loco.fs;
 try {
-c.println( "LoCO started..." );
-
 (function() {
   var file = fs.fopen( "loco.txt", ["w"] );
-  file.write( "Loco!!!" );
+  file.write( "LoooCO!!!" );
+  file.close();
+  c.println( "Written to file loco.txt" );
+})();   
+(function() {
+  var file = fs.fopen( "loco.txt", ["r"] );
+  c.println( "Read from loco.txt: " + file.readLine() );
   file.close();
 })();   
+
+c.println( "press <ENTER> to continue" );
+c.readLine();
+
 (function() {
    var dir = fs.dir( "/" );
    var entries = dir.entries();

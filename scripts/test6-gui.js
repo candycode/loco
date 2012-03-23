@@ -1,5 +1,5 @@
 try {
-
+  if( !Loco.gui ) throw "GUI not available recompile with GUI support";
   var $include = Loco.ctx.include;
   $include( 'keys.js' );
   var print = Loco.console.println;
