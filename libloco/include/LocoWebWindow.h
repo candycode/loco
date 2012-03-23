@@ -41,14 +41,14 @@ typedef QMap< QAction*, QString > CBackMap;
 class WebWindow : public WrappedWidget {
     Q_OBJECT
 private:
-	struct ObjectEntry {
-	    QObject* obj_;
-		QString jsName_;
-		bool own_;
-		ObjectEntry( QObject* obj, const QString& jsName, bool own ) :
-		    obj_( obj ), jsName_( jsName ), own_( own ) {}
-	};
-	typedef QList< ObjectEntry > ContextObjects;
+    struct ObjectEntry {
+        QObject* obj_;
+        QString jsName_;
+        bool own_;
+        ObjectEntry( QObject* obj, const QString& jsName, bool own ) :
+            obj_( obj ), jsName_( jsName ), own_( own ) {}
+    };
+    typedef QList< ObjectEntry > ContextObjects;
 public:
     WebWindow() : WrappedWidget( 0, "LocoWebWindow", "Loco/GUI/Window" ),
         webView_( new WebView() ), jsInterpreter_( new WebKitJSCoreWrapper )  {
@@ -65,22 +65,22 @@ public:
         connect( webView_->page(), SIGNAL( selectionChanged() ), this, SIGNAL( selectionChanged() ) );
         connect( &ctx_, SIGNAL( JSContextCleared() ), this, SLOT( PreLoadCBack() ) );
         connect( webView_, SIGNAL( unsupportedContent( const QString& )  ),
-        		 this, SIGNAL( unsupportedContent( const QString& ) ) );
+                 this, SIGNAL( unsupportedContent( const QString& ) ) );
         connect( webView_, SIGNAL( downloadRequested( const QString& ) ),
                  this, SIGNAL( downloadRequested( const QString& ) ) );
-		connect( webView_, SIGNAL( fileDownloadProgress( qint64, qint64 ) ), this, SIGNAL( fileDownloadProgress( qint64, qint64 ) ) );
-		connect( webView_, SIGNAL( actionTriggered( const QString&, bool ) ), this, SIGNAL( webActionTriggered( const QString&, bool ) ) );
-		connect( webView_, SIGNAL( fileDownloadProgress( qint64, qint64 ) ), this, SIGNAL( fileDownloadProgress( qint64, qint64 ) ) );
-		connect( webView_, SIGNAL( JavaScriptConsoleMessage( const QString&, int, const QString& ) ),
-		   		 this, SIGNAL( javaScriptConsoleMessage( const QString&, int, const QString& ) ) );
-		connect( webView_, SIGNAL( actionTriggered( const QString&, bool ) ), this, SIGNAL( webActionTriggered( const QString&, bool ) ) );
-		connect( webView_->page(), SIGNAL( statusBarMessage( const QString& ) ), this, SIGNAL( statusBarMessage( const QString& ) ) );
+        connect( webView_, SIGNAL( fileDownloadProgress( qint64, qint64 ) ), this, SIGNAL( fileDownloadProgress( qint64, qint64 ) ) );
+        connect( webView_, SIGNAL( actionTriggered( const QString&, bool ) ), this, SIGNAL( webActionTriggered( const QString&, bool ) ) );
+        connect( webView_, SIGNAL( fileDownloadProgress( qint64, qint64 ) ), this, SIGNAL( fileDownloadProgress( qint64, qint64 ) ) );
+        connect( webView_, SIGNAL( JavaScriptConsoleMessage( const QString&, int, const QString& ) ),
+                 this, SIGNAL( javaScriptConsoleMessage( const QString&, int, const QString& ) ) );
+        connect( webView_, SIGNAL( actionTriggered( const QString&, bool ) ), this, SIGNAL( webActionTriggered( const QString&, bool ) ) );
+        connect( webView_->page(), SIGNAL( statusBarMessage( const QString& ) ), this, SIGNAL( statusBarMessage( const QString& ) ) );
         connect( webView_->page(), SIGNAL( statusBarVisibilityChangeRequested( bool ) ),
-        		 this, SIGNAL( statusBarVisibilityChangeRequested( bool ) ) );
+                 this, SIGNAL( statusBarVisibilityChangeRequested( bool ) ) );
         connect( webView_->page(), SIGNAL( toolBarVisibilityChangeRequested( bool ) ),
                  this, SIGNAL( toolBarVisibilityChangeRequested( bool ) ) );
-		connect( webView_->page(), SIGNAL( linkHovered( const QString&, const QString&, const QString& ) ),
-        		 this, SIGNAL( linkHovered( const QString&, const QString&, const QString& ) ) );
+        connect( webView_->page(), SIGNAL( linkHovered( const QString&, const QString&, const QString& ) ),
+                 this, SIGNAL( linkHovered( const QString&, const QString&, const QString& ) ) );
         connect( jsInterpreter_, SIGNAL( JavaScriptContextCleared() ), this, SLOT( JavaScriptContextCleared() ) );
         jsInterpreter_->setParent( this );
         jsInterpreter_->SetWebPage( webView_->page() );   
@@ -92,8 +92,8 @@ public:
         // must return pointer which is set within this constructor
         WrappedWidget::ConnectSignals();
     }
-	QWidget* Widget() { return webView_; }
-	virtual const QWidget* Widget() const { return webView_; }
+    QWidget* Widget() { return webView_; }
+    virtual const QWidget* Widget() const { return webView_; }
     ~WebWindow() { if( webView_ && webView_->parent() == 0 ) webView_->deleteLater(); }
 
     void AddSelfToJSContext() {
@@ -101,13 +101,13 @@ public:
     }
     
     void SetNetworkAccessManager( QNetworkAccessManager* nam ) {
-		NetworkAccessManager* na = qobject_cast< NetworkAccessManager* >( nam );
-		if( na != 0 ) {
-			connect( na, SIGNAL( OnRequest( const QVariantMap& ) ),
-					 this, SIGNAL( onRequest( const QVariantMap& ) ) );
-		}
-		webView_->page()->setNetworkAccessManager( nam );
-	}
+        NetworkAccessManager* na = qobject_cast< NetworkAccessManager* >( nam );
+        if( na != 0 ) {
+            connect( na, SIGNAL( OnRequest( const QVariantMap& ) ),
+                     this, SIGNAL( onRequest( const QVariantMap& ) ) );
+        }
+        webView_->page()->setNetworkAccessManager( nam );
+    }
 
     void SetContext( Context* ctx ) {
         Object::SetContext( ctx );
@@ -122,114 +122,114 @@ public:
 
 private slots:
     void JavaScriptContextCleared() {
-		for( ContextObjects::const_iterator i = ctxObjects_.begin();
-			 i != ctxObjects_.end(); ++i ) {
-		   ctx_.AddQObjectToJSContext( i->obj_, i->jsName_, i->own_ ); 
-		}	
-	}
+        for( ContextObjects::const_iterator i = ctxObjects_.begin();
+             i != ctxObjects_.end(); ++i ) {
+           ctx_.AddQObjectToJSContext( i->obj_, i->jsName_, i->own_ ); 
+        }   
+    }
     void PreLoadCBack() { ctx_.Eval( preLoadCBack_ ); }
 
 public slots:
     void openInspector() {
-    	QWebInspector* wi = new QWebInspector( webView_ );
-    	wi->setPage( webView_->page() );
-    	wi->show();
+        QWebInspector* wi = new QWebInspector( webView_ );
+        wi->setPage( webView_->page() );
+        wi->show();
     }
-	void setPreLoadCBack( const QString& cback ) { preLoadCBack_ = cback; }
-	void addObjectToContext( QObject* obj, const QString& jsName, bool own = false ) {
-		ctx_.AddQObjectToJSContext( obj, jsName, own );
-		ctxObjects_.push_back( ObjectEntry( obj, jsName, own ) );
-	}
-	void addNewObjectToContext( QObject* qobj, const QString& jsName, bool own = false ) {
-		// duplicate from JSContext, move into Context
-		Object* obj = dynamic_cast< Object* >( qobj );
-    	if( !obj ) {
-    		error( "loco::Object instance required" );
-    		return;
-    	}
-    	if( !obj->cloneable() ) {
-    		error( "Object cannot be copied" );
-    		return;
-    	}
-    	obj = obj->Clone();
-    	obj->SetJSInstanceName( jsName );
+    void setPreLoadCBack( const QString& cback ) { preLoadCBack_ = cback; }
+    void addObjectToContext( QObject* obj, const QString& jsName, bool own = false ) {
         ctx_.AddQObjectToJSContext( obj, jsName, own );
-		ctxObjects_.push_back( ObjectEntry( obj, jsName, own ) );
-	}
-	void resetObject() { ctxObjects_.clear(); }
-	void setEmitWebActionSignal( bool yes ) { webView_->SetEmitWebActionSignal( yes ); }
-	void triggerAction( const QString& action, bool checked = false ) {
-		if( !webView_->TriggerAction( action, checked ) ) error( "Cannot trigger action " + action );
-	}
+        ctxObjects_.push_back( ObjectEntry( obj, jsName, own ) );
+    }
+    void addNewObjectToContext( QObject* qobj, const QString& jsName, bool own = false ) {
+        // duplicate from JSContext, move into Context
+        Object* obj = dynamic_cast< Object* >( qobj );
+        if( !obj ) {
+            error( "loco::Object instance required" );
+            return;
+        }
+        if( !obj->cloneable() ) {
+            error( "Object cannot be copied" );
+            return;
+        }
+        obj = obj->Clone();
+        obj->SetJSInstanceName( jsName );
+        ctx_.AddQObjectToJSContext( obj, jsName, own );
+        ctxObjects_.push_back( ObjectEntry( obj, jsName, own ) );
+    }
+    void resetObject() { ctxObjects_.clear(); }
+    void setEmitWebActionSignal( bool yes ) { webView_->SetEmitWebActionSignal( yes ); }
+    void triggerAction( const QString& action, bool checked = false ) {
+        if( !webView_->TriggerAction( action, checked ) ) error( "Cannot trigger action " + action );
+    }
     void syncLoad( const QUrl& url, int timeout ) { webView_->SyncLoad( url, timeout ); }
     void load( const QUrl& url ) { webView_->load( url ); }
     void setLinkDelegationPolicy( const QString& p ) {
-    	if( p == "all" ) webView_->page()->setLinkDelegationPolicy( QWebPage::DelegateAllLinks );
-    	else if( p == "external" ) webView_->page()->setLinkDelegationPolicy( QWebPage::DelegateExternalLinks );
-    	else if( p == "none ") webView_->page()->setLinkDelegationPolicy( QWebPage::DontDelegateLinks );
-    	else error( "Wrong link delegation policy '" + p +"'" );
+        if( p == "all" ) webView_->page()->setLinkDelegationPolicy( QWebPage::DelegateAllLinks );
+        else if( p == "external" ) webView_->page()->setLinkDelegationPolicy( QWebPage::DelegateExternalLinks );
+        else if( p == "none ") webView_->page()->setLinkDelegationPolicy( QWebPage::DontDelegateLinks );
+        else error( "Wrong link delegation policy '" + p +"'" );
     }
     bool saveUrl( const QString& url, const QString& filename, int timeout ) { return webView_->SaveUrl( url, filename, timeout ); }
     QString webKitVersion() const { return QTWEBKIT_VERSION_STR; }
 
     void highLightText( const QString& substring ) { webView_->HighlightText( substring ); }
     QList< QVariant > forEachElement( const QString& selectorQuery,
-    		                          const QString& cond,
-    		                          int maxNum = std::numeric_limits< int >::max() ) {
-    	QWebElementCollection wec = webView_->FindElements( selectorQuery );
-    	if( wec.count() < 1 ) return QList< QVariant >();
-    	QList< QVariant > we;
-    	int n = 0;
-    	for( QWebElementCollection::iterator i = wec.begin();
-    	     i != wec.end() && n < maxNum; ++i, ++n ) {
-    		  if( ( *i ).evaluateJavaScript( cond ).toBool() ) {
-    	   	      we.push_back( GetContext()->AddObjToJSContext( new WebElement( *i ) ) );
-    	    }
+                                      const QString& cond,
+                                      int maxNum = std::numeric_limits< int >::max() ) {
+        QWebElementCollection wec = webView_->FindElements( selectorQuery );
+        if( wec.count() < 1 ) return QList< QVariant >();
+        QList< QVariant > we;
+        int n = 0;
+        for( QWebElementCollection::iterator i = wec.begin();
+             i != wec.end() && n < maxNum; ++i, ++n ) {
+              if( ( *i ).evaluateJavaScript( cond ).toBool() ) {
+                  we.push_back( GetContext()->AddObjToJSContext( new WebElement( *i ) ) );
+            }
         }
         return we;
     }
     QVariant findFirstElement( const QString& selectorQuery ) {
-    	QWebElement we = webView_->FindFirstElement( selectorQuery );
-    	if( we.isNull() ) return QVariant();
-    	return GetContext()->AddObjToJSContext( new WebElement( we ) ) ;
+        QWebElement we = webView_->FindFirstElement( selectorQuery );
+        if( we.isNull() ) return QVariant();
+        return GetContext()->AddObjToJSContext( new WebElement( we ) ) ;
     }
     QList< QVariant > findElements( const QString& selectorQuery ) const {
-    	QWebElementCollection wec = webView_->FindElements( selectorQuery );
-    	if( wec.count() < 1 ) return QList< QVariant >();
-    	QList< QVariant > we;
-    	for(QWebElementCollection::const_iterator i = wec.constBegin();
-    	    i != wec.constEnd(); ++i ) {
-    		we.push_back( GetContext()->AddObjToJSContext( new WebElement( *i ) ) );
-    	}
-    	return we;
+        QWebElementCollection wec = webView_->FindElements( selectorQuery );
+        if( wec.count() < 1 ) return QList< QVariant >();
+        QList< QVariant > we;
+        for(QWebElementCollection::const_iterator i = wec.constBegin();
+            i != wec.constEnd(); ++i ) {
+            we.push_back( GetContext()->AddObjToJSContext( new WebElement( *i ) ) );
+        }
+        return we;
     }
 
     bool canLogRequests() const {
-    	return qobject_cast< NetworkAccessManager* >(
-    		   webView_->page()->networkAccessManager() ) != 0;
+        return qobject_cast< NetworkAccessManager* >(
+               webView_->page()->networkAccessManager() ) != 0;
     }
     bool canEmitRequestSignal() const {
-    	return qobject_cast< NetworkAccessManager* >(
-    	       webView_->page()->networkAccessManager() ) != 0;
+        return qobject_cast< NetworkAccessManager* >(
+               webView_->page()->networkAccessManager() ) != 0;
     }
     void logRequests( bool yes ) {
-    	NetworkAccessManager* nam = qobject_cast< NetworkAccessManager* >(
-     	       webView_->page()->networkAccessManager() );
-    	if( !nam ) return;
-    	nam->SetLogRequestsEnabled( yes );
+        NetworkAccessManager* nam = qobject_cast< NetworkAccessManager* >(
+               webView_->page()->networkAccessManager() );
+        if( !nam ) return;
+        nam->SetLogRequestsEnabled( yes );
     }
     void emitRequestSignal( bool yes ) {
-    	NetworkAccessManager* nam = qobject_cast< NetworkAccessManager* >(
-         	       webView_->page()->networkAccessManager() );
-      	if( !nam ) return;
-    	nam->EmitRequestSignal( yes );
+        NetworkAccessManager* nam = qobject_cast< NetworkAccessManager* >(
+                   webView_->page()->networkAccessManager() );
+        if( !nam ) return;
+        nam->EmitRequestSignal( yes );
     }
     void setUserAgentForUrl( const QRegExp& url, const QString& userAgent ) {
-	    webView_->SetUserAgentForUrl( url, userAgent );
-	}
-	void setAllowInterruptJavaScript( bool yes ) {
-		webView_->SetAllowInterruptJavaScript( yes );
-	}
+        webView_->SetUserAgentForUrl( url, userAgent );
+    }
+    void setAllowInterruptJavaScript( bool yes ) {
+        webView_->SetAllowInterruptJavaScript( yes );
+    }
     bool syncLoad( const QString& url, int timeout ) { return webView_->SyncLoad( url,  timeout ); }
     bool syncLoad( const QString& urlString, const QVariantMap& opt, int timeout ) {
         return webView_->SyncLoad( urlString, opt, timeout );
@@ -237,28 +237,28 @@ public slots:
     void load( const QString& urlString, const QVariantMap& opt ) { return webView_->Load( urlString, opt ); }
     void setPageSize( int w, int h ) { webView_->SetPageSize( w, h ); }
     QVariantMap pageSize() const {
-    	QSize sz = webView_->PageSize();
-    	QVariantMap m;
-    	m[ "width"  ] = sz.width();
-    	m[ "height" ] = sz.height();
-    	return m;
+        QSize sz = webView_->PageSize();
+        QVariantMap m;
+        m[ "width"  ] = sz.width();
+        m[ "height" ] = sz.height();
+        return m;
     }
     void saveSnapshot( const QString& filePath, int quality = -1 ) const {
-    	webView_->SaveSnapshot( filePath );
+        webView_->SaveSnapshot( filePath );
     }
     QPixmap snapshot() const {
-    	return webView_->Snapshot();
+        return webView_->Snapshot();
     }
     void saveToPDF( const QString& fname ) const {
-    	webView_->SavePDF( fname );
+        webView_->SavePDF( fname );
     }
     void createWebPluginFactory( const QString& type = "dynamic" ) {
-    	if( type.toLower() == "dynamic" ) {
-    		DynamicWebPluginFactory* pf = new DynamicWebPluginFactory;
-    		webView_->page()->setPluginFactory( pf );
-    	} else {
-    		error( "only 'dynamic' supported at this time" );
-    	}
+        if( type.toLower() == "dynamic" ) {
+            DynamicWebPluginFactory* pf = new DynamicWebPluginFactory;
+            webView_->page()->setPluginFactory( pf );
+        } else {
+            error( "only 'dynamic' supported at this time" );
+        }
     }
     void enableAction( QWebPage::WebAction action, bool yes ) { webView_->pageAction( action )->setEnabled( yes ); }
     bool isActionEnabled( QWebPage::WebAction action ) const { return webView_->pageAction( action )->isEnabled(); }
@@ -375,7 +375,7 @@ signals:
     void webActionTriggered( const QString&, bool );
     void fileDownloadProgress( qint64, qint64 );
     void javaScriptConsoleMessage( const QString&, int, const QString& );
-	void statusBarMessage( const QString& );
+    void statusBarMessage( const QString& );
     void statusBarVisibilityChangeRequested( bool );
     void toolBarVisibilityChangeRequested( bool );
 private:
@@ -386,7 +386,7 @@ private:
     WebKitAttributeMap attrMap_;
     WebKitJSCoreWrapper* jsInterpreter_;
     QString preLoadCBack_;
-	ContextObjects ctxObjects_;
+    ContextObjects ctxObjects_;
 };
 
 }

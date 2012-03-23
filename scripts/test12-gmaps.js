@@ -22,9 +22,11 @@ try {
   var e = ww.eval( "document.getElementsByTagName('img')" );
   if( e.length < 1 ) throw "No 'img' tag found";
   var i;
+  var PREFIX = "test12-gmaps";
+  if( !Loco.fs.exists( PREFIX ) ) Loco.fs.mkdir( PREFIX );
   for( i in e[ 0 ] ) Loco.console.println( i + ": " + e[ 0 ][ i ] );
-  ww.saveSnapshot( "gmaps-snapshot.png" );
-  ww.saveToPDF( "gmap-snapshot.pdf" );
+  ww.saveSnapshot( PREFIX + "/gmaps-snapshot.png" );
+  ww.saveToPDF( PREFIX + "/gmap-snapshot.pdf" );
   ctx.exit( 0 );
 } catch(e) {
   Loco.console.printerrln(e);

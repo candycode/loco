@@ -38,6 +38,7 @@ public slots:
         d.setPath( dir );
         return d.exists() && QFileInfo( dir ).isDir();
     }
+    bool exists( const QString& f ) { return QFile::exists( f ); }
     bool link( const QString& target, const QString& lnk ) const { return QFile::link( target, lnk ); }
     bool remove( const QString& f ) const { return QFile::remove( f ); }
     bool rename( const QString& target, const QString& newName ) const { return QFile::rename( target, newName ); }
@@ -57,7 +58,14 @@ public slots:
     QString fromNativeSeparators( const QString& inpath ) const {
         return QDir::fromNativeSeparators( inpath );
     }        
-
+    bool mkdir( const QString& name ) const {
+        QDir d;
+        return d.mkdir( name );
+    }
+    bool mkpath( const QString& pname ) const {
+        QDir d;
+        return d.mkpath( pname );
+    }
 private:
     QVariantMap MapPermissions( QFile::Permissions fp ) const;
 

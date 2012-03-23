@@ -11,21 +11,20 @@ try {
   p.close();
 
   c.println();
-  c.println( "Invoking interactvei interpreter python -i" );
+  c.println( "Invoking interactvei interpreter 'python -i'" );
   p.start( "python", ["-i"], ["w","r", "a"] );
   while( p.waitForReadyRead( 200 ) )
     /*c.println(*/ p.readAll(); // ); // eat header
   p.write( "1+2\n" );
   p.waitForBytesWritten( 300 );
-  while( p.waitForReadyRead( 300 ) ) {
-    var v = p.readLine();
-    if( parseInt( v ) !== null ) c.println( parseInt( v ) + 6 );
-  } 
-
-  p.close(); 
-
+  p.waitForReadyRead( 300 );
+  var v = p.readLine();
+  if( parseInt( v ) !== null ) c.println( parseInt( v ) + 6 );
+  p.close();
+  Loco.ctx.exit( 0 ); 
 } catch( e ) {
-  c.printerrln( e );	
+  c.printerrln( e );
+  Loco.ctx.exit( -1 );	
 }
 
   	

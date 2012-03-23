@@ -1,4 +1,4 @@
-var print = Loco.console.println;
+vr print = Loco.console.println;
 var exit = Loco.ctx.exit;
 var include = Loco.ctx.include;
 var read = Loco.ctx.read;
@@ -14,12 +14,12 @@ try {
     WW.load( s.v );
     WW.show();
   }
-  Sk.builtins[ "load" ] = Sk.builtin.load;*/
+ Sk.builtins[ "load" ] = Sk.builtin.load;*/
   addFilter( "skulpt", "loco_skulptCompile_",
-						         "function loco_skulptCompile_( code ) {" +
-						         "  var s = Sk.compile( code, '', 'single' );" +
-						         "  return s.code + s.funcname + '()';" +
-						         "}" );
+                                 "function loco_skulptCompile_( code ) {" +
+                                 "  var s = Sk.compile( code, '', 'single' );" +
+                                 "  return s.code + s.funcname + '()';" +
+                                 "}" );
   include( "./fibonacci.py", ["skulpt"] );
   exit( 0 ); 
 } catch( e ) {

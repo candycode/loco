@@ -5,7 +5,12 @@ try {
   var cmdParam = ctx.cmdLine()[ctx.cmdLine().length - 1];
   var WEBSITE = cmdParam.lastIndexOf( ".js" ) < 0 ? 
                 cmdParam : "http://www.nyt.com";  
-  Loco.console.println( WEBSITE );
+  var PREFIX = "test11-snapshot";
+  for( i in Loco.fs ) Loco.console.println( i ) ;
+  if( !Loco.fs.dexists( PREFIX ) ) {
+     Loco.fs.mkdir( PREFIX );
+  }
+  Loco.console.println( "Generating snapshot of site " + WEBSITE );
 // create web  window  
   var ww = Loco.gui.create( "WebWindow" );
   ww.setPageSize( 4096, 4096 );
@@ -15,13 +20,13 @@ try {
   if( !ww.syncLoad( WEBSITE, 10000 ) ) {
     throw( "Error loading website " + WEBSITE );
   }
-  ww.saveSnapshot( "websnapshot-sync.png" );
-  ww.saveToPDF( "websnapshot-sync.pdf" );
+  ww.saveSnapshot( PREFIX + "/websnapshot-sync.png" );
+  ww.saveToPDF( PREFIX + "/websnapshot-sync.pdf" );
 // async load
   ww.loadFinished.connect( function( ok ) { 
     if( ok ) {
-        ww.saveSnapshot( "websnapshot.png" );
-        ww.saveToPDF( "websnapshot.pdf" );
+        ww.saveSnapshot( PREFIX + "/websnapshot.png" );
+        ww.saveToPDF( PREFIX + "/websnapshot.pdf" );
         Loco.ctx.quit();//exit from the event loop
     } else Loco.gui.errorDialog( "Error loading page" );
   });
@@ -31,4 +36,3 @@ try {
   Loco.console.printerrln(e);
   Loco.ctx.exit( -1 );
 }
-

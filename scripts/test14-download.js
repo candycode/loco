@@ -1,20 +1,13 @@
 try {
-// prelude
-  var $include = Loco.ctx.include;
-  var print = Loco.console.println;
-  var ctx = Loco.ctx;
-
-// command line
-  var cmdParam = ctx.cmdLine()[ctx.cmdLine().length - 1];
-  var URL = cmdParam.lastIndexOf( ".js" ) < 0 ? 
-                cmdParam : "http://www.google.com";  
-
-// create main window  
   var ww = Loco.gui.create( "WebWindow" );
-
+  ww.fileDownloadProgress.connect( function( a, b ) {
+    Loco.console.printr( a );
+  }) 
+  var PREFIX = "test14-download";
+  if( !Loco.fs.exists( PREFIX ) ) Loco.fs.mkdir( PREFIX );
   var ok = ww.saveUrl( "ftp://ftp.cscs.ch/out/molekel/molekel_5.4/molekel_5_4_0_linux_x86_64.tar.gz",
-              "dload", 20000 );   
-  
+              PREFIX + "/dload", 20000 );    
+  Loco.console.println(); 
   if( !ok ) throw( "Error downloading" );
   Loco.ctx.exit( 0 );
 

@@ -1,1 +1,1 @@
-(print (quote (hello from little scheme)))
+(print (quote (hello)))
