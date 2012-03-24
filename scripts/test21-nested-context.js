@@ -21,7 +21,6 @@ Loco.ctx.javaScriptConsoleMessage.connect(
    print( msg + " at line " + line );
  } );
 //==============================================================================
-
 var newCtx = Loco.ctx.create( CONTEXT_TYPE );
 newCtx.onError.connect( err );
 newCtx.javaScriptConsoleMessage.connect(
@@ -31,8 +30,8 @@ newCtx.javaScriptConsoleMessage.connect(
 newCtx.storeCode = true;
 newCtx.addObject( newCtx, "ctx" );
 newCtx.addObject( Loco.console, "io" );
-//newCtx.eval( "io.println(ctx.code)" );
-newCtx.eval( "if (true) {" );
+newCtx.eval( "io.println(ctx.code)" ); //prints out code passed to newCtx itself!
+                                       //i.e. 'io.println...' 
 
 //==============================================================================
 exit(0); //FOR NON-GUI APPS ONLY

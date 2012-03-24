@@ -66,6 +66,12 @@ public slots:
         QDir d;
         return d.mkpath( pname );
     }
+    QString readAll( const QString& fpath ) const {
+        QFile f( fpath );
+        f.open( QIODevice::ReadOnly );
+        //if( !f.errorString().isEmpty() ) 
+        return f.readAll();
+    } 
 private:
     QVariantMap MapPermissions( QFile::Permissions fp ) const;
 

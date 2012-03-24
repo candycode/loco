@@ -126,7 +126,7 @@ try {
     if( ok ) {
       var c = "mainWindow.setStatusBarText('DONE: ' + \
                webWindow.totalBytes() + ' bytes loaded');";
-      ww.eval( 'document.documentElement.ontouchstart=false;alert(document.documentElement.ontouchstart)' );
+      ww.eval( 'document.documentElement.removeAttribute("ontouchstart")' );
              
       ww.eval( c );
       if( handleFeed ) {

@@ -14,25 +14,25 @@ public:
     JSContext( Context* ctx ) : Object( 0, "LocoContext", "/Loco/Context" ),
     ctx_( ctx )  {
         SetDestroyable( false );
-		connect( ctx_, SIGNAL( JavaScriptConsoleMessage( const QString&, int, const QString& ) ),
-			     this, SIGNAL( javaScriptConsoleMessage( const QString&, int, const QString& ) ) );
-		connect( ctx_, SIGNAL( JSContextCleared() ), this, SIGNAL( javaScriptContextCleared() ) );
+        connect( ctx_, SIGNAL( JavaScriptConsoleMessage( const QString&, int, const QString& ) ),
+                 this, SIGNAL( javaScriptConsoleMessage( const QString&, int, const QString& ) ) );
+        connect( ctx_, SIGNAL( JSContextCleared() ), this, SIGNAL( javaScriptContextCleared() ) );
     }
     Context* GetContext() { return ctx_; } //used only within the library, not exposed to JS
     //property accessors
     const QString& code() const { return ctx_->Code(); }
     void storeCode( bool on ) { ctx_->SetStoreCode( on ); }
-	bool storeCode() const { return ctx_->GetStoreCode(); }
+    bool storeCode() const { return ctx_->GetStoreCode(); }
 // invokable from javascript
 public slots: // js interface
-	void connectSigToSlot( QObject* srcObj,
-    		               const QString& sigSignature,
-    		               QObject* targetObj,
-    		               const QString& slotSignature ) {
+    void connectSigToSlot( QObject* srcObj,
+                           const QString& sigSignature,
+                           QObject* targetObj,
+                           const QString& slotSignature ) {
         ctx_->ConnectSigToSlot( srcObj, sigSignature, targetObj, slotSignature );
     }
-	QVariant wrapQObject( QObject* qobj, bool takeOwnership = true ) { return ctx_->WrapQObject( qobj, takeOwnership ); } 
-	QString signalSignature( const QString& sig ) { return ctx_->SignalSignature( sig ); }
+    QVariant wrapQObject( QObject* qobj, bool takeOwnership = true ) { return ctx_->WrapQObject( qobj, takeOwnership ); } 
+    QString signalSignature( const QString& sig ) { return ctx_->SignalSignature( sig ); }
     QString slotSignature( const QString& sig ) { return ctx_->SlotSignature( sig ); }
     void yeld() { ctx_->Yeld(); }
     int netReadTimeout() const { return ctx_->GetNetReadTimeout(); }
@@ -42,90 +42,90 @@ public slots: // js interface
     bool getAllowInterrupt() const { return ctx_->GetAllowInterrupt(); }
     QVariant data( const QVariant& d = QVariant() ) const { return ctx_->Data( d ); }
     void kill() {
-    	ctx_->Eval( this->jsInstanceName() + "= undefined"  );
-    	ctx_->deleteLater();
-    	ctx_ = 0;
-    	this->deleteLater();
+        ctx_->Eval( this->jsInstanceName() + "= undefined"  );
+        ctx_->deleteLater();
+        ctx_ = 0;
+        this->deleteLater();
     }
     void addObject( QObject* obj, const QString& jsInstanceName, bool own = false ) {
-    	ctx_->AddQObjectToJSContext( obj, jsInstanceName, own );
+        ctx_->AddQObjectToJSContext( obj, jsInstanceName, own );
     }
     void addNewObject( QObject* qobj, const QString& jsInstanceName ) {
-    	Object* obj = dynamic_cast< Object* >( qobj );
-    	if( !obj ) {
-    		error( "loco::Object instance required" );
-    		return;
-    	}
-    	if( !obj->cloneable() ) {
-    		error( "Object cannot be copied" );
-    		return;
-    	}
-    	obj = obj->Clone();
-    	obj->SetJSInstanceName( jsInstanceName );
+        Object* obj = dynamic_cast< Object* >( qobj );
+        if( !obj ) {
+            error( "loco::Object instance required" );
+            return;
+        }
+        if( !obj->cloneable() ) {
+            error( "Object cannot be copied" );
+            return;
+        }
+        obj = obj->Clone();
+        obj->SetJSInstanceName( jsInstanceName );
         ctx_->AddObjToJSContext( obj );
     }
     void addProtocolHandler( const QString& scheme, QObject* handler ) {
-    	ctx_->AddNetworkRequestHandler( scheme, handler );
+        ctx_->AddNetworkRequestHandler( scheme, handler );
     }
     void setEnableCustomProtocolHandlers( bool yes ) { ctx_->SetEnableCustomNetRequestHandlers( yes ); }
     QVariant create( const QString& className, const QVariantMap& init = QVariantMap() ) {
-    	return ctx_->Create( className, init );
+        return ctx_->Create( className, init );
     }
     QVariant loadQtPlugin( QString filePath,
                            const QString& jsInstanceName = QString(),
                            const QString& initMethodName = "Init",
                            const QVariantMap& params = QVariantMap() ) {
-    	return ctx_->LoadQtPlugin( filePath, jsInstanceName, initMethodName, params );
+        return ctx_->LoadQtPlugin( filePath, jsInstanceName, initMethodName, params );
     }
-	bool registerResources( const QString& path, const QString& rootPath = QString() ) {
-		return ctx_->RegisterResources( path, rootPath );
-	}
-	bool unregisterResources( const QString& path, const QString& rootPath = QString() ) {
-		return ctx_->UnRegisterResources( path, rootPath );
-	}
+    bool registerResources( const QString& path, const QString& rootPath = QString() ) {
+        return ctx_->RegisterResources( path, rootPath );
+    }
+    bool unregisterResources( const QString& path, const QString& rootPath = QString() ) {
+        return ctx_->UnRegisterResources( path, rootPath );
+    }
     void enableAutoMapFilters( bool on ) { ctx_->SetAutoMapFilters( on ); }
     QString jsInterpreterName() const { return ctx_->JSInterpreterName(); }
     bool setNetworkAuthentication( const QString& user, const QString& pwd ) {
-    	NetworkAccessManager* nam = qobject_cast< NetworkAccessManager* >( ctx_->GetNetworkAccessManager() );
-    	if( !nam ) return false;
-    	nam->SetDefaultAuthenticator( user, pwd );
-    	return true;
+        NetworkAccessManager* nam = qobject_cast< NetworkAccessManager* >( ctx_->GetNetworkAccessManager() );
+        if( !nam ) return false;
+        nam->SetDefaultAuthenticator( user, pwd );
+        return true;
     }
     bool setDefaultSSLExceptionHandler() {
-    	NetworkAccessManager* nam = qobject_cast< NetworkAccessManager* >( ctx_->GetNetworkAccessManager() );
-    	if( !nam ) return false;
-    	nam->SetDefaultSSLExceptionHandler();
-    	return true;
+        NetworkAccessManager* nam = qobject_cast< NetworkAccessManager* >( ctx_->GetNetworkAccessManager() );
+        if( !nam ) return false;
+        nam->SetDefaultSSLExceptionHandler();
+        return true;
     }
     void setIncludePath( const QString& ip ) { setIncludePath( ip.split( ":" ) ); }
     void setIncludePath( const QStringList& ip ) { ctx_->SetIncludePath( ip ); }
     void addToIncludePath( const QString& p ) { ctx_->AddToIncludePath( p ); }
     QStringList includePath() const { return ctx_->GetIncludePath(); }
-	void exit( int code ) { ctx_->Exit( code ); }
-	QVariant include( const QString& path, const QStringList& filters = QStringList() ) {
+    void exit( int code ) { ctx_->Exit( code ); }
+    QVariant include( const QString& path, const QStringList& filters = QStringList() ) {
         return ctx_->Include( path, filters );
     }
     QVariant insert( const QString& path, const QStringList& filters = QStringList() ) {
         return ctx_->Insert( path, filters );
     }
-	QString read( const QString& path, const QStringList& filters = QStringList() ) {
-	    return ctx_->Read( path, filters );
+    QString read( const QString& path, const QStringList& filters = QStringList() ) {
+        return ctx_->Read( path, filters );
     }
-	QStringList pluginPath() const { return QCoreApplication::libraryPaths(); }
-	void setPluginPath( const QStringList& paths ) { QCoreApplication::setLibraryPaths( paths ); }
+    QStringList pluginPath() const { return QCoreApplication::libraryPaths(); }
+    void setPluginPath( const QStringList& paths ) { QCoreApplication::setLibraryPaths( paths ); }
     void addPluginPath( const QString& p ) { QCoreApplication::addLibraryPath( p ); }
-	QString appFilePath() const { return QCoreApplication::applicationFilePath(); }
-	QString appDir() const { return QCoreApplication::applicationDirPath(); }
-	QString appName() const { return QCoreApplication::applicationName(); }
-	QString appVersion() const { return QCoreApplication::applicationVersion(); }
-	QString appVendor() const { return QCoreApplication::organizationName(); }
-	QString curDir() const { return QDir::current().absolutePath(); }
-	QString homeDir() const { return QDir::home().absolutePath(); }
+    QString appFilePath() const { return QCoreApplication::applicationFilePath(); }
+    QString appDir() const { return QCoreApplication::applicationDirPath(); }
+    QString appName() const { return QCoreApplication::applicationName(); }
+    QString appVersion() const { return QCoreApplication::applicationVersion(); }
+    QString appVendor() const { return QCoreApplication::organizationName(); }
+    QString curDir() const { return QDir::current().absolutePath(); }
+    QString homeDir() const { return QDir::home().absolutePath(); }
     QVariantMap appInfo() const {
         return ctx_->GetAppInfo() ? ctx_->GetAppInfo()->ToVariantMap()
                                  : QVariantMap();
     }
-	void quit() { ctx_->Quit(); }
+    void quit() { ctx_->Quit(); }
     // IMPORTANT: this sets the paths associated with a specific resource tag
     // e.g. "images" "$home/images"
     // allows to specify filenames as "images:mypicture.jpg" which gets
@@ -146,21 +146,21 @@ public slots: // js interface
     int eventLoop() { return ctx_->Exec(); }
 #endif
     QVariant evalFile( const QString& uri, const QStringList& filterIds = QStringList() ) {
-		return ctx_->Include( uri, filterIds );
-	}
+        return ctx_->Include( uri, filterIds );
+    }
     void loadFilter( const QString& id, const QString& uri ) {
         ctx_->LoadFilter( id, uri );
     }
     bool hasFilter( const QString& id ) { return ctx_->HasFilter( id ); }
     void addScriptFilter( const QString& id,
                           const QString& jfun,
-						  const QString& jcode = "",
+                          const QString& jcode = "",
                           const QString& jerrfun = "",
                           const QString& codePlaceHolder = "" ) {
         ctx_->AddScriptFilter( id, jfun, jcode, jerrfun, codePlaceHolder );
     }
-	void loadScriptFilter( const QString& id,
-		                   const QString& uri,
+    void loadScriptFilter( const QString& id,
+                           const QString& uri,
                            const QString& jfun,
                            const QString& jerrfun = "",
                            const QString& codePlaceHolder = "" ) {
@@ -208,8 +208,8 @@ public slots: // js interface
         return vm;
     }
 signals:
-	void javaScriptConsoleMessage( const QString&, int, const QString& );
-	void javaScriptContextCleared();
+    void javaScriptConsoleMessage( const QString&, int, const QString& );
+    void javaScriptContextCleared();
 private slots:
     //forward errors received from Context,
     friend class Context;

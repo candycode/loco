@@ -1,4 +1,4 @@
-vr print = Loco.console.println;
+var print = Loco.console.println;
 var exit = Loco.ctx.exit;
 var include = Loco.ctx.include;
 var read = Loco.ctx.read;

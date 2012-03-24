@@ -30,7 +30,7 @@ function handleCustomRequest( req, reply ) {
   PROTOCOL(SCHEME): <pre>@2</pre> </br>\
   PARAMETERS: <pre>@3</pre> </br> \
   This page comes from a custom protocol handler\n \
-  <br/><a href='/?p1=23&p2=54&p3=55'>invoke again with different paramters</a>\n \
+  <br/><a href='/?p1=23&p2=54&p3=55'>invoke again with different parameters</a>\n \
   <!--WARNING the baseURI is set to 'myscheme://...', to load pages through other protocols\n \
       explicitly invoke the load method or pass the url to one of the parameters of the custom\n \
       request and properly handle it in the protocol handling function\n \
