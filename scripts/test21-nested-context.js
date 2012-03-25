@@ -27,12 +27,16 @@ newCtx.javaScriptConsoleMessage.connect(
  function( msg, line, src ) {
    print( msg + " at line " + line );
  } );
+print( "Enable storage of source code passed for evaluation" );
 newCtx.storeCode = true;
 newCtx.addObject( newCtx, "ctx" );
+print( "Added new context as 'ctx' object into parent context" );
 newCtx.addObject( Loco.console, "io" );
-newCtx.eval( "io.println(ctx.code)" ); //prints out code passed to newCtx itself!
-                                       //i.e. 'io.println...' 
-
+print( "Added 'Loco.console' as 'io' into new context" );
+var CODE = "io.println(ctx.code)";
+print( "Evaluating code '" + CODE + "' in new context" );
+newCtx.eval( CODE ); //prints out code passed to newCtx itself!
+                     //i.e. 'io.println...'
 //==============================================================================
 exit(0); //FOR NON-GUI APPS ONLY
 
