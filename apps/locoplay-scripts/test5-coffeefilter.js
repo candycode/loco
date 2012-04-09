@@ -1,11 +1,9 @@
 try {
   Loco.console.println("Interpreter: " + Loco.ctx.jsInterpreterName() );
   var WKIT = Loco.ctx.jsInterpreterName().indexOf( "webkit" ) >= 0;
-  // global 'this' does not work properly in non-webkit interpreter
+  Loco.ctx.include( "../../filters/coffee-script-1.2.js" );
   if( !WKIT ) {
-    Loco.ctx.include( "../filters/coffee/coffee-script-no-this.js" );
-  } else {
-    Loco.ctx.include( "../filters/coffee/coffee-script.js" );
+    alert = Loco.console.println;
   }
   var c = CoffeeScript.compile( "x = 32", {bare: true} );
   Loco.console.println( "COFFEE: x = 32\nJAVASCRIPT:\n" + c );

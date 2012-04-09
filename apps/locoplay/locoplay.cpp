@@ -48,7 +48,7 @@ public:
 };
 
 using namespace loco;
-
+ 
 //------------------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
@@ -100,11 +100,7 @@ int main(int argc, char *argv[])
         app.SetFilterNetRequests( false );
         app.AddModuleToJS( new Network );
 #endif
-#ifdef LOCO_WKIT
-        const QString& CS = ":/coffee/coffee-script.js";
-#else
-        const QString& CS = ":/coffee/coffee-script-no-this.js";
-#endif
+        const QString& CS = ":/coffee-script-1.2.js";
         app.InitContext();
         
         SystemScriptFilter f;
