@@ -1,9 +1,0 @@
-namespace loco {
-    static const QString LOCO_APP_NAME       = "@LOCO_APP_NAME@";
-    static const QString LOCO_APP_LICENSE    = "@LOCO_APP_LICENSE@";
-    static const QString LOCO_APP_AUTHOR     = "@LOCO_APP_AUTHOR@";
-    static const QString LOCO_APP_COPYRIGHT  = "@LOCO_APP_COPYRIGHT@";
-    static const QString LOCO_APP_VENDOR     = "@LOCO_APP_VENDOR@";
-    static const QString LOCO_APP_URL        = "@LOCO_APP_URL@";
-    static const QString LOCO_APP_VERSION    = "@LOCO_APP_VERSION@";
-}    
