@@ -31,7 +31,7 @@ Loco.ctx.javaScriptConsoleMessage.connect(
 
 
 //==============================================================================
-//invoke exit() event loop has not been started, quit() otherwise
+//invoke exit() if event loop has not been started, quit() otherwise
 //locoplay: event loop is created by default, to disable invoke with -nl flag:
 //locoplay -nl ...
 //exit(0); 
