@@ -31,6 +31,8 @@ function encryptedFortune() {
   p( "Thread " + thisThread.id ); 
   p( "connected" );
   var tcpSocket = net.create( "tcp-ssl-socket" );
+  // 'socket' is initialized by the parent context before
+  // this function is invoked
   if( !tcpSocket.setSocketDescriptor( socket ) ) {
     p( "Cannot create socket" );
     return;
@@ -70,7 +72,7 @@ include( "cmdline2json.js" );
 
 var cmdLine = cmdLineToJSON( Loco.ctx.commandLine );
 
-if( !cmdLine[ "-port" ] ) throw "Error '-port' required\nUsage: test27-tcp.js [-server] -port #";
+if( !cmdLine[ "-port" ] ) throw "Error '-port' required\nUsage: test28-tcp.js [-server] -port #";
 if( cmdLine[ "-server" ] ) {
   var tcpServer = Loco.net.create( "tcp-server" );
   tcpServer.connectionRequest.connect( function( socket ) {

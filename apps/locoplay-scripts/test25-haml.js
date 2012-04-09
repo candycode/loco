@@ -22,13 +22,14 @@ Loco.ctx.javaScriptConsoleMessage.connect(
 //==============================================================================
 
 include(':/json2.js');
-include('../filters/haml.js');
+include('../../filters/haml.js');
 print_date = function () { return 'today: ';};
 var ww = Loco.gui.create( 'WebWindow' );
 var hamlText = Loco.ctx.read( 'test25-haml.haml' );
 var current_user = { address: 'my address', email: 'e@ma.il', bio: 'bio', hamlCode: hamlText };
 ww.setAttributes( {DeveloperExtrasEnabled: true} );                  
 ww.setEnableContextMenu( true );
+//'current_user' field names are substituted with values defined in this context
 ww.setHtml( Haml.render( hamlText ) );
 ww.show();
 

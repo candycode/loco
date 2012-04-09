@@ -1,3 +1,18 @@
+//usage: locoplay test25-udp.js -inport <in> -outport <out> -host <host>
+//sends messages to output port, receive messages from input port
+//E.g.
+//Terminal #1:
+// > locoplay test25-udp.js -inport 12331 -outport 12333 -host 127.0.0.1
+//Terminal #2:
+// > locoplay test25-udp.js -inport 12333 -outport 12331 -host 127.0.0.1
+// > 'Connected, waiting for message'
+// Terminal #1:
+// > 'hello' 
+// hey
+// Terminal #2:
+// > hey
+
+
 try {
 var include = Loco.ctx.include,
     print = Loco.console.println,

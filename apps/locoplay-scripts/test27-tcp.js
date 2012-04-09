@@ -16,6 +16,8 @@ function fortune() {
   terminal.println( "Thread " + thisThread.id ); 
   terminal.println( "connected" );
   var tcpSocket = net.create( "tcp-socket" );
+  // the 'socket' variable is initializes from the parent
+  // context before this function is invoked
   tcpSocket.setSocketDescriptor( socket );
   terminal.println( "  remote host: " + tcpSocket.peerAddress );
   terminal.println( "  port:        " + tcpSocket.peerPort );
