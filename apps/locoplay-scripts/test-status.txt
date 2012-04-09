@@ -1,8 +1,3 @@
 TODO
 test4-process.js
 test16-lscheme.js
-test24-network: create directory for output data
-
-FIX URL loading path: right now a file:/// prefix is required for local files!
-
-tested up to 21
