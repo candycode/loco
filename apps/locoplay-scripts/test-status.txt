@@ -1,8 +1,6 @@
 TODO
 test4-process.js
 test16-lscheme.js
-test22-threads.js: test with QtScript as main interpreter
-test23-thread-loop.js: test with QtScript as main interpreter
 test24-network: create directory for output data
 
 FIX URL loading path: right now a file:/// prefix is required for local files!

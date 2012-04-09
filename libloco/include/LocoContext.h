@@ -76,6 +76,9 @@ public:
                const QStringList& cmdLine = QStringList(), Context* parent = 0 );
 // called from C++
 public:
+    void LoadFilter( const QString& id, Filter* f ) {
+        filters_[ id ] = f;
+    }
     void ConnectSigToSlot( QObject* srcObj,
                            const QString& sigSignature,
                            QObject* targetObj,

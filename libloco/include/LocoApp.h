@@ -116,6 +116,9 @@ public:
     void PreloadFilter( const QString& id, const QString& uri ) {
         ctx_.LoadFilter( id, uri );
     }
+    void PreloadFilter( const QString& id, Filter* f ) {
+        ctx_.LoadFilter( id, f );
+    }
     void PreloadScriptFilter( const QString& id,
                               const QString& uri,
                               const QString& jfun,
