@@ -1,4 +1,5 @@
-scripts/test14-download
-scripts/test12-gmaps
-scripts/test11-snapshot
-scripts/*.txt
+apps/locoplay-scripts/test14-download
+apps/locoplay-scripts/test12-gmaps
+apps/locoplay-scripts/test11-snapshot
+apps/locoplay-scripts/*.txt
+tmp/

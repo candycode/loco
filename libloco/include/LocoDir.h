@@ -22,7 +22,7 @@ public:
 
 public slots:
 
-	void setPath( const QString& path ) { dir_.setPath( path ); }          
+    void setPath( const QString& path ) { dir_.setPath( path ); }          
     bool cd( const QString& dirName )   { return dir_.cd( dirName ); }
     bool cdUp()                         { return dir_.cdUp(); }
     uint count () const                 { return dir_.count(); }

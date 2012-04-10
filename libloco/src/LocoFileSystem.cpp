@@ -9,7 +9,7 @@
 
 namespace loco {
 
-QByteArray FileSystem::fread( const QString& fname ) const {
+QString FileSystem::fread( const QString& fname ) const {
     QFile f( fname );
     f.open( QIODevice::ReadOnly );
     QByteArray data;
