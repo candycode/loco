@@ -39,12 +39,12 @@ public:
         version_( "1.0" ),
         author_( "UV" ) {
 
-    	gw_ = new osgViewer::GraphicsWindowEmbedded( 0, 0, width(), height() );
-    	setFocusPolicy( Qt::ClickFocus );
+        gw_ = new osgViewer::GraphicsWindowEmbedded( 0, 0, width(), height() );
+        setFocusPolicy( Qt::ClickFocus );
         viewer_.getCamera()->setViewport( new osg::Viewport( 0, 0, 200, 200 ) );
         viewer_.getCamera()->setProjectionMatrixAsPerspective(
-        		30.0f, static_cast< double >( 200 )/ static_cast< double >( 200 ),
-        		                              1.0f, 10000.0f);
+                30.0f, static_cast< double >( 200 )/ static_cast< double >( 200 ),
+                                              1.0f, 10000.0f);
         viewer_.getCamera()->setGraphicsContext( osg::get_pointer( gw_ ) );
         viewer_.setThreadingModel( osgViewer::Viewer::SingleThreaded );
         viewer_.addEventHandler( new osgViewer::StatsHandler );
@@ -61,15 +61,15 @@ public:
 
 protected:
     void resizeEvent( QResizeEvent* event ) {
-    	viewer_.getCamera()->setViewport(new osg::Viewport(0,0,width(),height()));
-    	viewer_.getCamera()->setProjectionMatrixAsPerspective(30.0f,
-    			static_cast<double>(event->size().width())/static_cast<double>(event->size().height()),
-    			1.0f, 10000.0f);
+        viewer_.getCamera()->setViewport(new osg::Viewport(0,0,width(),height()));
+        viewer_.getCamera()->setProjectionMatrixAsPerspective(30.0f,
+                static_cast<double>(event->size().width())/static_cast<double>(event->size().height()),
+                1.0f, 10000.0f);
 
     }
 
     void paintGL() {
-    	viewer_.frame();
+        viewer_.frame();
     }
 
     void keyPressEvent( QKeyEvent* event ) {
@@ -119,31 +119,31 @@ signals:
 public slots:
 
     void loadScene( const QString& path ) {
-       	osg::Node* scene = osgDB::readNodeFile( path.toStdString() );
-    	if( !scene ) {
-    		emit onError( "Cannot load " + path );
-    		return;
-    	}
-    	viewer_.setSceneData( scene );
+        osg::Node* scene = osgDB::readNodeFile( path.toStdString() );
+        if( !scene ) {
+            emit onError( "Cannot load " + path );
+            return;
+        }
+        viewer_.setSceneData( scene );
     }
     void init( const QStringList& argNames, const QStringList& argValues ) {
        for( int i = 0; i != argNames.size(); ++i ) {
            if( argNames[ i ] == "bgcolor" ) {
-        		if( argValues.size() <= i ) {
+                if( argValues.size() <= i ) {
                     throw std::runtime_error( "Number of arguments different from number of values" );
-        	        return;
-        		}
-        	    QStringList rgba = argValues[ i ].split( "," );
-        		if( rgba.length() != 4 ) {
-        			throw std::runtime_error( "Wrong background color format" );
-        			return;
-        		}
-        		viewer_.getCamera()->setClearColor( osg::Vec4(
-        				                                          rgba[ 0 ].toFloat(),
-        				                                          rgba[ 1 ].toFloat(),
-        				                                          rgba[ 2 ].toFloat(),
-        				                                          rgba[ 3 ].toFloat() ) );
-        	}
+                    return;
+                }
+                QStringList rgba = argValues[ i ].split( "," );
+                if( rgba.length() != 4 ) {
+                    throw std::runtime_error( "Wrong background color format" );
+                    return;
+                }
+                viewer_.getCamera()->setClearColor( osg::Vec4(
+                                                                  rgba[ 0 ].toFloat(),
+                                                                  rgba[ 1 ].toFloat(),
+                                                                  rgba[ 2 ].toFloat(),
+                                                                  rgba[ 3 ].toFloat() ) );
+            }
         }
     }
 private:

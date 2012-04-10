@@ -9,7 +9,7 @@
 </style>
 <script type="text/javascript">
   function loadScene() {
-    var scene =  Loco.gui.openFileDialog( "Select scene to load" );
+    var scene =  gui.openFileDialog( "Select scene to load" );
     if( scene.length == 0 ) {
       alert( "NULL File name" );
     } else {
@@ -22,7 +22,7 @@
 <body>
 <div id="osgviewer" style="border: .1em solid black; width: 100%; height: 70%;" class="ui-widget-content" > 
   <object type="application/x-qt-plugin" 
-          data="/home/uvaretto/build/loco/modules/webplugins/gl/libosgglviewer.so"
+          data="/home/ugo/build/loco/modules/webplugins/gl/libosgglviewer.so"
           id="osg" style="width: 100%; height: 100%;" >
     <param name="bgcolor" value="0.3,0.8,0.8,1.0" />
   </object>

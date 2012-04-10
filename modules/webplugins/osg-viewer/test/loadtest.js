@@ -1,9 +1,7 @@
 try {
 
 var ww = Loco.gui.create( "WebWindow" );
-ww.setName( "webWindow" );
-ww.addSelfToJSContext();
-ww.addParentObjectsToJS();
+ww.addObjectToContext( Loco.gui, "gui" );
 ww.createWebPluginFactory();
 ww.setAttributes( { DeveloperExtrasEnabled: true,
                     JavascriptEnabled: true,
