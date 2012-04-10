@@ -5,9 +5,9 @@ var read = Loco.ctx.read;
 var addFilter = Loco.ctx.addScriptFilter;
 try {
   Loco.ctx.onError.connect( function( e ) { throw e; } ); 
-  include( "../filters/skulpt/skulpt.js" );
-  include( "../filters/skulpt/builtin.js" );
-  include( "../filters/skulpt/skulpt-filter.js" );
+  include( "../../filters/skulpt/skulpt.js" );
+  include( "../../filters/skulpt/builtin.js" );
+  include( "../../filters/skulpt/skulpt-filter.js" );
   /*USE BUILTINS TO PASS FUNCTIONS AROUND:
   Sk.builtin.webWindow = function( s ) {
     var WW = Loco.gui.create( "WebWindow" );
