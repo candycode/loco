@@ -1,4 +1,5 @@
 #!/usr/bin/env locoplay
+// Substitute placeholder with text read from file
 try {
 if( Loco.ctx.args.length < 4 ) {
   Loco.console.println( "usage: " + Loco.ctx.args[ 1 ] +
@@ -15,7 +16,7 @@ function subst( file, placeholder, text ) {
   f.write( content );
   f.close();
 }
-var files = Loco.fs.dir().entries( ["*.cpp", "*.h"] );
+var files = Loco.fs.dir().entries( ["*.cpp", "*.h", "*.js"] );
 var PLACEHOLDER=Loco.ctx.args[ 2 ];
 p( Loco.ctx.args[ 3 ] );
 var TEXT=Loco.fs.fread( Loco.ctx.args[ 3 ] );
