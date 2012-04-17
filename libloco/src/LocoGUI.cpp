@@ -5,6 +5,7 @@
 #include "LocoGUI.h"
 
 #include "LocoMainWindow.h"
+#include "LocoWidgetWrapper.h"
 
 #ifdef LOCO_WKIT
 #include "LocoWebWindow.h"
@@ -31,10 +32,14 @@ QVariant GUI::create( const QString& name, const QVariantMap& params ) const {
 #ifdef LOCO_WKIT
     else if( name == "WebWindow" ) {
         WebWindow* wv = new WebWindow();
-		if( !GetContext()->GetNetworkAccessManager() ) throw std::runtime_error( "NULL Network Access Manager" );
-		wv->SetNetworkAccessManager( GetContext()->GetNetworkAccessManager() );
+        if( !GetContext()->GetNetworkAccessManager() ) throw std::runtime_error( "NULL Network Access Manager" );
+	wv->SetNetworkAccessManager( GetContext()->GetNetworkAccessManager() );
         QVariant obj = GetContext()->AddObjToJSContext( wv );
         return obj;
+    } if( name == "WidgetWrapper" ) {
+        WidgetWrapper *ww = new WidgetWrapper;
+        QVariant obj = GetContext()->AddObjToJSContext( ww );
+        return obj;        
     } else {
         error( "GUI object \"" + name + "\" not recognized" );
         return QVariant();
