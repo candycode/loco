@@ -2,14 +2,13 @@ try {
 
 function assert( condition ) { if( !condition ) throw condition + ": not met"; }
 
-
-if( Loco.ctx.commandLine.length < 3 ) {
-  Loco.ctx.println( "Usage: " + Loco.ctx.commandLine[ 0 ] + " " +
-                    Loco.ctx.commandLine[ 1 ] + "<plugin path>" );
+if( Loco.ctx.args.length < 3 ) {
+  Loco.console.println( "Usage: " + Loco.ctx.args[ 0 ] + " " +
+                        Loco.ctx.args[ 1 ] + "<plugin path>" );
   Loco.ctx.exit( 0 );
 }
 
-var ppath = Loco.ctx.commandLine[ 2 ] + "/";
+var ppath = Loco.ctx.args[ 2 ] + "/";
 var sourceName = "source.qtplugin";
 var targetName = "target.qtplugin";
 var source = Loco.ctx.loadQtPlugin( ppath + sourceName );

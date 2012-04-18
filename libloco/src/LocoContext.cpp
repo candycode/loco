@@ -34,17 +34,17 @@ template < typename T >
 QVariant CreateArray( Context& ctx, const QVariantMap& init ) {
     typename T::Allocator a;
     if( init.contains( "align" ) ) a.set_alignment( init[ "align" ].toUInt() );
-	bool ok = false;
-	T* array = new T( a );
-	if( init.contains( "size" ) ) {
-		array->resize( init[ "size" ].toULongLong( &ok ) );
-	    if( !ok ) {
-		    delete array;
-		    ctx.error( "Invalid unsigned long value");
-		    return QVariant();
-	    }
-	}
-	return ctx.AddObjToJSContext( array );
+    bool ok = false;
+    T* array = new T( a );
+    if( init.contains( "size" ) ) {
+        array->resize( init[ "size" ].toULongLong( &ok ) );
+        if( !ok ) {
+            delete array;
+            ctx.error( "Invalid unsigned long value");
+            return QVariant();
+        }
+    }
+    return ctx.AddObjToJSContext( array );
 }
 }
 
@@ -74,8 +74,8 @@ Context::Context( IJSInterpreter* jsi, LocoQtApp* app, const QStringList& cmdLin
     jsContext_->setParent( this );
     includePath_ << "." << QCoreApplication::applicationDirPath() + "/include"
                  << QCoreApplication::applicationDirPath() + "/scripts";
-	connect( jsInterpreter_, SIGNAL( JavaScriptConsoleMessage( const QString&, int, const QString& ) ),
-		     this, SIGNAL( JavaScriptConsoleMessage( const QString&, int, const QString& ) ) );
+    connect( jsInterpreter_, SIGNAL( JavaScriptConsoleMessage( const QString&, int, const QString& ) ),
+             this, SIGNAL( JavaScriptConsoleMessage( const QString&, int, const QString& ) ) );
 }
 
 
@@ -107,8 +107,8 @@ void Context::Init( IJSInterpreter* jsi, LocoQtApp* app, const QStringList& cmdL
     //allow js context to receive errors from context and emit signals
     connect( this, SIGNAL( onError( const QString&) ), jsContext_, SLOT( ForwardError( const QString& ) ) );
     connect( jsInterpreter_, SIGNAL( JavaScriptConsoleMessage( const QString&, int, const QString& ) ),
-		     this, SIGNAL( JavaScriptConsoleMessage( const QString&, int, const QString& ) ) );
-	jsInterpreter_->Init();
+             this, SIGNAL( JavaScriptConsoleMessage( const QString&, int, const QString& ) ) );
+    jsInterpreter_->Init();
 }
     
  QVariant Context::LoadObject( const QString& uri,  //used as a regular file path for now
@@ -118,39 +118,39 @@ void Context::Init( IJSInterpreter* jsi, LocoQtApp* app, const QStringList& cmdL
         return jsInterpreter_->EvaluateJavaScript( obj->jsInstanceName() );
     }
     QPluginLoader* pl = new QPluginLoader( uri );
-	if( !pl->load() ) {
-		const QString err = pl->errorString();
-		delete pl;
-		error( "Cannot load " + uri + " - " + err );
-		jsInterpreter_->EvaluateJavaScript( jsErrCBack_ );
-		return QVariant();
-	}
-	QObject* qobj = pl->instance();
-	if( !qobj ) {
-	    delete pl;
-		error( "NULL instance - " + uri );
-		jsInterpreter_->EvaluateJavaScript( jsErrCBack_ );
-		return QVariant();
-	}
-	Object* obj = qobject_cast< ::loco::Object* >( qobj );
-	if( !obj ) {
-	    error( "Not a loco::Object, use loco::Context::LoadQtPlugin() method instead" );
-	    return QVariant();
-	}
-	obj->SetContext( this );
+    if( !pl->load() ) {
+        const QString err = pl->errorString();
+        delete pl;
+        error( "Cannot load " + uri + " - " + err );
+        jsInterpreter_->EvaluateJavaScript( jsErrCBack_ );
+        return QVariant();
+    }
+    QObject* qobj = pl->instance();
+    if( !qobj ) {
+        delete pl;
+        error( "NULL instance - " + uri );
+        jsInterpreter_->EvaluateJavaScript( jsErrCBack_ );
+        return QVariant();
+    }
+    Object* obj = qobject_cast< ::loco::Object* >( qobj );
+    if( !obj ) {
+        error( "Not a loco::Object, use loco::Context::LoadQtPlugin() method instead" );
+        return QVariant();
+    }
+    obj->SetContext( this );
     obj->SetPluginLoader( pl );
     obj->setParent( pl );
     connect( obj, SIGNAL( onError( const QString& ) ), this, SLOT( OnObjectError( const QString& ) ) );
     jsInterpreter_->AddObjectToJS( obj->jsInstanceName(), obj ); //lifetime managed by parent object/Qt
     if( persistent ) {
-		pl->setParent( this );
-		jscriptStdObjects_.push_back( obj );
-		uriObjectMap_[ uri ] = obj;
-	} else {
-		//adding the plugin loader as a javascript managed object with the created instance as a child
-		jsInterpreter_->AddObjectToJS( obj->jsInstanceName() + "__PluginLoader",
-				                       pl, QScriptEngine::ScriptOwnership );
-	}
+        pl->setParent( this );
+        jscriptStdObjects_.push_back( obj );
+        uriObjectMap_[ uri ] = obj;
+    } else {
+        //adding the plugin loader as a javascript managed object with the created instance as a child
+        jsInterpreter_->AddObjectToJS( obj->jsInstanceName() + "__PluginLoader",
+                                       pl, QScriptEngine::ScriptOwnership );
+    }
     return jsInterpreter_->EvaluateJavaScript( obj->jsInstanceName() );
 }
 
@@ -186,7 +186,7 @@ QByteArray Context::ReadUrl( const QString& url, QSet< QUrl > redirects ) {
         return ReadUrl( possibleRedirectUrl.toString(), redirects );
     }
     else {
-    	lastReadURI_ = reply->url().toString();
+        lastReadURI_ = reply->url().toString();
         return reply->readAll();
     }
 }
@@ -290,13 +290,13 @@ void Context::RemoveStdObject( QObject* o ) {
 }
 
 void Context::InitJScript() {
-	if( addParentObjs_ && parent_ != 0 ) {
-	    jsInterpreter_->EvaluateJavaScript( parent_->GetJSInitCode() );
-		const bool APPEND_TO_GLOBAL_LOCO_OBJECT = true;
-		jsInterpreter_->EvaluateJavaScript( jsInitGenerator_->GenerateCode( APPEND_TO_GLOBAL_LOCO_OBJECT ) );
-	} else {
-	    jsInterpreter_->EvaluateJavaScript( jsInitGenerator_->GenerateCode() );
-	}
+    if( addParentObjs_ && parent_ != 0 ) {
+        jsInterpreter_->EvaluateJavaScript( parent_->GetJSInitCode() );
+        const bool APPEND_TO_GLOBAL_LOCO_OBJECT = true;
+        jsInterpreter_->EvaluateJavaScript( jsInitGenerator_->GenerateCode( APPEND_TO_GLOBAL_LOCO_OBJECT ) );
+    } else {
+        jsInterpreter_->EvaluateJavaScript( jsInitGenerator_->GenerateCode() );
+    }
 }
 
 void Context::RemoveStdObjects() {
@@ -313,11 +313,11 @@ void Context::RemoveFilters() {
     filters_.clear();
     ResetNameFilterMap(); 
 }
-	
+    
 void Context::OnJSContextCleared() {
-   	AddJavaScriptObjects();
-   	InitJScript();
-   	emit JSContextCleared();
+    AddJavaScriptObjects();
+    InitJScript();
+    emit JSContextCleared();
 }
 //public slots:
 void Context::AddJSStdObjects( IJSInterpreter* jsi ) {
@@ -371,14 +371,14 @@ void Context::LoadFilter( const QString& id, const QString& uri ) {
 
 QVariant Context::Insert( const QString& uri, const QStringList& filters ) {
     QString code;
-	bool match = false;
+    bool match = false;
     if( filters.isEmpty() && autoMapFilters_ ) {
         for( NameFilterMap::iterator i = nameFilterMap_.begin();
              i != nameFilterMap_.end(); ++i ) {
             if( i->first.exactMatch( uri ) ) {
-			    code = Read( uri, i->second );
+                code = Read( uri, i->second );
                 match = true;
-				break;
+                break;
             }
         }    
     }
@@ -388,132 +388,132 @@ QVariant Context::Insert( const QString& uri, const QStringList& filters ) {
 }
 
 QVariant Context::LoadQtPlugin( QString filePath,
-		                        QString jsInstanceName,
-		                        const QString& initMethodName,
-		                        const QVariantMap& params ) {
-	if( filePath.startsWith( "~/" ) ) filePath = QDir::homePath() + filePath.remove( 0, 1 );
-	QPluginLoader* pluginLoader = new QPluginLoader( filePath );
-	if( !pluginLoader ) {
-		error( "Cannot load plugin from " + filePath );
-		return QVariant();
-	}
-	QObject* obj = pluginLoader->instance();
-	if( !obj ) {
-		delete pluginLoader;
-		error( "Cannot create object instance from plugin " + filePath );
-		return QVariant();
-	}
-	obj->setParent( pluginLoader );
-	const QMetaObject* mo = obj->metaObject();
-	const QString initMethodSignature = "QString " + initMethodName + "(QVariantMap)";
-	if( mo->indexOfMethod( initMethodSignature.toAscii().constData() ) >= 0 ) {
-	    QMetaMethod method = mo->method( mo->indexOfMethod( initMethodSignature.toAscii().constData() ) );
-	    QString ret;
-	    method.invoke( obj, Qt::DirectConnection,
-	    		            Q_RETURN_ARG( QString, ret ),
-	          			    Q_ARG( QVariantMap, params ) );
+                                QString jsInstanceName,
+                                const QString& initMethodName,
+                                const QVariantMap& params ) {
+    if( filePath.startsWith( "~/" ) ) filePath = QDir::homePath() + filePath.remove( 0, 1 );
+    QPluginLoader* pluginLoader = new QPluginLoader( filePath );
+    if( !pluginLoader ) {
+        error( "Cannot load plugin from " + filePath );
+        return QVariant();
+    }
+    QObject* obj = pluginLoader->instance();
+    if( !obj ) {
+        delete pluginLoader;
+        error( "Cannot create object instance from plugin " + filePath );
+        return QVariant();
+    }
+    obj->setParent( pluginLoader );
+    const QMetaObject* mo = obj->metaObject();
+    const QString initMethodSignature = "QString " + initMethodName + "(QVariantMap)";
+    if( mo->indexOfMethod( initMethodSignature.toAscii().constData() ) >= 0 ) {
+        QMetaMethod method = mo->method( mo->indexOfMethod( initMethodSignature.toAscii().constData() ) );
+        QString ret;
+        method.invoke( obj, Qt::DirectConnection,
+                            Q_RETURN_ARG( QString, ret ),
+                            Q_ARG( QVariantMap, params ) );
         if( !ret.isEmpty() && ret.toLower() != "ok" ) {
-        	pluginLoader->deleteLater();
-        	error( ret );
-        	return QVariant();
+            pluginLoader->deleteLater();
+            error( ret );
+            return QVariant();
         }
-	}
-	if( jsInstanceName.isEmpty() ) {
-		Object obj;
-		jsInstanceName = obj.jsInstanceName();
-	}
-	AddQObjectToJSContext( pluginLoader, jsInstanceName + "__QPluginLoader", true );
+    }
+    if( jsInstanceName.isEmpty() ) {
+        Object obj;
+        jsInstanceName = obj.jsInstanceName();
+    }
+    AddQObjectToJSContext( pluginLoader, jsInstanceName + "__QPluginLoader", true );
     AddQObjectToJSContext( obj, jsInstanceName, false );
     return jsInterpreter_->EvaluateJavaScript( jsInstanceName );
 }
 
 QVariant Context::WrapQObject( QObject* qobj, bool takeOwnership ) {
-	Object obj;
-	AddQObjectToJSContext( qobj, obj.jsInstanceName(), takeOwnership );
-	return jsInterpreter_->EvaluateJavaScript( obj.jsInstanceName() );
+    Object obj;
+    AddQObjectToJSContext( qobj, obj.jsInstanceName(), takeOwnership );
+    return jsInterpreter_->EvaluateJavaScript( obj.jsInstanceName() );
 }
 
 QVariant Context::Create( const QString& className, const QVariantMap& init ) {
-	if( className == "ProtocolHandler" ) {
-		return AddObjToJSContext( new ScriptNetworkRequestHandler ); //lifetime managed by Javascript
-	}
+    if( className == "ProtocolHandler" ) {
+        return AddObjToJSContext( new ScriptNetworkRequestHandler ); //lifetime managed by Javascript
+    }
 #ifdef LOCO_WKIT
-	else if( className == "JavaScriptCoreContext" ) {
-		Context* ctx = new Context();
-		JSContext* jsCtx = new JSContext( ctx );
-		ctx->setParent( jsCtx ); // javascript interpreter OWNS jsCtx
-		                         // jsCtx OWNS ctx
-		ctx->Init( new WebKitJSCore(), app_, cmdLine_ );
-		return AddObjToJSContext( jsCtx );
-	}
+    else if( className == "JavaScriptCoreContext" ) {
+        Context* ctx = new Context();
+        JSContext* jsCtx = new JSContext( ctx );
+        ctx->setParent( jsCtx ); // javascript interpreter OWNS jsCtx
+                                 // jsCtx OWNS ctx
+        ctx->Init( new WebKitJSCore(), app_, cmdLine_ );
+        return AddObjToJSContext( jsCtx );
+    }
 #endif
 #ifdef LOCO_SCRIPT
-	else if( className == "QtScriptContext" ) {
-		Context* ctx = new Context();
-		JSContext* jsCtx = new JSContext( ctx );
-		ctx->setParent( jsCtx ); // javascript interpreter OWNS jsCtx
-		                         // jsCtx OWNS ctx
-		ctx->Init( new QScriptInterpreter(), app_, cmdLine_ );
-		return AddObjToJSContext( jsCtx );
-	}
+    else if( className == "QtScriptContext" ) {
+        Context* ctx = new Context();
+        JSContext* jsCtx = new JSContext( ctx );
+        ctx->setParent( jsCtx ); // javascript interpreter OWNS jsCtx
+                                 // jsCtx OWNS ctx
+        ctx->Init( new QScriptInterpreter(), app_, cmdLine_ );
+        return AddObjToJSContext( jsCtx );
+    }
 #endif
-	else if( className == "ContextThread" ) {
-		ContextThread* ct = new ContextThread();
-		AddQObjectToJSContext( ct, ct->JSInstanceName() );
-		return jsInterpreter_->EvaluateJavaScript( ct->JSInstanceName() );
-	} else if( className == "ContextThreadLoop" ) {
-		ContextThreadLoop* ct = new ContextThreadLoop();
-		AddQObjectToJSContext( ct, ct->JSInstanceName() );
-		return jsInterpreter_->EvaluateJavaScript( ct->JSInstanceName() );
-	} else if( className == "Float64Array" ) {
-		return CreateArray< Float64Array >( *this, init );
-	} else if( className == "Float32Array" ) {
-		return CreateArray< Float32Array >( *this, init );
-	} else if( className == "IntArray" ) {
-		return CreateArray< IntArray >( *this, init );
-	} else if( className == "UIntArray" ) {
-		return CreateArray< UIntArray >( *this, init );
-	} else if( className == "ShortArray" ) {
-		return CreateArray< ShortArray >( *this, init );
-	} else if( className == "UShortArray" ) {
-		return CreateArray< UShortArray >( *this, init );
-	} else if( className == "ByteArray" ) {
-		return CreateArray< ByteArray >( *this, init );
-	} else {
-		error( "Cannot create object of type " + className );
-		return QVariant();
-	}
+    else if( className == "ContextThread" ) {
+        ContextThread* ct = new ContextThread();
+        AddQObjectToJSContext( ct, ct->JSInstanceName() );
+        return jsInterpreter_->EvaluateJavaScript( ct->JSInstanceName() );
+    } else if( className == "ContextThreadLoop" ) {
+        ContextThreadLoop* ct = new ContextThreadLoop();
+        AddQObjectToJSContext( ct, ct->JSInstanceName() );
+        return jsInterpreter_->EvaluateJavaScript( ct->JSInstanceName() );
+    } else if( className == "Float64Array" ) {
+        return CreateArray< Float64Array >( *this, init );
+    } else if( className == "Float32Array" ) {
+        return CreateArray< Float32Array >( *this, init );
+    } else if( className == "IntArray" ) {
+        return CreateArray< IntArray >( *this, init );
+    } else if( className == "UIntArray" ) {
+        return CreateArray< UIntArray >( *this, init );
+    } else if( className == "ShortArray" ) {
+        return CreateArray< ShortArray >( *this, init );
+    } else if( className == "UShortArray" ) {
+        return CreateArray< UShortArray >( *this, init );
+    } else if( className == "ByteArray" ) {
+        return CreateArray< ByteArray >( *this, init );
+    } else {
+        error( "Cannot create object of type " + className );
+        return QVariant();
+    }
 }
 
 void Context::AddNetworkRequestHandler( const QString& scheme, QObject* handler ) {
-	INetworkRequestHandler* nrh = dynamic_cast< INetworkRequestHandler*  >( handler );
-	if( !nrh ) {
-		error( "Invalid request handler type" );
-		return;
-	} else {
-	    netAccessMgr_->AddNetworkRequestHandler( scheme, nrh );
-	}
+    INetworkRequestHandler* nrh = dynamic_cast< INetworkRequestHandler*  >( handler );
+    if( !nrh ) {
+        error( "Invalid request handler type" );
+        return;
+    } else {
+        netAccessMgr_->AddNetworkRequestHandler( scheme, nrh );
+    }
 }
 
 void Context::LoadScriptFilter( const QString& id,
-		                        const QString& uri,
-						        const QString& jfun,
-						        const QString& jcode,
+                                const QString& uri,
+                                const QString& jfun,
+                                const QString& jcode,
                                 const QString& jerrfun,
                                 const QString& codePlaceHolder ) {
-	if( !fileAccessMgr_->CheckAccess( uri ) ) {
-		error( "Access to " + uri + " not allowed" );
-		return;
-	}
-	Include( uri );
-	Filter* lf = new ScriptFilter( jsInterpreter_, jfun, jcode, jerrfun, codePlaceHolder );
-	connect( lf, SIGNAL( onError( const QString& ) ),
-			 this, SLOT( OnFilterError( const QString& ) ) );
-	filters_[ id ] = lf;
+    if( !fileAccessMgr_->CheckAccess( uri ) ) {
+        error( "Access to " + uri + " not allowed" );
+        return;
+    }
+    Include( uri );
+    Filter* lf = new ScriptFilter( jsInterpreter_, jfun, jcode, jerrfun, codePlaceHolder );
+    connect( lf, SIGNAL( onError( const QString& ) ),
+             this, SLOT( OnFilterError( const QString& ) ) );
+    filters_[ id ] = lf;
 }
 
 QVariant Context::Data( const QVariant& data ) {
-	return AddObjToJSContext( new DataType( data ) );
+    return AddObjToJSContext( new DataType( data ) );
 }
 
 
