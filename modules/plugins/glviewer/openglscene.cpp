@@ -35,15 +35,16 @@
 ** contact the sales department at qt-sales@nokia.com.
 **
 ****************************************************************************/
-
+#include <GL/glu.h>
 #include "openglscene.h"
 #include "model.h"
 
 #include <QtGui>
 #include <QtOpenGL>
-#include <QGraphicsView>
-#include <GL/glu.h>
 
+#ifndef GL_MULTISAMPLE
+#define GL_MULTISAMPLE  0x809D
+#endif
 
 QDialog *OpenGLScene::createDialog(const QString &windowTitle) const
 {
@@ -134,8 +135,11 @@ OpenGLScene::OpenGLScene()
 
 void OpenGLScene::drawBackground(QPainter *painter, const QRectF &)
 {
-    if (painter->paintEngine()->type() != QPaintEngine::OpenGL) {
+
+    if (painter->paintEngine()->type() != QPaintEngine::OpenGL &&
+        painter->paintEngine()->type() != QPaintEngine::OpenGL2 ) {
         qWarning("OpenGLScene: drawBackground needs a QGLWidget to be set as viewport on the graphics view");
+        return;
     }
 
     glClearColor(m_backgroundColor.redF(), m_backgroundColor.greenF(), m_backgroundColor.blueF(), 1.0f);
@@ -195,19 +199,19 @@ void OpenGLScene::loadModel(const QString &filePath)
 
     m_modelButton->setEnabled(false);
     QApplication::setOverrideCursor(Qt::BusyCursor);
-#ifndef QT_NO_CONCURRENT
-    m_modelLoader.setFuture(QtConcurrent::run(::loadModel, filePath));
-#else
+//#ifndef QT_NO_CONCURRENT
+//     m_modelLoader.setFuture(QtConcurrent::run(::loadModel, filePath));
+//#else
     setModel(::loadModel(filePath));
     modelLoaded();
-#endif
+//#endif
 }
 
 void OpenGLScene::modelLoaded()
 {
-#ifndef QT_NO_CONCURRENT
-    setModel(m_modelLoader.result());
-#endif
+//#ifndef QT_NO_CONCURRENT
+//    setModel(m_modelLoader.result());
+//#endif
     m_modelButton->setEnabled(true);
     QApplication::restoreOverrideCursor();
 }

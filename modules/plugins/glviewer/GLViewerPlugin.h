@@ -18,13 +18,18 @@ class GLViewerPlugin : public QGraphicsView, public IDummy {
     Q_INTERFACES( IDummy )
 public:
     GLViewerPlugin()  {
-        setWindowTitle( tr( "3D Model Viewer") );
-        //setViewport( new QGLWidget( QGLFormat(QGL::SampleBuffers | QGL::AccumBuffer | QGL::AlphaChannel) ) );
+#if QT_VERSION >= 0x040800
+        QGLFormat glFormat;
+        glFormat.setVersion( 2, 0 );
+        glFormat.setProfile( QGLFormat::CompatibilityProfile ); // Requires >=Qt-4.8.0
+        glFormat.setSampleBuffers( true );
+        setViewport( new QGLWidget( glFormat ) );
+#else
+        setViewport( new QGLWidget( QGLFormat(QGL::SampleBuffers | QGL::AccumBuffer | QGL::AlphaChannel) ) );
+#endif
+        setViewportUpdateMode( QGraphicsView::FullViewportUpdate );
         glScene = new OpenGLScene;
         setScene( glScene );
-        setViewport( new QGLWidget( QGLFormat( QGL::SampleBuffers ), this ) );
-        setViewportUpdateMode( QGraphicsView::FullViewportUpdate );
-    //    setViewport( new QGLWidget( QGLFormat(QGL::SampleBuffers | QGL::AccumBuffer | QGL::AlphaChannel) ) );
     }
 protected:
     void resizeEvent(QResizeEvent *event) {
@@ -35,7 +40,6 @@ protected:
     }
 public slots:
     void load( const QString& fpath ) { glScene->loadModel( fpath ); }
-    void show() { QWidget::show(); }
 private:
     OpenGLScene* glScene;
 };

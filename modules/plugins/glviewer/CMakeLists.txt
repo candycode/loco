@@ -1,7 +1,7 @@
 #SRCHEADER
 cmake_minimum_required(VERSION 2.8)
 
-project( "locoviewer" )
+project( "glviewer" )
 
 set( QT_USE_QTOPENGL ON )
 
@@ -16,12 +16,12 @@ QT4_WRAP_CPP( MOC_SRCS ${MOC_HEADERS} )
 
 set( SRCS ${MOC_SRCS}  model.cpp  model.h  openglscene.cpp  openglscene.h  point3d.h )
 
-add_library( locoviewer SHARED ${SRCS} )
+add_library( glviewer SHARED ${SRCS} )
 
-set_target_properties( locoviewer PROPERTIES PREFIX "" SUFFIX ".qtplugin" )
+set_target_properties( glviewer PROPERTIES PREFIX "" SUFFIX ".qtplugin" )
 if( MSVC )
   set( GL_LIBRARIES opengl32 glu32 )
 else()
   set( GL_LIBRARIES GL GLU )
 endif()    
-target_link_libraries( locoviewer ${QT_LIBRARIES} ${GL_LIBRARIES} )
+target_link_libraries( glviewer ${QT_LIBRARIES} ${GL_LIBRARIES} )
