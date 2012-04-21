@@ -10,6 +10,9 @@
 
 #include "openglscene.h"
 
+///@warning issues with GL drivers and QGraphicsView on ubuntu 11.10
+///http://markmail.org/message/wgoch66jibqc63cx
+
 struct IDummy {};
 Q_DECLARE_INTERFACE(IDummy,"dummy")
 
