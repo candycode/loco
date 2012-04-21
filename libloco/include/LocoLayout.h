@@ -11,13 +11,11 @@
 
 namespace loco {
 
-class Layout : Object {
+class Layout : public Object {
     Q_OBJECT
-//public:
-//    virtual QString GetLayoutType() const  = 0;
-//    virtual QLayout* GetQLayout() const = 0;
-public slots:
-    void addWidget( QObject* );
+public:
+    virtual QString GetLayoutType() const  = 0;
+    virtual QObject* GetQLayout() const = 0;
 };
 
 //------------------------------------------------------------------------------
@@ -29,14 +27,16 @@ public:
         connect( this, SIGNAL( destroyed() ), layout_, SLOT( deleteLater() ) );
     }
     QString GetLayoutType() const { return "VBOX"; }            
-    QLayout* GetQLayout() const { return layout_; }
+    QObject* GetQLayout() const { return layout_; }
+public slots:
+    void addWidget( QObject* );
 private:
     VBoxLayout* layout_;
 };
 
 
 //------------------------------------------------------------------------------
-class HBoxLayout : public Object {
+class HBoxLayout : public Layout {
     Q_OBJECT
     Q_PROPERTY( QString layoutType READ GetLayoutType )
 public:
@@ -44,7 +44,9 @@ public:
         connect( this, SIGNAL( destroyed() ), layout_, SLOT( deleteLater() ) );
     }
     QString GetLayoutType() const { return "HBOX"; }            
-    QLayout* GetQLayout() const { return layout_; }
+    QObject* GetQLayout() const { return layout_; }
+public slots:
+    void addWidget( QObject* );
 private:
     HBoxLayout* layout_;
 };
