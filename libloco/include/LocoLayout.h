@@ -14,16 +14,28 @@ namespace loco {
 class Layout : public Object {
     Q_OBJECT
 public:
-    virtual QString GetLayoutType() const  = 0;
+    Layout( Context* c, 
+            const QString& n,
+            const QString& type, 
+            const QString& module,
+            bool destroyable,
+            ObjectInfo* objInfo ) : Object( c, n, type, module, destroyable, objInfo ) {}
     virtual QObject* GetQLayout() const = 0;
+    virtual QString GetLayoutType() const = 0;
+    
 };
 
-//------------------------------------------------------------------------------
 class VBoxLayout : public Layout {
     Q_OBJECT
     Q_PROPERTY( QString layoutType READ GetLayoutType )
 public:
-    VBoxLayout() : layout_( new VBoxLayout ) {
+    VBoxLayout( Context* c = 0, 
+            const QString& n = "LocoVBoxLayout",
+            const QString& type = "", 
+            const QString& module = "",
+            bool destroyable = false,
+            ObjectInfo* objInfo = 0 ) : Layout( c, n, type, module, destroyable, objInfo ),
+                                        layout_( new QVBoxLayout ) { 
         connect( this, SIGNAL( destroyed() ), layout_, SLOT( deleteLater() ) );
     }
     QString GetLayoutType() const { return "VBOX"; }            
@@ -31,7 +43,7 @@ public:
 public slots:
     void addWidget( QObject* );
 private:
-    VBoxLayout* layout_;
+    QVBoxLayout* layout_;
 };
 
 
@@ -40,7 +52,13 @@ class HBoxLayout : public Layout {
     Q_OBJECT
     Q_PROPERTY( QString layoutType READ GetLayoutType )
 public:
-    HBoxLayout() : layout_( new HBoxLayout ) {
+    HBoxLayout( Context* c = 0, 
+            const QString& n = "LocoHBoxLayout",
+            const QString& type = "", 
+            const QString& module = "",
+            bool destroyable = false,
+            ObjectInfo* objInfo = 0 ) : Layout( c, n, type, module, destroyable, objInfo ),
+                                        layout_( new QHBoxLayout ) {  
         connect( this, SIGNAL( destroyed() ), layout_, SLOT( deleteLater() ) );
     }
     QString GetLayoutType() const { return "HBOX"; }            
@@ -48,7 +66,7 @@ public:
 public slots:
     void addWidget( QObject* );
 private:
-    HBoxLayout* layout_;
+    QHBoxLayout* layout_;
 };
 
 

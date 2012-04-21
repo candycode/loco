@@ -16,7 +16,7 @@ namespace loco {
 class  WrappedWidget : public Object {
     Q_OBJECT
     Q_PROPERTY( bool fullScreen READ IsFullScreen )
-    Q_PROPERTY( QObject* widget READ GetWidget() )
+    Q_PROPERTY( QObject* qwidget READ GetWidget() )
 public:
     WrappedWidget( Context* c = 0, 
                    const QString& n = "LocoWrappedWidget",

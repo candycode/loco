@@ -1,6 +1,7 @@
 //#SRCHEADER
 #include <stdexcept>
 
+
 #include "LocoContext.h"
 #include "LocoGUI.h"
 
@@ -51,6 +52,10 @@ QVariant GUI::create( const QString& name, const QVariantMap& params ) const {
         return obj;        
     } else if( name == "VBoxLayout" ) {
         VBoxLayout *l = new VBoxLayout;
+        QVariant obj = GetContext()->AddObjToJSContext( l  );
+        return obj;        
+    } else if( name == "HBoxLayout" ) {
+        HBoxLayout *l = new HBoxLayout;
         QVariant obj = GetContext()->AddObjToJSContext( l  );
         return obj;        
     } else {

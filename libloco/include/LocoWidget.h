@@ -32,8 +32,6 @@ public:
             ObjectInfo* objInfo = 0 ) : Object( c, n, type, module, destroyable, objInfo ), 
                                         widget_( new QWidget ), layout_( 0 ) {
         connect( this, SIGNAL( destroyed() ), widget_, SLOT( deleteLater() ) );
-        connect( widget_, SIGNAL( closing() ), this, SIGNAL( closing() ) );
-        layout_->setParent( this ); 
     }
     bool IsFullScreen() const { return widget_->isFullScreen(); }
     virtual void SetParentWidget( QObject* pw) {
@@ -57,9 +55,11 @@ public:
             layout_->setParent( this );  
             QLayout* l = qobject_cast< QLayout* >( layout_->GetQLayout() );
             widget_->setLayout( l );
+            layout_->setParent( this ); 
         } 
     }
 public slots:
+    void setLayout( QObject* l ) { SetLayout( l ); }
     void resize( int w, int h ) { widget_->resize( w, h ); }
     void close() { widget_->close(); }
     /// @todo void setMouseCursor( const QString& shape );
