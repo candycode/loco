@@ -8,6 +8,7 @@
 #include <QtGui/QPainter>
 
 #include "LocoObject.h"
+#include "LocoLayout.h"
 
 namespace loco {
 
@@ -34,6 +35,15 @@ public:
     virtual void SetParentWidget( WrappedWidget* pw) {
         Widget()->setParent( pw->Widget() );
     }
+    void SetLayout( QObject* ly ) {
+        Layout* l = qobject_cast< Layout* >( ly );
+        if( !l ) {
+            error( "WrappedWidget::setLayout: Layout type required" );
+            return;
+        } else {
+            Widget()->setLayout( qobject_cast< QLayout* >( l->GetQLayout() ) );
+        } 
+    }
     virtual ~WrappedWidget() {}
 protected:
     // problem: not possible to call this method from within constructor method
@@ -44,6 +54,9 @@ protected:
         connect( Widget(), SIGNAL( closing() ), this, SIGNAL( closing() ) );
     }
 public slots:
+    void setStyleSheet( const QString& s ) { 
+        Widget()->setStyleSheet( s );
+    }
     void resize( int w, int h ) { Widget()->resize( w, h ); }
     bool setParentWidget( QObject* obj ) {
         if( !dynamic_cast< WrappedWidget* >( obj ) ) {

@@ -17,13 +17,23 @@ else
 Loco.console.println( ppath );
 var glviewer = Loco.ctx.loadQtPlugin( ppath );
 if( !glviewer ) throw "Cannot create OpenGL viewer";
-var mw = Loco.gui.create( "MainWindow" );
-mw.setCentralWidget( glviewer );
+var main = Loco.gui.create( "Widget" );
+var layout = Loco.gui.create( "HBoxLayout" );
+layout.addWidget( glviewer );
+var inlayout = Loco.gui.create( "HBoxLayout" );
+var w = Loco.gui.create( "WebWindow" );
+var ww = Loco.gui.create( "WidgetWrapper" );
+w.setTransparent();
+ww.wrap( glviewer );
+inlayout.addWidget( w );
+ww.setLayout( inlayout );
+main.setLayout( layout);
 if( Loco.ctx.args.length === 3 
     && Loco.fs.exists( Loco.ctx.args[ 2 ] ) ) {
   glviewer.load( Loco.ctx.args[ 2 ] );
 } else glviewer.load( "models/qt.obj" );
-mw.show();
+w.load( "./loadtest.html" );
+main.show();
 } catch(e) {
 Loco.console.println(e);
 Loco.ctx.exit( -1 );

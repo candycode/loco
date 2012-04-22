@@ -8,7 +8,6 @@
 #include <QtGui/QPainter>
 
 #include "LocoWrappedWidget.h"
-
 namespace loco {
 
 //to be able to cast from QObject we need to pass a QObject derived object to qobject_cast 
@@ -19,7 +18,7 @@ class  WidgetWrapper : public WrappedWidget {
 public:
     WidgetWrapper( QObject* wrappedWidget, //need to use QObject in order to access from Javascript
             Context* c = 0, 
-            const QString& n = "LocoWrappedWidget",
+            const QString& n = "LocoWidgetWrapper",
             const QString& type = "", 
             const QString& module = "",
             bool destroyable = false,
@@ -53,6 +52,8 @@ public:
     const QWidget* Widget() const { return widget_; }
 public slots:
     bool setWidget( QObject* ww ) { return SetWidget( ww ); }
+    bool wrap( QObject* ww ) { return SetWidget( ww ); }
+    void setLayout( QObject* l ) { SetLayout( l ); }
 private:
     QWidget* widget_;
 };

@@ -130,6 +130,13 @@ private slots:
     void PreLoadCBack() { ctx_.Eval( preLoadCBack_ ); }
 
 public slots:
+    void setTransparent() {
+        QPalette palette = webView_->palette();
+        palette.setBrush(QPalette::Base, Qt::transparent);
+        webView_->page()->setPalette(palette);
+        webView_->setAttribute(Qt::WA_OpaquePaintEvent, false);
+        webView_->setAttribute(Qt::WA_TranslucentBackground, true);
+    }
     void openInspector() {
         QWebInspector* wi = new QWebInspector( webView_ );
         wi->setPage( webView_->page() );

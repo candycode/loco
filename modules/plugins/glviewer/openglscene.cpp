@@ -129,7 +129,7 @@ OpenGLScene::OpenGLScene()
     m_lightItem->setPos(800, 200);
     addItem(m_lightItem);
 
-    loadModel(QLatin1String("qt.obj"));
+//    loadModel(QLatin1String("qt.obj"));
     m_time.start();
 }
 

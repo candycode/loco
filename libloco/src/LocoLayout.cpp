@@ -16,14 +16,11 @@ void VBoxLayout::addWidget( QObject* w ) {
 }
 void HBoxLayout::addWidget( QObject* w ) { 
     if( qobject_cast< Widget* >( w ) ) {
-        printf( "Widget\n" );
 	Widget* lw = qobject_cast< Widget* >( w );
 	layout_->addWidget( qobject_cast< QWidget* >( lw->GetQWidget() ) );
     } else if( qobject_cast< WrappedWidget* >( w ) ) {
-        printf( "WrappedWidget\n" );  
         layout_->addWidget( qobject_cast< QWidget* >( qobject_cast< WrappedWidget* >( w )->GetWidget() ) );  
     } else  if( qobject_cast< QWidget* >( w ) ) {
-	printf( "QWidget\n" );
         layout_->addWidget( qobject_cast< QWidget* >( w ) );
     } else {
 	error( "VBoxLayout::addWidget() requires a QWidget" );
