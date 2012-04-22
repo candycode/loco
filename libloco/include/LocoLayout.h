@@ -22,6 +22,10 @@ public:
             ObjectInfo* objInfo ) : Object( c, n, type, module, destroyable, objInfo ) {}
     virtual QObject* GetQLayout() const = 0;
     virtual QString GetLayoutType() const = 0;
+public slots:
+    void setContentsMargins( int left, int top, int right, int bottom ) {
+        qobject_cast< QLayout* >( GetQLayout() )->setContentsMargins( left, top, right, bottom );
+    }
     
 };
 
