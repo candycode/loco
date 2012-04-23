@@ -26,7 +26,9 @@ public slots:
     void setContentsMargins( int left, int top, int right, int bottom ) {
         qobject_cast< QLayout* >( GetQLayout() )->setContentsMargins( left, top, right, bottom );
     }
-    
+    void setMargin( int m ) { 
+        qobject_cast< QLayout* >( GetQLayout() )->setMargin( m );
+   } 
 };
 
 class VBoxLayout : public Layout {
