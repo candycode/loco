@@ -236,8 +236,11 @@ osg::QOSGScene::QOSGScene( qreal x, qreal y, qreal w, qreal h, QObject * parent 
 }
 
 void osg::QOSGScene::Resize( int w, int h ) {
- getCamera()->setProjectionMatrixAsPerspective(30.0f, static_cast<double>(w)/static_cast<double>(h), 1.0f, 10000.0f);
- getCamera()->setViewport( 0, 0, w, h ); 
+ //getCamera()->setProjectionMatrixAsPerspective(30.0f, static_cast<double>(w)/static_cast<double>(h), 1.0f, 10000.0f);
+ //getCamera()->setViewport( 0, 0, w, h ); 
+ _gw->resized( 0, 0, w, h );
+ _gw->getEventQueue()->windowResize( 0, 0, w, h );
+ _gw->requestRedraw();
 }
 
 /**	Draw OpenGL as background, all widgets or else will be drawn on top (see widget opacity).
