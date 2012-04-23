@@ -153,6 +153,9 @@ public slots:
         if( width > 0 && height > 0 ) resize( width, height );
         QGraphicsView::show();
     }
+    void setWireframe() { osgscene_->Wireframe(); }
+    void setPoint() { osgscene_->Point(); }
+    void setSolid() { osgscene_->Solid(); }
 private:
     void AddJSObject( const QString& name, QObject* obj ) {
         webView_->page()->mainFrame()->addToJavaScriptWindowObject( name, obj );
