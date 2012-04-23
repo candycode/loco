@@ -5,7 +5,7 @@ project( "osgview" )
 
 option( OSG_VIEW_STATIC "Build static library instead dynamic-loadable module" OFF )
 set( OSG_INCLUDE_DIR "/usr/local/include" CACHE PATH "OpenSceneGraph include directory" )
-set( OSG_LIB_DIR "/use/local/lib64" CACHE PATH "OpenSceneGraph lib directory" )
+set( OSG_LIB_DIR "/usr/local/lib64" CACHE PATH "OpenSceneGraph lib directory" )
 
 set( QT_USE_QTOPENGL ON )
 set( QT_USE_QTWEBKIT ON )
