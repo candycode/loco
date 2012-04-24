@@ -2,7 +2,22 @@
 <html>
 <head>
 <script>
-  function  loadscene() {
+  function setCheckedValue(newValue) {
+    var radioObj = document.getElementsByName( 'appearance-radio' );
+    if( !radioObj ) return;
+    var radioLength = radioObj.length;
+    if( radioLength == undefined ) {
+        radioObj.checked = ( radioObj.value == newValue.toString() );
+        return;
+    }
+    for( var i = 0; i < radioLength; i++ ) {
+        radioObj[ i ].checked = false;
+        if( radioObj[ i ].value == newValue.toString() ) {
+            radioObj[ i ].checked = true;
+        }
+    }
+  }
+  function loadscene() {
     var file = gui.openFileDialog( "Select scene file" );
     if( file ) osgviewer.loadScene( file );
   }
@@ -13,18 +28,26 @@
   function handleKey() {
     var key = window.event.keyCode;
     if( key === 13 ) { //enter
-      eval( document.getElementById( "console" ).value );
+      try {
+        eval( document.getElementById( "console" ).value );
+      } catch( e ) {
+        if( e.message ) alert( e.message );
+        else alert( e );
+      }
       var c = document.getElementById( "console" );
       c.value="";
     }
   }
   function setAppearance( appearance ) {
     switch( appearance ) {
-    case "solid": osgviewer.setSolid(); 
+    case "solid": osgviewer.setSolid();
+                  setCheckedValue( 'solid' ); 
                   break;
     case "wireframe": osgviewer.setWireframe();
+                      setCheckedValue( 'wireframe' ); 
                       break;
     case "points": osgviewer.setPoint();
+                   setCheckedValue( 'points' ); 
                    break
     default: break;
     } 
@@ -32,21 +55,30 @@
   function load( file ) {
     osgviewer.loadScene( file );
   }
-  function setbkcolor( r, g, b ) {
-    osgviewer.setBkColor( r, g, b );
-  } 
+  function setbkcolor( rgb ) {
+    osgviewer.setBkColor( rgb );
+  }
+  function pickcolor() {
+    var c = gui.colorDialog();
+    return c;
+  }
+  function quit() {
+    win.close();
+  }   
 </script>   
 </head>
 <body style="margin: 0 0 0 0">
-  <div style="width: 100%; background-color: rgba(200,100,0,0.5);" > 
+  <div style="width: 100%; background-color: rgba(200,100,200,0.5);" > 
     <button style="opacity: 0.5;" onclick="loadscene();">Load scene</button>
     <button style="opacity: 0.5;" onclick="toggleFullScreen();">Toggle fullscreen</button>
-    <input type="radio" name="display-type" value="solid" checked="true" onclick="setAppearance('solid')">Solid</input>
-    <input type="radio" name="display-type" value="wireframe" onclick="setAppearance('wireframe')">Wireframe</input>
-    <input type="radio" name="display-type" value="points" onclick="setAppearance('points')">Points</input>
+    <span style="font-family: Arial; padding: 10px" >
+      <input type="radio" name="appearance-radio" value="solid" checked="true" onclick="setAppearance('solid')">Solid</input>
+      <input type="radio" name="appearance-radio" value="wireframe" onclick="setAppearance('wireframe')">Wireframe</input>
+      <input type="radio" name="appearance-radio" value="points" onclick="setAppearance('points')">Points</input>
+    </span>
   </div>
   <div style="width: 100%; position: absolute; bottom: 0; opacity: 0.6">
-    <textarea style="border: 1px; height: 2em; width: 100%" id="console" onkeypress="handleKey()"></textarea> 
+    <textarea rows="1" style="font-family: 'Courier New'; font-weight: bold; border: 1px; width: 100%" id="console" value='\n' onkeypress="handleKey()"></textarea> 
   </div>
 </body>
 </html>

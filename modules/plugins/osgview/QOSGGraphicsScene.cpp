@@ -97,6 +97,15 @@ void osg::QAdapterScene::mouseMoveEvent( QGraphicsSceneMouseEvent* event )
     event->setAccepted(true);
     //update();
 }
+void osg::QAdapterScene::wheelEvent( QWheelEvent* event )
+{
+//    setKeyboardModifiers( event );
+    _gw->getEventQueue()->mouseScroll(
+        event->orientation() == Qt::Vertical ?
+            (event->delta()>0 ? osgGA::GUIEventAdapter::SCROLL_UP : osgGA::GUIEventAdapter::SCROLL_DOWN) :
+            (event->delta()>0 ? osgGA::GUIEventAdapter::SCROLL_LEFT : osgGA::GUIEventAdapter::SCROLL_RIGHT) );
+    event->setAccepted( true );
+}
 
 /** Translate Qt key symbols (Qt::Key) to osg one.
  *  Special key cannot been translated via ascii value.

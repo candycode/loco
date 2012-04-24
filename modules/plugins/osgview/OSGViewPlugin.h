@@ -10,6 +10,7 @@
 #include <QtOpenGL/QGLWidget>
 #include <QGraphicsSceneMouseEvent>
 #include <QList>
+#include <QVariantMap>
 
 #include <QApplication>
 #include <QDir>
@@ -35,6 +36,9 @@ private:
         return true;    
     }
 protected:
+    void contextMenuEvent ( QGraphicsSceneContextMenuEvent* ev ) {
+        ev->setAccepted( false );
+    }
     void keyPressEvent( QKeyEvent* event ) {
         if( focus_ ) {
             QGraphicsWebView::keyPressEvent( event );
@@ -59,12 +63,16 @@ protected:
     void mouseMoveEvent( QGraphicsSceneMouseEvent * ev ) {
         QPointF p = mapFromScene( ev->scenePos().x(), ev->scenePos().y() );
         std::cout << "VIEW EVENT MOVE " << p.x() << " " << p.y() << std::endl;
-        if( HandleEvent( ev ) ) QGraphicsWebView::mouseMoveEvent( ev );
+        if( focus_ ) QGraphicsWebView::mouseMoveEvent( ev );
         else ev->setAccepted( false );
     }
     void mouseDoubleClickEvent( QGraphicsSceneMouseEvent * ev ) {
         if( HandleEvent( ev ) ) QGraphicsWebView::mouseDoubleClickEvent( ev );
         else ev->setAccepted( false );
+    }
+    void wheelEvent( QGraphicsSceneWheelEvent* ev ) {
+        //if( HandleEvent( ev ) ) QGraphicsWebView::wheelEvent( ev );
+        ev->setAccepted( false );
     }
 public:
    TransparentGraphicsWebView() : focus_( true ) {}
@@ -85,6 +93,7 @@ public:
         osgscene_( new osg::QOSGScene ),
                       webView_( new TransparentGraphicsWebView ) {
 
+        setWindowFlags( Qt::FramelessWindowHint );
         setViewport( new QGLWidget( QGLFormat(QGL::SampleBuffers | QGL::AccumBuffer | QGL::AlphaChannel), this, 0 ) );
         setViewportUpdateMode( QGraphicsView::FullViewportUpdate );
         setScene( osgscene_ );
@@ -123,8 +132,17 @@ private slots:
         AddJSObject( "osgviewer", this );
     }
 public slots:
+    void setBkColor( QVariantMap rgb ) {
+        float r = 0;
+        float g = 0;
+        float b = 0;
+        if( rgb.contains( "r" ) ) r = rgb[ "r" ].toInt() / 255.0f;
+        if( rgb.contains( "g" ) ) g = rgb[ "g" ].toInt() / 255.0f;
+        if( rgb.contains( "b" ) ) b = rgb[ "b" ].toInt() / 255.0f;
+        osgscene_->SetBkColor( r, g, b );
+    }
     void fullScreen() { showFullScreen(); }
-    void setOpacity( double opacity ) { webView_->setOpacity( opacity ); }
+    void setHUDOpacity( double opacity ) { webView_->setOpacity( opacity ); }
     void loadScene( const QString& path ) {
         osgscene_->LoadScene( path );
     }

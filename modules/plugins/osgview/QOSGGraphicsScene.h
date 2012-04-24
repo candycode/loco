@@ -40,6 +40,8 @@ namespace osg
         virtual void mousePressEvent( QGraphicsSceneMouseEvent* event );
         virtual void mouseReleaseEvent( QGraphicsSceneMouseEvent* event );
         virtual void mouseMoveEvent( QGraphicsSceneMouseEvent* event );
+        virtual void wheelEvent( QWheelEvent* event );
+
 
     protected:
         osg::ref_ptr<osgViewer::GraphicsWindowEmbedded> _gw;
@@ -69,6 +71,7 @@ namespace osg
             setSceneData( scene );
             return true;
         }
+        void SetBkColor( float r, float g, float b ) { getCamera()->setClearColor( osg::Vec4( r, g, b, 1 ) ); }
         void Resize( int w, int h );
         void Wireframe() { ssetManip_->setPolygonMode( osg::PolygonMode::LINE ); }
         void Point() { ssetManip_->setPolygonMode( osg::PolygonMode::POINT ); } 
