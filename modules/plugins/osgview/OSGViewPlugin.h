@@ -139,6 +139,7 @@ public slots:
             url = "file://" + QDir().absoluteFilePath( url );
 #endif
         }
+        webView_->page()->mainFrame()->setScrollBarPolicy( Qt::Horizontal, Qt::ScrollBarAlwaysOff );
         if( seethrough ) {
             QPalette palette = webView_->palette();
             palette.setBrush(QPalette::Base, Qt::transparent);
