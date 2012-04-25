@@ -31,7 +31,7 @@ namespace osg
         osgViewer::GraphicsWindow* getGraphicsWindow() { return _gw.get(); }
         const osgViewer::GraphicsWindow* getGraphicsWindow() const { return _gw.get(); }
         virtual void resizeEvent( QResizeEvent* event );
-
+        void setUpdate( bool on ) { update_ = on; } 
         static osgGA::GUIEventAdapter::KeySymbol convertSymbol(int);
 
     protected:
@@ -45,6 +45,8 @@ namespace osg
 
     protected:
         osg::ref_ptr<osgViewer::GraphicsWindowEmbedded> _gw;
+    private:
+        bool update_;
     };
 //==============================================================================
     /** OSG and OpenGL staff.
@@ -58,9 +60,11 @@ namespace osg
         virtual void drawBackground ( QPainter * painter, const QRectF & rect );
         void setContinuousUpdate( int ms ) {
             if( ms <= 0 ) {
+                setUpdate( true );
                 _timer.stop();
                 QObject::disconnect( &_timer, SIGNAL(timeout()), this, SLOT(update()) );
             } else {
+                setUpdate( false ); 
                 QObject::connect( &_timer, SIGNAL(timeout()), this, SLOT(update()) );
                 _timer.start( ms );
             }

@@ -7,19 +7,19 @@
 
 //==============================================================================
 osg::QAdapterScene::QAdapterScene(QObject* parent)
-:   QGraphicsScene( 0, 0, 100, 100, parent)
+:   QGraphicsScene( 0, 0, 100, 100, parent), update_( true )
 {
     _gw = new osgViewer::GraphicsWindowEmbedded(0,0,width(),height());
 }
 
 osg::QAdapterScene::QAdapterScene( const QRectF & sceneRect, QObject * parent )
-:   QGraphicsScene(sceneRect, parent)
+:   QGraphicsScene(sceneRect, parent), update_( true )
 {
     _gw = new osgViewer::GraphicsWindowEmbedded(sceneRect.x(), sceneRect.y(), sceneRect.width(), sceneRect.height());
 }
 
 osg::QAdapterScene::QAdapterScene( qreal x, qreal y, qreal w, qreal h, QObject * parent )
-:   QGraphicsScene(x,y,w,h,parent)
+:   QGraphicsScene(x,y,w,h,parent), update_( true)
 {
     _gw = new osgViewer::GraphicsWindowEmbedded(x,y,w,h);
 }
@@ -65,6 +65,7 @@ void osg::QAdapterScene::mousePressEvent( QGraphicsSceneMouseEvent* event )
     }
     _gw->getEventQueue()->mouseButtonPress(event->scenePos().x(), event->scenePos().y(), button);
     event->setAccepted(true);
+    if( update_ ) update();
 }
 
 void osg::QAdapterScene::mouseReleaseEvent( QGraphicsSceneMouseEvent* event )
@@ -82,6 +83,7 @@ void osg::QAdapterScene::mouseReleaseEvent( QGraphicsSceneMouseEvent* event )
     }
     _gw->getEventQueue()->mouseButtonRelease(event->scenePos().x(), event->scenePos().y(), button);
     event->setAccepted(true);
+    if( update_ ) update();
 }
 
 void osg::QAdapterScene::mouseMoveEvent( QGraphicsSceneMouseEvent* event )
@@ -90,7 +92,7 @@ void osg::QAdapterScene::mouseMoveEvent( QGraphicsSceneMouseEvent* event )
     if( event->isAccepted() ) return;
     _gw->getEventQueue()->mouseMotion(event->scenePos().x(), event->scenePos().y());
     event->setAccepted(true);
-    update();
+    if( update_ ) update();
 }
 void osg::QAdapterScene::wheelEvent( QWheelEvent* event )
 {
@@ -100,6 +102,8 @@ void osg::QAdapterScene::wheelEvent( QWheelEvent* event )
             (event->delta()>0 ? osgGA::GUIEventAdapter::SCROLL_UP : osgGA::GUIEventAdapter::SCROLL_DOWN) :
             (event->delta()>0 ? osgGA::GUIEventAdapter::SCROLL_LEFT : osgGA::GUIEventAdapter::SCROLL_RIGHT) );
     event->setAccepted( true );
+    if( update_ ) update();
+    
 }
 
 /** Translate Qt key symbols (Qt::Key) to osg one.

@@ -1,6 +1,28 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
+
+<style>
+* { margin: 0 }
+#console {
+  border: 2px solid blue;
+  border-radius: 8px;
+  width: 50%; 
+  position: absolute; 
+  bottom: 1%; 
+  left: 25%;  
+  opacity: 0.6;
+  resize: none;
+  font-family: "Courier New";
+  width: 50%;
+  overflow: hidden;
+  background: black;
+  color: #00ff0a;  
+}
+textarea:focus { outline: none; }
+</style>
+
+
 <script>
   function setCheckedValue(newValue) {
     var radioObj = document.getElementsByName( 'appearance-radio' );
@@ -27,15 +49,18 @@
   }
   function handleKey() {
     var key = window.event.keyCode;
+    var ret;
     if( key === 13 ) { //enter
       try {
-        eval( document.getElementById( "console" ).value );
+        var lines = document.getElementById( "console" ).value.split('\n');
+        var line = lines[ lines.length - 1 ];
+        ret = eval( line );
       } catch( e ) {
         if( e.message ) alert( e.message );
         else alert( e );
       }
       var c = document.getElementById( "console" );
-      c.value="";
+      c.value = ret ? ": " + ret : ":"; 
     }
   }
   function setAppearance( appearance ) {
@@ -64,21 +89,18 @@
   }
   function quit() {
     win.close();
-  }   
+  }
 </script>   
 </head>
-<body style="margin: 0 0 0 0">
+<body>
   <div style="width: 100%; background-color: rgba(200,100,200,0.5);" > 
     <button style="opacity: 0.5;" onclick="loadscene();">Load scene</button>
     <button style="opacity: 0.5;" onclick="toggleFullScreen();">Toggle fullscreen</button>
     <span style="font-family: Arial; padding: 10px" >
-      <input type="radio" name="appearance-radio" value="solid" checked="true" onclick="setAppearance('solid')">Solid</input>
-      <input type="radio" name="appearance-radio" value="wireframe" onclick="setAppearance('wireframe')">Wireframe</input>
-      <input type="radio" name="appearance-radio" value="points" onclick="setAppearance('points')">Points</input>
+      <input type="radio" name="appearance-radio" value="solid" checked="true" onclick="setAppearance('solid')">&nbsp;Solid</input>
+      <input type="radio" name="appearance-radio" value="wireframe" onclick="setAppearance('wireframe')">&nbsp;Wireframe</input>
+      <input type="radio" name="appearance-radio" value="points" onclick="setAppearance('points')">&nbsp;Points</input>
     </span>
-  </div>
-  <div style="width: 100%; position: absolute; bottom: 0; opacity: 0.6">
-    <textarea rows="1" style="font-family: 'Courier New'; font-weight: bold; border: 1px; width: 100%" id="console" value='\n' onkeypress="handleKey()"></textarea> 
-  </div>
+  <textarea rows="3" id="console" onkeypress="handleKey()"></textarea> 
 </body>
 </html>

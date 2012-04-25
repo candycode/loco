@@ -157,6 +157,7 @@ public slots:
 #endif
         }
         webView_->page()->mainFrame()->setScrollBarPolicy( Qt::Horizontal, Qt::ScrollBarAlwaysOff );
+        webView_->page()->mainFrame()->setScrollBarPolicy( Qt::Vertical, Qt::ScrollBarAlwaysOff );
         if( seethrough ) {
             QPalette palette = webView_->palette();
             palette.setBrush(QPalette::Base, Qt::transparent);
