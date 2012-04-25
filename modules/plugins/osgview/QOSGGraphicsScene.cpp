@@ -90,7 +90,7 @@ void osg::QAdapterScene::mouseMoveEvent( QGraphicsSceneMouseEvent* event )
     if( event->isAccepted() ) return;
     _gw->getEventQueue()->mouseMotion(event->scenePos().x(), event->scenePos().y());
     event->setAccepted(true);
-    //update();
+    update();
 }
 void osg::QAdapterScene::wheelEvent( QWheelEvent* event )
 {

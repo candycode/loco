@@ -113,6 +113,7 @@ int main(int argc, char *argv[])
 #endif
 #ifdef LOCOPLAY_GUI
         app.AddModuleToJS( new GUI );
+        QObject::connect( &qtApp, SIGNAL( lastWindowClosed() ), &qtApp, SLOT( quit() ) ); 
 #endif
 #ifdef LOCOPLAY_CONTEXT
         app.AddContextToJS();

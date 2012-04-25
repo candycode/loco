@@ -26,6 +26,7 @@ public:
     bool storeCode() const { return ctx_->GetStoreCode(); }
 // invokable from javascript
 public slots: // js interface
+    void suppressQtMessages( bool on ) { ctx_->SuppressQtMessages( on ); }
     void connectSigToSlot( QObject* srcObj,
                            const QString& sigSignature,
                            QObject* targetObj,

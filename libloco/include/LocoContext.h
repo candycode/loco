@@ -312,8 +312,13 @@ private:
         return Insert( uri, filters );
     } 
     void SetAutoMapFilters( bool on ) { autoMapFilters_ = on; }
-
+    void SuppressQtMessages( bool on ) {
+        if( on ) qInstallMsgHandler( NullQtMessageHandler );
+        else qInstallMsgHandler( 0 );
+    }
+    
 private:
+    static void NullQtMessageHandler( QtMsgType , const char* ) {} 
     QByteArray ReadUrl( const QString& url, QSet< QUrl > redirects = QSet< QUrl >() );
     QByteArray ReadFile( QString f );
     void jsErr() { jsInterpreter_->EvaluateJavaScript( jsErrCBack_ ); }

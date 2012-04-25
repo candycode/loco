@@ -62,7 +62,6 @@ protected:
     }
     void mouseMoveEvent( QGraphicsSceneMouseEvent * ev ) {
         QPointF p = mapFromScene( ev->scenePos().x(), ev->scenePos().y() );
-        std::cout << "VIEW EVENT MOVE " << p.x() << " " << p.y() << std::endl;
         if( focus_ ) QGraphicsWebView::mouseMoveEvent( ev );
         else ev->setAccepted( false );
     }

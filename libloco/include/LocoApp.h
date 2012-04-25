@@ -166,12 +166,19 @@ public:
     void SetDocHandler( const QRegExp& rx, const QString& scriptURI ) {
         docHandlers_.push_back( qMakePair( rx, scriptURI ) );
     }
+    void SuppressWarnings() { 
+        qInstallMsgHandler( QtMessageHandler ); 
+    }
 signals:
     void OnException( const QString& );
 private slots:
     void OnJavaScriptConsoleMessage( const QString& t, int l, const QString& s );
 private:
     void ReadRules( const QString& fname, RuleType target );
+    static void QtMessageHandler( QtMsgType type, const char* msg ) {
+        if( type == QtWarningMsg ) return;
+        std::clog << msg <<std::endl;
+    } 
 
 private:
     CMDLine cmdLine_;
