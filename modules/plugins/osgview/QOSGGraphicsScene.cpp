@@ -53,7 +53,6 @@ void osg::QAdapterScene::keyReleaseEvent( QKeyEvent* event )
 void osg::QAdapterScene::mousePressEvent( QGraphicsSceneMouseEvent* event )
 {
     QGraphicsScene::mousePressEvent(event);
-    std::cout << "SCENE EVENT DOWN" << std::endl;
     if( event->isAccepted() ) return;
     int button = 0;
     switch(event->button())
@@ -71,7 +70,6 @@ void osg::QAdapterScene::mousePressEvent( QGraphicsSceneMouseEvent* event )
 void osg::QAdapterScene::mouseReleaseEvent( QGraphicsSceneMouseEvent* event )
 {
     QGraphicsScene::mouseReleaseEvent(event);
-    std::cout << "SCENE EVENT UP" << std::endl;
     if( event->isAccepted() ) return;
     int button = 0;
     switch(event->button())
@@ -90,9 +88,6 @@ void osg::QAdapterScene::mouseMoveEvent( QGraphicsSceneMouseEvent* event )
 {
     QGraphicsScene::mouseMoveEvent(event);
     if( event->isAccepted() ) return;
-    std::cout << "SCENE EVENT MOVE " << event->scenePos().x() << " " <<
-        event->scenePos().y() << std::endl;
-   
     _gw->getEventQueue()->mouseMotion(event->scenePos().x(), event->scenePos().y());
     event->setAccepted(true);
     //update();

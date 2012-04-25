@@ -27,7 +27,7 @@ private:
     bool HandleEvent( QGraphicsSceneMouseEvent* ev ) {
         QWebHitTestResult tr = this->page()->currentFrame()
             ->hitTestContent( ev->scenePos().toPoint() );
-        std::cout << tr.element().tagName().toStdString() << std::endl;    
+        //std::cout << tr.element().tagName().toStdString() << std::endl;    
         if( tr.element().tagName() == "HTML" ) {
             focus_ = false;
             return false; 
@@ -92,7 +92,7 @@ public:
     OSGViewPlugin() :
         osgscene_( new osg::QOSGScene ),
                       webView_( new TransparentGraphicsWebView ) {
-
+        setStyleSheet( "QGraphicsView { border-style: none; }" );
         setWindowFlags( Qt::FramelessWindowHint );
         setViewport( new QGLWidget( QGLFormat(QGL::SampleBuffers | QGL::AccumBuffer | QGL::AlphaChannel), this, 0 ) );
         setViewportUpdateMode( QGraphicsView::FullViewportUpdate );
