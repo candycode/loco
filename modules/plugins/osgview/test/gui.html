@@ -3,24 +3,33 @@
 <head>
 
 <style>
-* { margin: 0 }
+* { margin: 0;
+    padding: 0 }
 #console {
-  border: 2px solid blue;
+  /*border: 4px solid blue;*/
   border-radius: 8px;
-  width: 50%; 
-  position: absolute; 
-  bottom: 0; 
-  left: 20%;  
   opacity: 0.7;
   resize: none;
   font-family: "Courier New";
   font-weight: bold;
-  width: 60%;
   overflow: hidden;
   background: -webkit-linear-gradient(top, #2F2727, #1a82f7);
   color: #f0ffdd;
-  margin: 4px;
+  width: 100%;
+  margin-right: 2px;
 }
+#dragdiv {
+  bottom: 0; 
+  left: 20%;  
+  width: 60%; 
+  position: fixed; 
+}
+
+.ui-draggable {
+  border-left: 8px dotted;
+  border-color: rgba(200,100,100,0.3);
+}
+
 #menu {
   width: 100%; 
   opacity: 0.5;
@@ -30,8 +39,8 @@
 textarea:focus { outline: none; }
 </style>
 
-<script type="text/javascript" src="mootools-core-1.4.5.js"></script>
-<script type="text/javascript" src="mootools-more-1.4.0.1.js"></script>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="jquery-ui.js"></script>
 
 <script type="text/javascript">
   function setCheckedValue(newValue) {
@@ -106,18 +115,28 @@ textarea:focus { outline: none; }
     var c = document.getElementById('console');
     c.value="";
   }
+  function dragconsole() {
+    $("#dragdiv").draggable();
+    $("#dragdiv").css('left','0');
+    $("#dragdiv").css('position','relative');
+  }
+  function stopdragconsole() {
+    $("#dragdiv").draggable('destroy');
+  }
 </script>   
 </head>
 <body>
    <div id="menu" > 
-    <button style="opacity: 0.5;" onclick="loadscene();">Load scene</button>
-    <button style="opacity: 0.5;" onclick="toggleFullScreen();">Toggle fullscreen</button>
+    <button style="opacity: 1;" onclick="loadscene();">Load scene</button>
+    <button style="opacity: 1;" onclick="toggleFullScreen();">Toggle fullscreen</button>
     <span style="font-family: sans serif; padding: 10px" >
       <input type="radio" name="appearance-radio" value="solid" checked="true" onclick="setAppearance('solid')">&nbsp;solid</input>
       <input type="radio" name="appearance-radio" value="wireframe" onclick="setAppearance('wireframe')">&nbsp;wireframe</input>
       <input type="radio" name="appearance-radio" value="points" onclick="setAppearance('points')">&nbsp;points</input>
     </span>
    </div>
-   <textarea rows="3" id="console" onkeypress="handleKey()" onfocus="this.value=''"></textarea> 
+   <div id="dragdiv">
+     <textarea rows="3" id="console" onkeypress="handleKey()" onfocus="this.value=''"></textarea> 
+   </div>
 </body>
 </html>

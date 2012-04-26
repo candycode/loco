@@ -176,6 +176,8 @@ public slots:
     void setWireframe() { osgscene_->Wireframe(); }
     void setPoint() { osgscene_->Point(); }
     void setSolid() { osgscene_->Solid(); }
+    void setLighting( bool on ) { osgscene_->Lighting( on ); }
+    void setTexture( bool on ) { osgscene_->Texture( on ); }
 private:
     void AddJSObject( const QString& name, QObject* obj ) {
         webView_->page()->mainFrame()->addToJavaScriptWindowObject( name, obj );

@@ -73,6 +73,7 @@ namespace osg
             osg::Node* scene = osgDB::readNodeFile( path.toStdString() );
             if( !scene ) return false;
             setSceneData( scene );
+            ssetManip_->setStateSet( scene->getOrCreateStateSet() );
             return true;
         }
         void SetBkColor( float r, float g, float b ) { getCamera()->setClearColor( osg::Vec4( r, g, b, 1 ) ); }
@@ -80,6 +81,8 @@ namespace osg
         void Wireframe() { ssetManip_->setPolygonMode( osg::PolygonMode::LINE ); }
         void Point() { ssetManip_->setPolygonMode( osg::PolygonMode::POINT ); } 
         void Solid() { ssetManip_->setPolygonMode( osg::PolygonMode::FILL ); }
+        void Lighting( bool on ) { ssetManip_->setLightingEnabled( on ); }
+        void Texture( bool on ) { ssetManip_->setTextureEnabled( on ); }
     protected:
         virtual void init(qreal x, qreal y, qreal width, qreal height);
         osg::ref_ptr< osg::StateSet > m_lastStateSet;
