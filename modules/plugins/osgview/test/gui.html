@@ -1,4 +1,4 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!DOCTYPE html>
 <html>
 <head>
 
@@ -9,21 +9,31 @@
   border-radius: 8px;
   width: 50%; 
   position: absolute; 
-  bottom: 1%; 
-  left: 25%;  
-  opacity: 0.6;
+  bottom: 0; 
+  left: 20%;  
+  opacity: 0.7;
   resize: none;
   font-family: "Courier New";
-  width: 50%;
+  font-weight: bold;
+  width: 60%;
   overflow: hidden;
-  background: black;
-  color: #00ff0a;  
+  background: -webkit-linear-gradient(top, #2F2727, #1a82f7);
+  color: #f0ffdd;
+  margin: 4px;
+}
+#menu {
+  width: 100%; 
+  opacity: 0.5;
+  color: white;
+  background: -webkit-linear-gradient(top, #1a82f7, #2F2727);
 }
 textarea:focus { outline: none; }
 </style>
 
+<script type="text/javascript" src="mootools-core-1.4.5.js"></script>
+<script type="text/javascript" src="mootools-more-1.4.0.1.js"></script>
 
-<script>
+<script type="text/javascript">
   function setCheckedValue(newValue) {
     var radioObj = document.getElementsByName( 'appearance-radio' );
     if( !radioObj ) return;
@@ -48,19 +58,21 @@ textarea:focus { outline: none; }
     else win.showFullScreen();
   }
   function handleKey() {
-    var key = window.event.keyCode;
-    var ret;
+    var key = window.event.keyCode,
+        ret,
+        lines = document.getElementById( "console" ).value.split('\n'),
+        line = "",
+        ret = "",
+        console = document.getElementById( "console" );
     if( key === 13 ) { //enter
       try {
-        var lines = document.getElementById( "console" ).value.split('\n');
-        var line = lines[ lines.length - 1 ];
+        line = lines[ lines.length - 1 ];
         ret = eval( line );
       } catch( e ) {
-        if( e.message ) alert( e.message );
-        else alert( e );
+        if( e.message ) ret = "ERROR: " + e.message;
+        else ret = "ERROR: " + e;
       }
-      var c = document.getElementById( "console" );
-      c.value = ret ? ": " + ret : ":"; 
+      if(ret) console.value += '\n>' + ret;
     }
   }
   function setAppearance( appearance ) {
@@ -90,17 +102,22 @@ textarea:focus { outline: none; }
   function quit() {
     win.close();
   }
+  function clear() {
+    var c = document.getElementById('console');
+    c.value="";
+  }
 </script>   
 </head>
 <body>
-  <div style="width: 100%; background-color: rgba(200,100,200,0.5);" > 
+   <div id="menu" > 
     <button style="opacity: 0.5;" onclick="loadscene();">Load scene</button>
     <button style="opacity: 0.5;" onclick="toggleFullScreen();">Toggle fullscreen</button>
-    <span style="font-family: Arial; padding: 10px" >
-      <input type="radio" name="appearance-radio" value="solid" checked="true" onclick="setAppearance('solid')">&nbsp;Solid</input>
-      <input type="radio" name="appearance-radio" value="wireframe" onclick="setAppearance('wireframe')">&nbsp;Wireframe</input>
-      <input type="radio" name="appearance-radio" value="points" onclick="setAppearance('points')">&nbsp;Points</input>
+    <span style="font-family: sans serif; padding: 10px" >
+      <input type="radio" name="appearance-radio" value="solid" checked="true" onclick="setAppearance('solid')">&nbsp;solid</input>
+      <input type="radio" name="appearance-radio" value="wireframe" onclick="setAppearance('wireframe')">&nbsp;wireframe</input>
+      <input type="radio" name="appearance-radio" value="points" onclick="setAppearance('points')">&nbsp;points</input>
     </span>
-  <textarea rows="3" id="console" onkeypress="handleKey()"></textarea> 
+   </div>
+   <textarea rows="3" id="console" onkeypress="handleKey()" onfocus="this.value=''"></textarea> 
 </body>
 </html>

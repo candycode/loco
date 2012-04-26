@@ -91,6 +91,7 @@ public:
     OSGViewPlugin() :
         osgscene_( new osg::QOSGScene ),
                       webView_( new TransparentGraphicsWebView ) {
+        setRenderHint( QPainter::Antialiasing );
         setStyleSheet( "QGraphicsView { border-style: none; }" );
         setWindowFlags( Qt::FramelessWindowHint );
         setViewport( new QGLWidget( QGLFormat(QGL::SampleBuffers | QGL::AccumBuffer | QGL::AlphaChannel), this, 0 ) );
