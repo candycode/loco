@@ -9,20 +9,21 @@
   /*border: 4px solid blue;*/
   border-radius: 8px;
   opacity: 0.7;
-  resize: none;
+  /*resize: none;*/
   font-family: "Courier New";
   font-weight: bold;
   overflow: hidden;
   background: -webkit-linear-gradient(top, #2F2727, #1a82f7);
   color: #f0ffdd;
   width: 100%;
-  margin-right: 2px;
+  margin: 0;
 }
 #dragdiv {
   bottom: 0; 
   left: 20%;  
   width: 60%; 
-  position: fixed; 
+  position: absolute;
+  margin: 0; 
 }
 
 .ui-draggable {
@@ -115,12 +116,19 @@ textarea:focus { outline: none; }
     var c = document.getElementById('console');
     c.value="";
   }
-  function dragconsole() {
-    $("#dragdiv").draggable();
-    $("#dragdiv").css('left','0');
+  function dragon() {
+    var draghandleWidth = 8;
+    var x = $("#dragdiv").position().left - 8; 
+    var y = $("#dragdiv").position().top - $("#menu").height(); 
     $("#dragdiv").css('position','relative');
+    $("#dragdiv").css('left', x +'px');
+    $("#dragdiv").css('top',  y +'px');
+    $("#dragdiv").draggable();
   }
-  function stopdragconsole() {
+  function dragoff() {
+    var draghandleWidth = 8;
+    var x = $("#dragdiv").position().left + 8;
+    $("#dragdiv").css('left', x + 'px'); 
     $("#dragdiv").draggable('destroy');
   }
 </script>   
