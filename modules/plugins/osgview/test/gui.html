@@ -40,25 +40,23 @@
 textarea:focus { outline: none; }
 </style>
 
-<script type="text/javascript" src="jquery.js"></script>
-<script type="text/javascript" src="jquery-ui.js"></script>
-
 <script type="text/javascript">
-  function setCheckedValue(newValue) {
-    var radioObj = document.getElementsByName( 'appearance-radio' );
-    if( !radioObj ) return;
-    var radioLength = radioObj.length;
-    if( radioLength == undefined ) {
-        radioObj.checked = ( radioObj.value == newValue.toString() );
-        return;
-    }
-    for( var i = 0; i < radioLength; i++ ) {
-        radioObj[ i ].checked = false;
-        if( radioObj[ i ].value == newValue.toString() ) {
-            radioObj[ i ].checked = true;
-        }
-    }
-  }
+  var osgViewModel = {
+    modelName: ko.observable(''),
+    appearance: ko.observable('solid')
+  };
+  osgViewModel.appearance.subscribe( function( appearance ) {
+      switch( appearance ) {
+      case "solid": osgviewer.setSolid();
+		    break;
+      case "wireframe": osgviewer.setWireframe();
+			break;
+      case "points": osgviewer.setPoint();
+		     break
+      default: break;
+      } 
+    } );
+  $(function(){ko.applyBindings(osgViewModel);});
   function loadscene() {
     var file = gui.openFileDialog( "Select scene file" );
     if( file ) osgviewer.loadScene( file );
@@ -86,18 +84,7 @@ textarea:focus { outline: none; }
     }
   }
   function setAppearance( appearance ) {
-    switch( appearance ) {
-    case "solid": osgviewer.setSolid();
-                  setCheckedValue( 'solid' ); 
-                  break;
-    case "wireframe": osgviewer.setWireframe();
-                      setCheckedValue( 'wireframe' ); 
-                      break;
-    case "points": osgviewer.setPoint();
-                   setCheckedValue( 'points' ); 
-                   break
-    default: break;
-    } 
+    osgViewModel.appearance( appearance );
   }
   function load( file ) {
     osgviewer.loadScene( file );
@@ -138,9 +125,9 @@ textarea:focus { outline: none; }
     <button style="opacity: 1;" onclick="loadscene();">Load scene</button>
     <button style="opacity: 1;" onclick="toggleFullScreen();">Toggle fullscreen</button>
     <span style="font-family: sans serif; padding: 10px" >
-      <input type="radio" name="appearance-radio" value="solid" checked="true" onclick="setAppearance('solid')">&nbsp;solid</input>
-      <input type="radio" name="appearance-radio" value="wireframe" onclick="setAppearance('wireframe')">&nbsp;wireframe</input>
-      <input type="radio" name="appearance-radio" value="points" onclick="setAppearance('points')">&nbsp;points</input>
+      <input type="radio" name="appearance-radio" value="solid" data-bind="checked: appearance">&nbsp;solid</input>
+      <input type="radio" name="appearance-radio" value="wireframe" data-bind="checked: appearance">&nbsp;wireframe</input>
+      <input type="radio" name="appearance-radio" value="points" data-bind="checked: appearance">&nbsp;points</input>
     </span>
    </div>
    <div id="dragdiv">

@@ -86,7 +86,6 @@ Q_DECLARE_INTERFACE(IDummy,"dummy")
 
 class OSGViewPlugin : public QGraphicsView, public IDummy {
     Q_OBJECT
-    Q_PROPERTY( QString jsinit READ GetJSInitCode WRITE SetInitJSCode )
     Q_INTERFACES( IDummy )
 public:
     OSGViewPlugin() :
@@ -108,10 +107,6 @@ public:
         connect( webView_->page()->mainFrame(), SIGNAL( javaScriptWindowObjectCleared() ),
                  this, SLOT( AddJSObjects() ) );
     }
-    void SetInitJSCode( const QString& code ) {
-        jsInitCode_ = code;
-    }
-    const QString& GetJSInitCode() const { return jsInitCode_; } 
 private:
     struct JSObject {
         QString name;
@@ -135,7 +130,6 @@ private slots:
             AddJSObject( js.name, js.obj );
         }     
         AddJSObject( "osgviewer", this );
-        webView_->page()->mainFrame()->evaluateJavaScript( jsInitCode_ );
     }
 public slots:
     void setBkColor( QVariantMap rgb ) {
@@ -155,7 +149,6 @@ public slots:
     void addJSObject( const QString& name, QObject* obj ) {
         jsObjects_.push_back( JSObject( name, obj ) );
     }
-    
     void loadPage( QString url, bool seethrough = false ) {
         if( !url.contains( "://" ) ) {
 #ifdef Q_OS_WIN 
@@ -169,6 +162,7 @@ public slots:
         if( seethrough ) {
             QPalette palette = webView_->palette();
             palette.setBrush(QPalette::Base, Qt::transparent);
+            //webView_->setPage( new QWebPage );
             webView_->page()->setPalette(palette);
             webView_->setAttribute( Qt::WA_OpaquePaintEvent, false );
         }
@@ -192,7 +186,6 @@ private:
     osg::QOSGScene* osgscene_;
     TransparentGraphicsWebView* webView_;
     QList< JSObject > jsObjects_;
-    QString jsInitCode_;
 };
 
 Q_EXPORT_PLUGIN2( osgview, OSGViewPlugin )
