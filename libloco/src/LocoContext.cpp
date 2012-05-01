@@ -330,7 +330,8 @@ void Context::AddJSStdObjects( IJSInterpreter* jsi ) {
     } 
 }
 
-QVariant Context::Eval( QString code, const QStringList& filters ) { 
+QVariant Context::Eval( QString code, const QStringList& filters ) {
+   if( code.isEmpty() ) return QVariant(); 
    if( !filters.isEmpty() ) code = ApplyFilter( code, filters );
    if( storeCode_ ) code_ = code;
    if( !error() ) {
