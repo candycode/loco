@@ -14,7 +14,7 @@ find_package(Qt4)
 include( ${QT_USE_FILE} )
 
               
-include_directories( ${OSG_INCLUDE_DIR} ${LOCO_INCLUDE_DIR} ) 
+include_directories( ${OSG_INCLUDE_DIR} ) 
 link_directories( ${QT_LIBRARY_DIR} ${OSG_LIB_DIR} )
 
 set( OSG_LIBRARIES OpenThreads osgDB osgGA osgManipulator osg osgViewer )

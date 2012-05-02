@@ -75,7 +75,7 @@ textarea:focus { outline: none; }
     if( key === 13 ) { //enter
       try {
         line = lines[ lines.length - 1 ];
-        ret = eval( line );
+        ret = osgviewer.eval( line );
       } catch( e ) {
         if( e.message ) ret = "ERROR: " + e.message;
         else ret = "ERROR: " + e;

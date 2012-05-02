@@ -19,8 +19,6 @@
 
 #include "QOSGGraphicsScene.h"
 
-#include <LocoObject.h>
-
 
 class TransparentGraphicsWebView : public QGraphicsWebView {
 private:
@@ -149,6 +147,9 @@ public slots:
     }
     void fullScreen() { showFullScreen(); }
     void setHUDOpacity( double opacity ) { webView_->setOpacity( opacity ); }
+    void setHUDGeometry( qreal x, qreal y, int w, int h ) {
+        webView_->setGeometry( QRectF( x, y, w, h ) );
+    }
     void loadScene( const QString& path ) {
         osgscene_->LoadScene( path );
     }
@@ -184,6 +185,9 @@ public slots:
     void setSolid() { osgscene_->Solid(); }
     void setLighting( bool on ) { osgscene_->Lighting( on ); }
     void setTexture( bool on ) { osgscene_->Texture( on ); }
+    QVariant eval( const QString& code ) {
+        return webView_->page()->mainFrame()->evaluateJavaScript( code );
+    }
 private:
     void AddJSObject( const QString& name, QObject* obj ) {
         webView_->page()->mainFrame()->addToJavaScriptWindowObject( name, obj );
