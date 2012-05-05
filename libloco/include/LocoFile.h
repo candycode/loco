@@ -12,11 +12,13 @@
 
 namespace loco {
 
+class Context;
+
 class File : public Object {
     Q_OBJECT
 
 public:
-   File() : Object( 0, "LocoFile", "Loco/IO/File" ) {
+   File( Context* c ) : Object( c, "LocoFile", "Loco/IO/File" ) {
        connect( &file_, SIGNAL( readyRead() ), this, SIGNAL( readyRead() ) );
        connect( &file_, SIGNAL( bytesWritten( qint64 ) ), this, SIGNAL( bytesWritten( qint64 ) ) );
        connect( &file_, SIGNAL( readChannelFinished() ), this, SIGNAL( readChannelFinished() ) );

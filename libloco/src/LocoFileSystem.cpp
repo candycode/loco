@@ -46,10 +46,13 @@ QVariant FileSystem::fopen( const QString& fname, const QStringList& mode ) cons
         error( "NULL Context" );
         return QVariant();
     }
-    File* f = new File;
-    QVariant obj = GetContext()->AddObjToJSContext( f );
-    f->open( fname, mode );
-    return obj;
+    File* f = new File( GetContext() );
+    if( f->open( fname, mode ) ) {
+        return GetContext()->AddObjToJSContext( f );
+    } else {
+        delete f;
+        return QVariant();
+    }
 }
 
 QVariant FileSystem::dir( const QString& dir ) const {
@@ -134,7 +137,7 @@ QVariant FileSystem::tmpFile( const QString& templateName ) const {
 }
 
 QVariant FileSystem::stdIn() const {
-    File* f = new File;
+    File* f = new File( GetContext() );
     if( !f->Open( stdin, QFile::ReadOnly ) ) return QVariant();
     return GetContext()->AddObjToJSContext( f );
 }
