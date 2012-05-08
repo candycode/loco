@@ -22,7 +22,7 @@ The current the code is a stripped down, cleaned-up, partially rewritten
 version of a larger and much garbled project which also had some Lua, 
 Python and Scheme bindings; the only part I'm planning to move into the
 new project is the GL/OSG graphics view stuff, but I might make available
-other pieces as brand new project, as I did with QLua, available [here](/qlua).
+other pieces as brand new project, as I did with QLua, available [here](/candycode/qlua).
 
  
 Another goal I've had for quite some time is to build desktop applications
