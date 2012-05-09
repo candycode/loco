@@ -24,7 +24,8 @@ A minimal number of native UI widgets is supported mainly to access system
 dialogs and some non-standard(across operating system) controls such as
 the MacOS drawer and top menu bar.
 
-Have a look at the provided _[locoplay](https://github.com/candycode/loco/blob/master/apps/locoplay/locoplay.cpp)_ app to get a feeling of what it
+Have a look at the provided _[locoplay](https://github.com/candycode/loco/blob/master/apps/locoplay/locoplay.cpp)_ 
+app to get a feeling of what it
 takes to create a basic LoCO-based application which executes scripts
 within a custom taylored JavaScript environment. Also have a look at
 the cmake configuration file to learn how to bundle all the scripts and
@@ -141,7 +142,6 @@ try {
 }
 ```
 
-
 ### Filters
 
 The code/bytes passed to the LoCO intepreter are transformed trough
@@ -177,6 +177,14 @@ try {
   Loco.ctx.exit( -1 );
 }
 ```
+
+### Synchronous calls
+
+Where applicable I replaced async calls with callbacks with sync calls with
+soft real-time guarantees.
+
+E.g. 
+```webWindow.syncLoad( "http://www.autodesk.com", 5000 /*ms*/ );```
 
 ### QtScript and JavaScriptCore(or V8) support
 
