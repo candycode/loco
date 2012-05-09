@@ -27,7 +27,12 @@ within a custom taylored JavaScript environment. Also have a look at
 the cmake configuration file to learn how to bundle all the scripts and
 resources in a single file.
 
-
+Note that there is no plan to support any mobile platform at this time
+since after experimenting with different solutions, and having worked
+for a few years in mobile development I believe there is no need
+of such a toolkit for mobile platforms thanks to their (now)polished and
+feature rich APIs and the availability of platforms such as PhoneGap,
+Appcelerator, Xamarin and others.
 
 ## Main features
 
@@ -45,6 +50,17 @@ Load QObjects from binary plugins.
 
 Distribute applications as a standalone executable with all the resources
 stored in the executable itself.
+
+### GUI
+
+The main GUI toolkit is intended to be WebKit but in order to support
+native widgets a  number of wrappers are already available for 
+accessing system dialogs and controls such as the MacOS drawer and top
+level menu; more are being added. In the future it will be possible
+to specify an entire native GUI through JSON.
+
+HUD-type interfaces are going to be supported through WebKit or 
+QGraphicsWidgets layered on top of a QGraphicsView; example here
 
 ### Filters
 
@@ -102,38 +118,18 @@ Support for tcp/udp and ssl is included.
 
 <CODE SAMPLE>
 
-
-
-
-
-
- 
-
-
-
-
-
- 
-
-
-
-
-
-
-
-
 ## History and status
 This project started several years ago when I got tired of spending time
-writing C/C++ code to build MVP/MVVM application logic like and bind UI
-events to callbacks with MOTIF/MFC/GTK/Qt/WPF...
-After some time spent looking into various scripting languages and their
-bindings to GUI frameworks I settled on Qt simply because it's been and
-still is the fastest path to building cross-platform applications
+writing C/C++ code to build MVP/MVVM/MVC application logic and binding UI
+events to callbacks with MOTIF/MFC/GTK/Qt/WPF... + a few mobile frameworks.
+After some time spent experimenting with different scripting languages and their
+bindings to GUI frameworks I settled on Qt for desktop applications simply because 
+it's been and still is the fastest path to building cross-platform applications
 scriptable in a widespread scripting language such as ECMAScript/JavaScript. 
-The current the code is a stripped down, cleaned-up, partially rewritten
+The current code is a stripped down, cleaned-up, partially rewritten
 version of a larger and much garbled project which also had some Lua, 
 Python and Scheme bindings; the only part I'm planning to move into the
 new project is the GL/OSG graphics view and probably some OpenCL stuff;
 but I might make also available other pieces as brand new project,
-as I did with QLua, available [here](/candycode/qlua).
+as I did with [QLua](/candycode/qlua).
 
