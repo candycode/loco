@@ -17,9 +17,6 @@ LoCO has bindings for WebKit which is intended to be the main toolkit for
 developing GUI applications, including HUD type of interfaces on top of
 OpenGL/OpenSceneGraph.
 
-Here is come code that opens a webpage and changes the DOM on the fly
-at load time
-
 A minimal number of native UI widgets is supported mainly to access system
 dialogs and some non-standard(across operating system) controls such as
 the MacOS drawer and top menu bar.
