@@ -70,6 +70,31 @@ QGraphicsWidgets layered on top of a QGraphicsView; a proof
 of concept was implemented as a plugin, checkout the _gui.js_
 and _gui.html_ files [here](https://github.com/candycode/loco/tree/master/modules/plugins/osgview/test). 
 
+
+### WebKit integration
+
+WebKit is exposed to LoCO through a WebWindow object.
+
+WebKit events are forwarded to the JavaScript context that creates
+the WebKit window and can therefore be handled outside the WebKit
+JavaScript context.
+
+It is possible to _inject_ JavaScript code and add QObject-derived type
+at page loading time.
+
+The page _DOM_ tree is available and can be manipulated from outside
+the page.
+
+A custom plugin factory is available to add LoCO QWidgets directly into
+a web page. Example [here](https://github.com/candycode/loco/tree/master/modules/webplugins/osg-viewer).
+
+
+_Note_: I plan to keep supporting the WebKit1 interface, not WebKit2
+since it requires two processes to for each open WebView which is 
+__not__ something I want to have in a Desktop application. The current
+version of QtWebKit based on WebKit 2.2 works well and will be supported
+for quite some time anyway with commitment to fix all the high priority bugs.
+
 ### Filters
 
 The code/bytes passed to the LoCO intepreter are transformed trough
@@ -78,7 +103,32 @@ This allows to e.g. load a source file and use Skulpt or CoffeeScript
 to generate JavaScript code on the fly and further pass the generated
 code to lint.
 
-<CODE SAMPLE>
+Sample code: 
+
+1. load coffeescript 
+2. create a filter named _coffeescript_ which invokes invokes the function *loco_coffeeCompile* defined in the last function parameter
+3. evaluate code from file telling LoCO that it has to be filtered with the _coffeescript_ filter   
+```javascript
+try {
+  Loco.console.println("Interpreter: " + Loco.ctx.jsInterpreterName() );
+  var WKIT = Loco.ctx.jsInterpreterName().indexOf( "webkit" ) >= 0;
+  Loco.ctx.include( "../../filters/coffee-script-1.2.js" );
+  if( !WKIT ) {
+    alert = Loco.console.println;
+  }
+  var c = CoffeeScript.compile( "x = 32", {bare: true} );
+  Loco.console.println( "COFFEE: x = 32\nJAVASCRIPT:\n" + c );
+  Loco.ctx.addScriptFilter( "coffeescript", "loco_coffeeCompile_",
+                            "function loco_coffeeCompile_( coffeeCode ) {" +
+                            " return CoffeeScript.compile( coffeeCode, {bare: true} );" +
+                            "}" );
+  Loco.ctx.evalFile( "./test5.coffee", ["coffeescript"] );
+  Loco.ctx.exit( 0 );
+} catch( e ) {
+  Loco.console.printerrln( e );
+  Loco.ctx.exit( -1 );
+}
+```
 
 ### QtScript and JavaScriptCore(or V8) support
 
