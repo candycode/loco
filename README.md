@@ -21,11 +21,13 @@ A minimal number of native UI widgets is supported mainly to access system
 dialogs and some non-standard(across operating system) controls such as
 the MacOS drawer and top menu bar.
 
-The code/bytes passed to the LoCO intepreter are transformed trough
-a chain of filters before the actual code is delivered to the interpreter.
-This allows to e.g. load a source file and use Skulpt or CoffeeScript
-to generate JavaScript code on the fly and further pass the generated
-code to lint.
+Have a look at the provided _[locoplay](https://github.com/candycode/loco/blob/master/apps/locoplay/locoplay.cpp)_ app to get a feeling of what it
+takes to create a basic LoCO-based application which executes scripts
+within a custom taylored JavaScript environment. Also have a look at
+the cmake configuration file to learn how to bundle all the scripts and
+resources in a single file.
+
+
 
 ## Main features
 
@@ -40,6 +42,79 @@ Connect:
 Pass QObject pointers to QObject methods.
 
 Load QObjects from binary plugins.
+
+Distribute applications as a standalone executable with all the resources
+stored in the executable itself.
+
+### Filters
+
+The code/bytes passed to the LoCO intepreter are transformed trough
+a chain of filters before the actual code is delivered to the interpreter.
+This allows to e.g. load a source file and use Skulpt or CoffeeScript
+to generate JavaScript code on the fly and further pass the generated
+code to lint.
+
+<CODE SAMPLE>
+
+### QtScript and JavaScriptCore(or V8) support
+
+JavaScript code can be passed run through either Qt's own script
+engine or the JavaScript engine embedded in WebKit. In case
+QtScript is used it is possible to remove dependencies on QtWebKit
+and/or QtGUI.
+
+
+### Nested contexts
+
+It is possible to create other JavaScript contexts from within
+any existing JavaScript context and marshal data between parent
+and child context. This allow the creation of sandboxed contexts
+with only a subset of the JavaScript environment exposed to scripts.
+
+<CODE SAMPLE>
+
+### Custom resource access manager
+
+Network and filesystem access is controlled by resource access managers
+which can be configured through a regex engine or entirely replaced to:
+
+* specify read/write access to files and directories
+* restrict access to specific network resources
+* filter and log network requests
+
+
+<CODE SAMPLE>
+
+### Custom protocols
+
+Custom protocol handlers can be installed in the web engine to allow
+for addition of new schemes or filtering of requests for standard schemes. 
+
+### Multithreading
+
+Scripts can be run in multiple contexts mapped to different threads.
+
+<CODE SAMPLE>
+
+### Network
+
+Support for tcp/udp and ssl is included.
+
+<CODE SAMPLE>
+
+
+
+
+
+
+ 
+
+
+
+
+
+ 
+
 
 
 
