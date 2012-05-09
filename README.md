@@ -183,8 +183,11 @@ try {
 Where applicable I replaced async calls with callbacks with sync calls with
 soft real-time guarantees.
 
-E.g. 
-```webWindow.syncLoad( "http://www.autodesk.com", 5000 /*ms*/ );```
+E.g.
+
+```javascript
+webWindow.syncLoad( "http://www.autodesk.com", 5000 /*ms*/ );
+```
 
 ### QtScript and JavaScriptCore(or V8) support
 
