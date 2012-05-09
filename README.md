@@ -18,7 +18,7 @@ developing GUI applications, including HUD type of interfaces on top of
 OpenGL/OpenSceneGraph.
 
 A minimal number of native UI widgets is supported mainly to access system
-dialogs and some non-standard(across operating system) controls such as
+dialogs and some non-standard(across operating systems) controls such as
 the MacOS drawer and top menu bar.
 
 Have a look at the provided _[locoplay](https://github.com/candycode/loco/blob/master/apps/locoplay/locoplay.cpp)_ 
