@@ -39,7 +39,8 @@ FYI the use cases I'm looking at are:
 * quickly develop small GUI applications and command line tools with CoffeeScript/JavaScript
 * visualization/analysis applications for scientific data
 * develop CAD/3D content creation apps
-* experiments with image processing/computer vision  
+* experiments with image processing/computer vision
+* GUIs for tweaking/configuring/steering experimental scientific applications developed in CUDA, OpenCL and MPI
 
 ## Main features
 
