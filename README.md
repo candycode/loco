@@ -34,6 +34,12 @@ of such a toolkit for mobile platforms thanks to their (now)polished and
 feature rich APIs and the availability of platforms such as PhoneGap,
 Appcelerator, Xamarin and others.
 
+FYI the use cases I'm looking at are:
+* quickly develop small GUI applications and command line tools with CoffeeScript/JavaScript
+* visualization/analysis applications for scientific data
+* develop CAD/3D content creation apps
+* experiments with image processing/computer vision  
+
 ## Main features
 
 Use JavaScript to invoke methods and access properties in QObject-derived
@@ -60,7 +66,9 @@ level menu; more are being added. In the future it will be possible
 to specify an entire native GUI through JSON.
 
 HUD-type interfaces are going to be supported through WebKit or 
-QGraphicsWidgets layered on top of a QGraphicsView; example here
+QGraphicsWidgets layered on top of a QGraphicsView; a proof
+of concept was implemented as a plugin, checkout the _gui.js_
+and _gui.html_ files [here](https://github.com/candycode/loco/tree/master/modules/plugins/osgview/test). 
 
 ### Filters
 
@@ -114,11 +122,14 @@ Scripts can be run in multiple contexts mapped to different threads.
 
 ### Network
 
-Support for tcp/udp and ssl is included.
+Support for tcp/udp sockets and ssl is included.
+It is possible to use the WebWindow object as a headless web browser to
+isssue http(s) requests and handle responses from command line applications.
 
 <CODE SAMPLE>
 
 ## History and status
+
 This project started several years ago when I got tired of spending time
 writing C/C++ code to build MVP/MVVM/MVC application logic and binding UI
 events to callbacks with MOTIF/MFC/GTK/Qt/WPF... + a few mobile frameworks.
