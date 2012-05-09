@@ -108,6 +108,7 @@ Sample code:
 1. load coffeescript 
 2. create a filter named _coffeescript_ which invokes invokes the function *loco_coffeeCompile* defined in the last function parameter
 3. evaluate code from file telling LoCO that it has to be filtered with the _coffeescript_ filter   
+
 ```javascript
 try {
   Loco.console.println("Interpreter: " + Loco.ctx.jsInterpreterName() );
