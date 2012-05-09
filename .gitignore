@@ -3,3 +3,4 @@ apps/locoplay-scripts/test12-gmaps
 apps/locoplay-scripts/test11-snapshot
 apps/locoplay-scripts/*.txt
 tmp/
+*.swp
