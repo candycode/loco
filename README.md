@@ -100,6 +100,9 @@ for quite some time anyway with commitment to fix all the high priority bugs.
 
 Sample code:
 
+Load a webpage and change the _DOM_ tree on the fly setting the background to yellow
+and rotating the ```<div>``` elements.
+
 ```javascript
 try {
 // prelude
