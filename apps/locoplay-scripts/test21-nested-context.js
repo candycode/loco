@@ -30,7 +30,7 @@ newCtx.javaScriptConsoleMessage.connect(
 print( "Enable storage of source code passed for evaluation" );
 newCtx.storeCode = true;
 newCtx.addObject( newCtx, "ctx" );
-print( "Added new context as 'ctx' object into itself to have a way to reference it" );
+print( "Added new context reference as 'ctx' into new context itself" );
 newCtx.addObject( Loco.console, "io" );
 print( "Added 'Loco.console' as 'io' into new context" );
 var CODE = "io.println(ctx.code)";
