@@ -21,12 +21,16 @@ A minimal number of native UI widgets is supported mainly to access system
 dialogs and some non-standard(across operating systems) controls such as
 the MacOS drawer and top menu bar.
 
-Have a look at the provided _[locoplay](https://github.com/candycode/loco/blob/master/apps/locoplay/locoplay.cpp)_ 
+Have a look at the provided _[locoplay](/candycode/loco/blob/master/apps/locoplay/locoplay.cpp)_ 
 app to get a feeling of what it
 takes to create a basic LoCO-based application which executes scripts
 within a custom taylored JavaScript environment. Also have a look at
 the cmake configuration file to learn how to bundle all the scripts and
 resources in a single file.
+
+Also checkout [some scripts](/candycode/loco/tree/master/apps/locoplay-scripts)
+ that work with _locoplay_.
+
 
 Note that there is no plan to support any mobile platform at this time
 since after experimenting with different solutions, and having worked
@@ -70,7 +74,7 @@ to specify an entire native GUI through JSON.
 HUD-type interfaces are going to be supported through WebKit or 
 QGraphicsWidgets layered on top of a QGraphicsView; a proof
 of concept was implemented as a plugin, checkout the _gui.js_
-and _gui.html_ files [here](https://github.com/candycode/loco/tree/master/modules/plugins/osgview/test). 
+and _gui.html_ files [here](/candycode/loco/tree/master/modules/plugins/osgview/test). 
 
 
 ### WebKit integration
@@ -88,7 +92,7 @@ The page _DOM_ tree is available and can be manipulated from outside
 the page.
 
 A custom plugin factory is available to add LoCO QWidgets directly into
-a web page. Example [here](https://github.com/candycode/loco/tree/master/modules/webplugins/osg-viewer).
+a web page. Example [here](/candycode/loco/tree/master/modules/webplugins/osg-viewer).
 
 
 _Note_: I plan to keep supporting the WebKit1 interface, not WebKit2
@@ -115,7 +119,7 @@ try {
 
 // create main window
   var ww = Loco.gui.create( "WebWindow" );
- // setup main window
+// setup main window
   ww.setAttributes( {DeveloperExtrasEnabled: true,
                      LocalContentCanAccessFileUrls: true,
                      LocalContentCanAccessRemoteUrls: true,
@@ -194,6 +198,11 @@ engine or the JavaScript engine embedded in WebKit. In case
 QtScript is used it is possible to remove dependencies on QtWebKit
 and/or QtGUI.
 
+JavaScript code can be evaluated from within JavaScript through
+the ```eval``` function or(if exposed) ```Context.eval```, in the
+former case the code is interpreted, in the latter it goes through JIT
+compilation.
+
 
 ### Nested contexts
 
@@ -269,7 +278,6 @@ app.SetDenyFileRule( QRegExp( "\\.config$" ), QIODevice::ReadWrite );
 
 ```
 
-
 ### Custom protocols
 
 Custom protocol handlers can be installed in the web engine to allow
@@ -279,7 +287,24 @@ for addition of new schemes or filtering of requests for standard schemes.
 
 Scripts can be run in multiple contexts mapped to different threads.
 
-<CODE SAMPLE>
+Two thread objects currently available:
+
+* Thread: executes the code once and exits 
+* Thread loop: 
+  * thread is created and put in a wait state
+  * at each request for execution the code is executed and
+    the thread goes then back into a wait state 
+
+Input data are passed to threads through their parent context.
+
+Results can be retrieved from the parent context/thread by:
+
+* explicitly joining/sychronizing then reading whatever data shared with the thread
+* reading from the thread.data variable which implements future-like behavior and waits
+  until data become available
+
+A working example [example](/candycode/loco/blob/master/apps/locoplay-scripts/test23-thread-loop.js)
+is available.
 
 ### Network
 
@@ -287,7 +312,45 @@ Support for tcp/udp sockets and ssl is included.
 It is possible to use the WebWindow object as a headless web browser to
 isssue http(s) requests and handle responses from command line applications.
 
-<CODE SAMPLE>
+Sample code 1: http request
+
+```javascript
+var http = Loco.net.create( "Http" );
+var reply = http.get( "http://www.marinij.com", 10000 );
+var headers = "";
+for( var h in reply.headers ) {
+  headers += h + ": ";
+  if( reply.headers[ h ] ) headers += reply.headers[ h ];
+  headers += "\n";
+}
+if( headers.length > 0 ) fwrite( "test24-output-headers.txt", headers );
+fwrite( "test24-output.html", reply.content );
+if( Loco.gui ) {
+  var ww = Loco.gui.create( "WebWindow" );
+  ww.load( "test24-output.html" );
+  ww.show();
+}
+```
+
+Sample code 2: ssl socket
+
+```javascript
+var socket = Loco.net.create( "tcp-ssl-socket" );
+socket.connectTo( "bugs.kde.org", 443, 5000 );
+//if ( !socket.waitForEncrypted( 50000 ) ) throw socket.errorMsg();
+socket.write( "GET / HTTP/1.1\r\n"+
+              "Host: bugs.kde.org\r\n"+
+              "Connection: Close\r\n\r\n" );
+var data = "";
+while( socket.waitForReadyRead( 5000 ) ) data += socket.readAll();
+var suffixLength = 5;
+print( data.slice(0,data.length-suffixLength) ); //remove non printable chars
+print( "done" );
+```
+
+A full SSL example is available as well:
+ (encrypted fortune)[/candycode/loco/blob/master/apps/locoplay-scripts/test28-ssl.js]
+
 
 ## History and status
 
@@ -300,8 +363,10 @@ it's been and still is the fastest path to building cross-platform applications
 scriptable in a widespread scripting language such as ECMAScript/JavaScript. 
 The current code is a stripped down, cleaned-up, partially rewritten
 version of a larger and much garbled project which also had some Lua, 
-Python and Scheme bindings; the only additional part I'm planning to move into the
-new project is the GL/OSG graphics view and probably some OpenCL stuff;
+Python, Tcl and Scheme bindings; the only additional parts I'm planning to move into the
+new project are:
+ * OpenGL/OSG graphics view
+ * OpenCL bindings
+ * SQL and NoSQL database interfaces
 but I might make also available other pieces as brand new projects,
 as I did with [QLua](/candycode/qlua).
-
