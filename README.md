@@ -266,7 +266,7 @@ Sample code 2: forbid read-write access to files with extension "_config_"
 ...
 app.SetAllowFileAccess( true );
 app.SetFilterFileAccess( true );
-app.SetDenyFileRule( QRegExp( "\.config$" ), QIODevice::ReadWrite );
+app.SetDenyFileRule( QRegExp( "\\.config$" ), QIODevice::ReadWrite );
 
 ```
 
