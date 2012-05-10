@@ -46,6 +46,28 @@ FYI the use cases I'm looking at are:
 * experiments with image processing/computer vision
 * GUIs for tweaking/configuring/steering experimental scientific applications developed in CUDA, OpenCL and MPI
 
+## History and status
+
+This project started several years ago when I got tired of spending time
+writing C/C++ code to build MVP/MVVM/MVC application logic and binding UI
+events to callbacks with MOTIF/MFC/GTK/Qt/WPF... + a few mobile frameworks.
+After some time spent experimenting with different scripting languages and their
+bindings to GUI frameworks I settled on Qt for desktop applications simply because 
+it's been and still is the fastest path to building cross-platform applications
+scriptable in a widespread scripting language such as ECMAScript/JavaScript. 
+The current code is a stripped down, cleaned-up, partially rewritten
+version of a larger and much garbled project which also had some Lua, 
+Python, Tcl and Scheme bindings; the only additional parts I'm planning to move into the
+new project are:
+
+ * OpenGL/OSG graphics view
+ * OpenCL bindings
+ * SQL and NoSQL database interfaces
+ 
+but I might make also available other pieces as brand new projects,
+as I did with [QLua](/candycode/qlua).
+
+
 ## Main features
 
 Use JavaScript to invoke methods and access properties in QObject-derived
