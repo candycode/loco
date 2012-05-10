@@ -245,7 +245,6 @@ Sample code 1: enable file and network access from driver application
 
 ```c++
 ...
-
 loco::App app( qtApp, argc, argv );
 #ifdef ACCESS_TO_FILESYSTEM_ENABLED
 app.AddModuleToJS( new loco::FileSystem );
