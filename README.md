@@ -365,8 +365,10 @@ The current code is a stripped down, cleaned-up, partially rewritten
 version of a larger and much garbled project which also had some Lua, 
 Python, Tcl and Scheme bindings; the only additional parts I'm planning to move into the
 new project are:
+
  * OpenGL/OSG graphics view
  * OpenCL bindings
  * SQL and NoSQL database interfaces
+ 
 but I might make also available other pieces as brand new projects,
 as I did with [QLua](/candycode/qlua).
