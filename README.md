@@ -67,6 +67,14 @@ new project are:
 but I might make also available other pieces as brand new projects,
 as I did with [QLua](/candycode/qlua).
 
+_libloco_ will maintain its current interface, only additions
+additional documentation and fixes are planned.
+
+_locoplay_ should also stay as it is
+
+Everything else, namely locoplay scripts and modules might be removed/added/improved.
+
+Design documents might at some point pop up.
 
 ## Main features
 
