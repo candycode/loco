@@ -202,7 +202,35 @@ any existing JavaScript context and marshal data between parent
 and child context. This allow the creation of sandboxed contexts
 with only a subset of the JavaScript environment exposed to scripts.
 
-<CODE SAMPLE>
+Sample code:
+1. create new context and install event handlers for errors or
+   javascript console messages
+2. enable access to source code passed to the context itself
+   for evaluation
+3. add objects to the context, including a reference to the context itself 
+4. evaluate the code in the new context
+
+```javascript
+//check type of current context(WebKit or QtScript)
+var WEBKIT = 
+  Loco.ctx.jsInterpreterName().indexOf( "webkit" ) >= 0, 
+  CONTEXT_TYPE = WEBKIT ? "JavaScriptCoreContext" : "QtScriptContext";
+var newCtx = Loco.ctx.create( CONTEXT_TYPE );
+newCtx.onError.connect( err );
+newCtx.javaScriptConsoleMessage.connect(
+ function( msg, line, src ) {
+   print( msg + " at line " + line );
+ } );
+print( "Enable storage of source code passed for evaluation" );
+newCtx.storeCode = true;
+newCtx.addObject( newCtx, "ctx" );
+print( "Added new context reference as 'ctx' into new context itself" );
+newCtx.addObject( Loco.console, "io" );
+print( "Added 'Loco.console' as 'io' into new context" );
+var CODE = "io.println(ctx.code)";
+print( "Evaluating code '" + CODE + "' in new context" );
+newCtx.eval( CODE ); //prints out code passed to newCtx itself!
+```
 
 ### Custom resource access manager
 
@@ -213,8 +241,35 @@ which can be configured through a regex engine or entirely replaced to:
 * restrict access to specific network resources
 * filter and log network requests
 
+Sample code 1: enable file and network access from driver application
 
-<CODE SAMPLE>
+```c++
+...
+
+loco::App app( qtApp, argc, argv );
+#ifdef ACCESS_TO_FILESYSTEM_ENABLED
+app.AddModuleToJS( new loco::FileSystem );
+app.SetAllowFileAccess( true );
+app.SetFilterFileAccess( false );
+#endif
+#ifdef ACCESS_TO_NETWORK_ENABLED
+app.SetAllowNetAccess( true );
+app.SetFilterNetRequests( false );
+app.AddModuleToJS( new loco::Network );
+#endif
+
+```
+
+Sample code 2: forbid read-write access to files with extension "_config_"
+
+```c++
+...
+app.SetAllowFileAccess( true );
+app.SetFilterFileAccess( true );
+app.SetDenyFileRule( QRegExp( "\.config$" ), QIODevice::ReadWrite );
+
+```
+
 
 ### Custom protocols
 
