@@ -262,7 +262,7 @@ app.AddModuleToJS( new loco::Network );
 
 Sample code 2: forbid read-write access to files with extension "_config_"
 
-```c++
+```cpp
 ...
 app.SetAllowFileAccess( true );
 app.SetFilterFileAccess( true );
@@ -301,8 +301,8 @@ it's been and still is the fastest path to building cross-platform applications
 scriptable in a widespread scripting language such as ECMAScript/JavaScript. 
 The current code is a stripped down, cleaned-up, partially rewritten
 version of a larger and much garbled project which also had some Lua, 
-Python and Scheme bindings; the only part I'm planning to move into the
+Python and Scheme bindings; the only additional part I'm planning to move into the
 new project is the GL/OSG graphics view and probably some OpenCL stuff;
-but I might make also available other pieces as brand new project,
+but I might make also available other pieces as brand new projects,
 as I did with [QLua](/candycode/qlua).
 
