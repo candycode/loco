@@ -1,7 +1,7 @@
 ## LoCO - Loosely Coupled Objects
 
 
-http://www.pay-palestine.org/wp-content/uploads/2010/02/sarah-silverman.jpg
+![image](http://www.pay-palestine.org/wp-content/uploads/2010/02/sarah-silverman.jpg)
 
 LoCO is a set of C++ classes that make it easy to create command-line and GUI
 applications with any language that compile to JavaScript.
