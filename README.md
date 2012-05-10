@@ -184,7 +184,7 @@ soft real-time guarantees.
 E.g.
 
 ```javascript
-webWindow.syncLoad( "http://www.autodesk.com", 5000 /*ms*/ );
+webWindow.syncLoad( "http://www.github.com", 5000 /*ms*/ );
 ```
 
 ### QtScript and JavaScriptCore(or V8) support
