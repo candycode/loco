@@ -3,7 +3,9 @@ Run-time loadable objects in the form of QtPlugins or QtWebPlugins.
 * `plugins`: run-time loadable objects
 * `webplugins`: run-time QWidget-derived object to be embedded into html pages
 
-Every plugin comes with a JavaScript driver program to test its functionality.
+Most plugins comes with a JavaScript driver program to test its functionality. The
+ones that do not have a driver program are intented to be loaded from scripts
+in the `locoplay-scripts` directory.
 
 These plugins are just examples of how to create run-time loadable modules 
 accessible from within _LoCO_ and do have little or in most cases no dependency on _LoCO_ itself.
