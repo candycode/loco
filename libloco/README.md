@@ -8,5 +8,5 @@ make available in the future three separate documents:
 * Reference guide: documented public interface
 
 No official version number for now: will use the current SHA hash of the git repository.
-Version numbering will happen after the repository is split into separate _loco-lib_ and 
+Version numbering will take place after the repository is split into separate _loco-lib_ and 
 _loco-apps_ repositories.
