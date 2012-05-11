@@ -83,7 +83,7 @@ point pop up in the public repository at some point.
 
 ###License
 
-_LoCO_ is distributes under the terms of the [New BSD License](/candycode/loco/master/tree/license/README.md)
+_LoCO_ is distributes under the terms of the [New BSD License](/candycode/loco/blob/master/license/README.md)
 
 
 ## Main features
