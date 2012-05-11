@@ -55,6 +55,9 @@ After some time spent experimenting with different scripting languages and their
 bindings to GUI frameworks I settled on Qt for desktop applications simply because 
 it's been and still is the fastest path to building cross-platform applications
 scriptable in a widespread scripting language such as ECMAScript/JavaScript. 
+
+###Status
+
 The current code is a stripped down, cleaned-up, partially rewritten
 version of a larger and much garbled project which also had some Lua, 
 Python, Tcl and Scheme bindings; the only additional parts I'm planning to move into the
@@ -70,11 +73,12 @@ as I did with [QLua](/candycode/qlua).
 _libloco_ will maintain its current interface, only additions
 additional documentation and fixes are planned.
 
-_locoplay_ should also stay as it is
+_locoplay_ should also stay as it is.
 
 Everything else, namely locoplay scripts and modules might be removed/added/improved.
 
-Design documents might at some point pop up.
+Design documents and UML diagrams created with the excellent [yul](http://yuml.me/) tool might
+point pop up in the public repository at some point.
 
 ## Main features
 
