@@ -46,7 +46,7 @@ FYI the use cases I'm looking at are:
 * experiments with image processing/computer vision
 * GUIs for tweaking/configuring/steering experimental scientific applications developed in CUDA, OpenCL and MPI
 
-## History and status
+##History and status
 
 This project started several years ago when I got tired of spending time
 writing C/C++ code to build MVP/MVVM/MVC application logic and binding UI
@@ -68,9 +68,9 @@ new project are:
  * SQL and NoSQL database interfaces
  
 but I might make also available other pieces as brand new projects,
-as I did with [QLua](/candycode/qlua).
+as I did with [QLua](/candycode/qlua) .
 
-_libloco_ will maintain its current interface, only additions
+_libloco_ will maintain its current interface, only additions,
 additional documentation and fixes are planned.
 
 _locoplay_ should also stay as it is.
