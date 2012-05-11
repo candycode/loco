@@ -58,9 +58,8 @@ scriptable in a widespread scripting language such as ECMAScript/JavaScript.
 
 ###Status
 
-
 The code you see here was physically extracted from a private project here on GitHub, so
-it is now my current new development branch and it is therefore a work in progress.
+it is now what used to be my private development branch and it is therefore a work in progress.
 
 The current project is a stripped down, cleaned-up, partially rewritten
 version of a larger and much garbled project which also had some Lua, 
@@ -86,8 +85,8 @@ Design documents and UML diagrams created with the excellent [yul](http://yuml.m
 point pop up in the public repository at some point.
 
 The priority now is to add user documentation to show how to use _LoCO_ in other projects and
-some required low-level details like how memory management is performed - hint: quite a complex 
-task due to the way Qt manages menory, coupled with automatic garbage collection in JS and 
+document some important low-level details like how memory management is performed - hint: quite a complex 
+task due to the way Qt manages memory, coupled with automatic garbage collection in JS and 
 support for run-time loaded objects.
 
 
