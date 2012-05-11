@@ -81,6 +81,11 @@ Everything else, namely locoplay scripts and modules might be removed/updated/ad
 Design documents and UML diagrams created with the excellent [yul](http://yuml.me/) tool might
 point pop up in the public repository at some point.
 
+###License
+
+_LoCO_ is distributes under the terms of the [New BSD License](/candycode/loco/master/tree/license/README.md)
+
+
 ## Main features
 
 Use JavaScript to invoke methods and access properties in QObject-derived
