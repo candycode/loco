@@ -28,8 +28,7 @@ within a custom taylored JavaScript environment. Also have a look at
 the cmake configuration file to learn how to bundle all the scripts and
 resources in a single file.
 
-Also checkout [some scripts](/candycode/loco/tree/master/apps/locoplay-scripts)
- that work with _locoplay_.
+[Scripts that work with locoplay](/candycode/loco/tree/master/apps/locoplay-scripts)
 
 
 Note that there is no plan to support any mobile platform at this time
@@ -420,7 +419,7 @@ print( "done" );
 ```
 
 A full SSL example is available as well:
- (encrypted fortune)[/candycode/loco/blob/master/apps/locoplay-scripts/test28-ssl.js]
+ [encrypted fortune](/candycode/loco/blob/master/apps/locoplay-scripts/test28-ssl.js)
 
 It is also ossible to use the WebWindow object as a headless web browser to
 isssue http(s) requests, handle responses and save page snapshots to image or PDF
