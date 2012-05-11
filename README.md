@@ -1,7 +1,7 @@
 ## LoCO - Loosely Coupled Objects
 
-LoCO is a set of C++ classes that make it easy to create command-line and GUI
-applications with any language that compile to JavaScript.
+_LoCO_ is a set of C++ classes that make it easy to create command-line and GUI
+applications with any language that compiles to JavaScript.
 JavaScript is used to glue together binary components, optionally loaded
 at run-time, developed in C++.
 Objects are connected through signals/slots or by direct reference through
@@ -12,8 +12,8 @@ check if a property or method is available, **not** if an object is of
 a specific type. 
 
 A goal I've had for quite some time is to build desktop applications
-with standard JavaScript libraries such as Knockout, jQuery(UI) and others.
-LoCO has bindings for WebKit which is intended to be the main toolkit for
+with standard JavaScript libraries such as Knockout, jQuery(UI) and others;
+_LoCO_ makes this possible through bindings for WebKit which is intended to be the main toolkit for
 developing GUI applications, including HUD type of interfaces on top of
 OpenGL/OpenSceneGraph.
 
@@ -22,8 +22,8 @@ dialogs and some non-standard(across operating systems) controls such as
 the MacOS drawer and top menu bar.
 
 Have a look at the provided _[locoplay](/candycode/loco/tree/master/apps/locoplay)_ 
-app to get a feeling of what it
-takes to create a basic LoCO-based application which executes scripts
+application to get a feeling of what it
+takes to create a basic _LoCO_-based application which executes scripts
 within a custom taylored JavaScript environment. Also have a look at
 the cmake configuration file to learn how to bundle all the scripts and
 resources in a single file.
@@ -44,6 +44,7 @@ FYI the use cases I'm looking at are:
 * develop CAD/3D content creation apps
 * experiments with image processing/computer vision
 * GUIs for tweaking/configuring/steering experimental scientific applications developed in CUDA, OpenCL and MPI
+* interface to hardware devices(e.g. Arduino) and access to audio/video input/output ports
 
 ##History and status
 
@@ -75,7 +76,7 @@ additional documentation and fixes are planned.
 
 _locoplay_ should also stay as it is.
 
-Everything else, namely locoplay scripts and modules might be removed/added/improved.
+Everything else, namely locoplay scripts and modules might be removed/updated/added/changed.
 
 Design documents and UML diagrams created with the excellent [yul](http://yuml.me/) tool might
 point pop up in the public repository at some point.
@@ -105,7 +106,7 @@ The main GUI toolkit is intended to be WebKit but in order to support
 native widgets a  number of wrappers are already available for 
 accessing system dialogs and controls such as the MacOS drawer and top
 level menu; more are being added. In the future it will be possible
-to specify an entire native GUI through JSON and use Knockoutjs
+to specify an entire native GUI through JSON and use [Knockoutjs](http://knockoutjs.com)
 to manage the user interface as done for web applications.
 
 HUD-type interfaces are going to be supported through WebKit or 
@@ -116,7 +117,7 @@ and _gui.html_ files [here](/candycode/loco/tree/master/modules/plugins/osgview/
 
 ### WebKit integration
 
-WebKit is exposed to LoCO through a WebWindow object.
+WebKit is exposed to _LoCO_ through a WebWindow object.
 
 WebKit events are forwarded to the JavaScript context that creates
 the WebKit window and can therefore be handled outside the WebKit
@@ -128,7 +129,7 @@ at page loading time.
 The page _DOM_ tree is available and can be manipulated from outside
 the page.
 
-A custom plugin factory is available to add LoCO QWidgets directly into
+A custom plugin factory is available to add _LoCO_ QWidgets directly into
 a web page. [Example here](/candycode/loco/tree/master/modules/webplugins/osg-viewer).
 
 
@@ -138,7 +139,7 @@ __not__ something I want to have in a Desktop application. The current
 version of QtWebKit based on WebKit 2.2 works well and will be supported
 for quite some time anyway with commitments to fix all the high priority bugs.
 
-Sample code:
+**Sample code**:
 
 Load a webpage and change the _DOM_ tree on the fly setting the background to yellow
 and rotating all the ```<div>``` elements.
@@ -183,17 +184,17 @@ try {
 
 ### Filters
 
-The code/bytes passed to the LoCO intepreter are transformed trough
+The code/bytes passed to the _LoCO_ intepreter are transformed trough
 a chain of filters before the actual code is delivered to the interpreter.
 This allows to e.g. load a source file and use Skulpt or CoffeeScript
 to generate JavaScript code on the fly and further pass the generated
 code to lint.
 
-Sample code: 
+**Sample code**: 
 
 1. load coffeescript 
 2. create a filter named _coffeescript_ which invokes the function *loco_coffeeCompile* defined in the last function parameter; such function takes care of the actual CoffeeScript -> JavaScript translation
-3. evaluate code from file telling LoCO that it has to be filtered with the _coffeescript_ filter   
+3. evaluate code from file telling _LoCO_ that it has to be filtered with the _coffeescript_ filter   
 
 ```javascript
 try {
@@ -251,7 +252,7 @@ any existing JavaScript context and marshal data between parent
 and child context. This allow the creation of sandboxed contexts
 with only a subset of the JavaScript environment exposed to scripts.
 
-Sample code:
+**Sample code**:
 
 1. create new context and install event handlers for errors or
    javascript console messages
@@ -291,7 +292,7 @@ which can be configured through a regex engine or entirely replaced to:
 * restrict access to specific network resources
 * filter and log network requests
 
-Sample code 1: enable file and network access from driver(C++) application
+**Sample code 1**: enable file and network access from driver(C++) application
 
 ```c++
 ...
@@ -309,7 +310,7 @@ app.AddModuleToJS( new loco::Network );
 
 ```
 
-Sample code 2: forbid read-write access to files with extension "_config_"
+**Sample code 2**: forbid read-write access to files with extension "_config_"
 
 ```cpp
 ...
@@ -318,12 +319,24 @@ app.SetFilterFileAccess( true );
 app.SetDenyFileRule( QRegExp( ".*\\.config$" ), QIODevice::ReadWrite );
 ```
 
+Note that access control is not entirely exposed to JavaScript, to allow
+for the creation of binaries that have built-in, user-configurable access
+control at the interpreter level.
+
+This is something I borrowed from the mobile environment, Desktop applications
+are unfortunately still being developed with patterns from the 80s/90s with
+no concept of security or access control, any desktop application can easily
+access the file system to read and broadcast data over the internet with little control
+over it, not to mention direct access to audio/video devices with no access protection
+at all(this is something I'll be addessing in future releases).
+
+
 ### Custom protocols
 
 Custom protocol handlers can be installed in the web engine to allow
 for addition of new schemes or filtering of requests for standard schemes.
 
-Sample code: create and install protocol handler
+**Sample code**: create and install protocol handler
 
 ```javascript
 var customReqHandler = ctx.create( "ProtocolHandler" );
@@ -353,7 +366,7 @@ Example:
 
 [Application](/candycode/loco/blob/master/apps/locoplay-scripts/test20-custom-protocol.js)
 
-[Page](/candycode/loco/blob/master/apps/locoplay-scripts/test20-cutom-protocol.html)
+[Page](/candycode/loco/blob/master/apps/locoplay-scripts/test20-custom-protocol.html)
  
 
 ### Multithreading
@@ -376,7 +389,7 @@ Results can be retrieved from the parent context/thread by:
 * reading from the _thread.data_ variable which implements future-like behavior and waits
   until data become available
 
-A working example [example](/candycode/loco/blob/master/apps/locoplay-scripts/test23-thread-loop.js)
+[A working example example](/candycode/loco/blob/master/apps/locoplay-scripts/test23-thread-loop.js)
 is available.
 
 ### Network
@@ -422,7 +435,7 @@ print( "done" );
 A full SSL example is available as well:
  [encrypted fortune](/candycode/loco/blob/master/apps/locoplay-scripts/test28-ssl.js)
 
-It is also ossible to use the WebWindow object as a headless web browser to
+It is also possible to use the WebWindow object as a headless web browser to
 isssue http(s) requests, handle responses and save page snapshots to image or PDF
 files from command line applications.
 
