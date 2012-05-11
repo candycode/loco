@@ -1,3 +1,6 @@
+This directory contains filters to transform source code written in various
+languages into JavaScript code.
+
 Partial list of * -> JavaScript compilers:
 
 * CoffeeScript: http://jashkenas.github.com/coffee-script [tested]
