@@ -68,7 +68,8 @@ new project are:
  * SQL and NoSQL database interfaces
  
 but I might make also available other pieces as brand new projects,
-as I did with [QLua](/candycode/qlua) .
+as I did with [QLua](/candycode/qlua) or code snippets as in the case of one
+of my many _[Any](/candycode/typeless)_ type implementation.
 
 _libloco_ will maintain its current interface, only additions,
 additional documentation and fixes are planned.
@@ -90,12 +91,14 @@ Connect:
 * QObject signals to JavaScript functions
 * QObject signals to QObject slots 
 
-Pass QObject pointers to QObject methods.
+Pass QObject pointers to QObject methods from JavaScript.
 
 Load QObjects from binary plugins.
 
 Distribute applications as a standalone executable with all the resources
 stored in the executable itself.
+
+Use standard Web tools to develp desktop applications.
 
 ### GUI
 
@@ -103,7 +106,8 @@ The main GUI toolkit is intended to be WebKit but in order to support
 native widgets a  number of wrappers are already available for 
 accessing system dialogs and controls such as the MacOS drawer and top
 level menu; more are being added. In the future it will be possible
-to specify an entire native GUI through JSON.
+to specify an entire native GUI through JSON and use Knockoutjs
+to manage the user interface as done for web applications.
 
 HUD-type interfaces are going to be supported through WebKit or 
 QGraphicsWidgets layered on top of a QGraphicsView; a proof
@@ -119,7 +123,7 @@ WebKit events are forwarded to the JavaScript context that creates
 the WebKit window and can therefore be handled outside the WebKit
 JavaScript context.
 
-It is possible to _inject_ JavaScript code and add QObject-derived type
+It is possible to _inject_ JavaScript code and add QObject-derived types
 at page loading time.
 
 The page _DOM_ tree is available and can be manipulated from outside
@@ -130,15 +134,15 @@ a web page. Example [here](/candycode/loco/tree/master/modules/webplugins/osg-vi
 
 
 _Note_: I plan to keep supporting the WebKit1 interface, not WebKit2
-since it requires two processes to for each open WebView which is 
+since it requires one additional process for each web page which is 
 __not__ something I want to have in a Desktop application. The current
 version of QtWebKit based on WebKit 2.2 works well and will be supported
-for quite some time anyway with commitment to fix all the high priority bugs.
+for quite some time anyway with commitments to fix all the high priority bugs.
 
 Sample code:
 
 Load a webpage and change the _DOM_ tree on the fly setting the background to yellow
-and rotating the ```<div>``` elements.
+and rotating all the ```<div>``` elements.
 
 ```javascript
 try {
@@ -189,7 +193,7 @@ code to lint.
 Sample code: 
 
 1. load coffeescript 
-2. create a filter named _coffeescript_ which invokes invokes the function *loco_coffeeCompile* defined in the last function parameter
+2. create a filter named _coffeescript_ which invokes the function *loco_coffeeCompile* defined in the last function parameter; such function takes care of the actual CoffeeScript -> JavaScript translation
 3. evaluate code from file telling LoCO that it has to be filtered with the _coffeescript_ filter   
 
 ```javascript
@@ -217,7 +221,8 @@ try {
 ### Synchronous calls
 
 Where applicable I replaced async calls with callbacks with sync calls with
-soft real-time guarantees.
+soft real-time guarantees i.e. invoke a synchronous function telling it how
+long you are willing to wait for completion.
 
 E.g.
 
@@ -227,9 +232,11 @@ webWindow.syncLoad( "http://www.github.com", 5000 /*ms*/ );
 
 ### QtScript and JavaScriptCore(or V8) support
 
-JavaScript code can be passed run through either Qt's own script
-engine or the JavaScript engine embedded in WebKit. In case
-QtScript is used it is possible to remove dependencies on QtWebKit
+JavaScript code can be run through either Qt's own script
+engine or the JavaScript engine embedded in WebKit.
+In both cases the code is JIT compiled before execution.
+
+In case QtScript is used it is possible to remove dependencies on QtWebKit
 and/or QtGUI.
 
 JavaScript code can be evaluated from within JavaScript through
@@ -280,11 +287,11 @@ newCtx.eval( CODE ); //prints out code passed to newCtx itself!
 Network and filesystem access is controlled by resource access managers
 which can be configured through a regex engine or entirely replaced to:
 
-* specify read/write access to files and directories
+* specify read/write access permissions for files and directories
 * restrict access to specific network resources
 * filter and log network requests
 
-Sample code 1: enable file and network access from driver application
+Sample code 1: enable file and network access from driver(C++) application
 
 ```c++
 ...
@@ -308,14 +315,46 @@ Sample code 2: forbid read-write access to files with extension "_config_"
 ...
 app.SetAllowFileAccess( true );
 app.SetFilterFileAccess( true );
-app.SetDenyFileRule( QRegExp( "\\.config$" ), QIODevice::ReadWrite );
-
+app.SetDenyFileRule( QRegExp( ".*\\.config$" ), QIODevice::ReadWrite );
 ```
 
 ### Custom protocols
 
 Custom protocol handlers can be installed in the web engine to allow
-for addition of new schemes or filtering of requests for standard schemes. 
+for addition of new schemes or filtering of requests for standard schemes.
+
+Sample code: create and install protocol handler
+
+```javascript
+var customReqHandler = ctx.create( "ProtocolHandler" );
+ctx.setEnableCustomProtocolHandlers( true );
+ctx.addProtocolHandler( "myprotocol", customReqHandler );
+function handleCustomRequest( req, reply ) {
+  //generate some text content
+  var content = ...
+  reply.setHeader( "ContentType", "text/html; charset ASCII" );
+  reply.setHeader( "ContentLength", content.length );
+  reply.setContent( content );
+  reply.setUrl( "file://" );
+} 
+customReqHandler.handleRequest.connect( handleCustomRequest );
+```
+
+Note that the custom protocol handler is added into the context **not**
+the WebWindow: a scheme -> network-request-handler map is stored
+into the context itself, which allows to match schemes/protocols in
+every WebWindow with the proper handler.
+
+Overriding the standard _"http(s)"_ scheme it is possible to create
+proxys or embedded web applications with all the code written in
+JavaScript.    
+
+Example:
+
+[App](/candycode/loco/blob/master/apps/locoplay-scripts/test20-custom-protocol.js)
+
+[Page](/candycode/loco/blob/master/apps/locoplay-scripts/test20-cutom-protocol.html)
+ 
 
 ### Multithreading
 
@@ -323,18 +362,18 @@ Scripts can be run in multiple contexts mapped to different threads.
 
 Two thread objects currently available:
 
-* Thread: executes the code once and exits 
-* Thread loop: 
+* _Thread_: executes the code once and exits 
+* _Thread loop_: 
   * thread is created and put in a wait state
   * at each request for execution the code is executed and
-    the thread goes then back into a wait state 
+    the thread goes then back into the wait state 
 
 Input data are passed to threads through their parent context.
 
 Results can be retrieved from the parent context/thread by:
 
 * explicitly joining/sychronizing then reading whatever data shared with the thread
-* reading from the thread.data variable which implements future-like behavior and waits
+* reading from the _thread.data_ variable which implements future-like behavior and waits
   until data become available
 
 A working example [example](/candycode/loco/blob/master/apps/locoplay-scripts/test23-thread-loop.js)
@@ -342,9 +381,7 @@ is available.
 
 ### Network
 
-Support for tcp/udp sockets and ssl is included.
-It is possible to use the WebWindow object as a headless web browser to
-isssue http(s) requests and handle responses from command line applications.
+Support for tcp/udp sockets, http and ssl is included.
 
 Sample code 1: http request
 
@@ -385,24 +422,7 @@ print( "done" );
 A full SSL example is available as well:
  (encrypted fortune)[/candycode/loco/blob/master/apps/locoplay-scripts/test28-ssl.js]
 
+It is also ossible to use the WebWindow object as a headless web browser to
+isssue http(s) requests, handle responses and save page snapshots to image or PDF
+files from command line applications.
 
-## History and status
-
-This project started several years ago when I got tired of spending time
-writing C/C++ code to build MVP/MVVM/MVC application logic and binding UI
-events to callbacks with MOTIF/MFC/GTK/Qt/WPF... + a few mobile frameworks.
-After some time spent experimenting with different scripting languages and their
-bindings to GUI frameworks I settled on Qt for desktop applications simply because 
-it's been and still is the fastest path to building cross-platform applications
-scriptable in a widespread scripting language such as ECMAScript/JavaScript. 
-The current code is a stripped down, cleaned-up, partially rewritten
-version of a larger and much garbled project which also had some Lua, 
-Python, Tcl and Scheme bindings; the only additional parts I'm planning to move into the
-new project are:
-
- * OpenGL/OSG graphics view
- * OpenCL bindings
- * SQL and NoSQL database interfaces
- 
-but I might make also available other pieces as brand new projects,
-as I did with [QLua](/candycode/qlua).
