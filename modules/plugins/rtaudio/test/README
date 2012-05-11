@@ -1,0 +1,6 @@
+Windows: dsound library required
+Linux: Alsa (asound) library required
+
+The spectrum analyzer app is quite unstable on Linux, it might segfault.
+
+The synthesizer app is not implemented yet.

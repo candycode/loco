@@ -30,7 +30,6 @@ resources in a single file.
 
 [Scripts that work with locoplay](/candycode/loco/tree/master/apps/locoplay-scripts)
 
-
 Note that there is no plan to support any mobile platform at this time
 since after experimenting with different solutions, and having worked
 for a few years in mobile development I believe there is no need
@@ -89,6 +88,22 @@ document some important low-level details like how memory management is performe
 task due to the way Qt manages memory, coupled with automatic garbage collection in JS and 
 support for run-time loaded objects.
 
+##Why are you not just using plain html5 ?
+
+* full supprt for OpenGL 4.x not OpenGL ES
+* direct access to hardware
+* need anyway to use C++ for processing data: when you are dealing with volumetric datasets
+  or need to parse files several megabytes to gigabytes long or need to process real-time streams or
+  just perform image processing operations on images which are a several megabytes in size
+  you do not have many options
+* easy access to external libraries
+* native widgets
+* proper audio and video support, including capture
+
+Said this, once browsers are available which implement the full html5 standard + WebGL
++ WebCL **and** creating plugins for web browsers becomes easier I might indeed consider
+develop applications for use in standard web browsers.
+`
 
 ###License
 
