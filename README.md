@@ -138,7 +138,7 @@ __not__ something I want to have in a Desktop application. The current
 version of QtWebKit based on WebKit 2.2 works well and will be supported
 for quite some time anyway with commitments to fix all the high priority bugs.
 
-<u>Sample code</u>:
+Sample code:
 
 Load a webpage and change the _DOM_ tree on the fly setting the background to yellow
 and rotating all the ```<div>``` elements.
@@ -189,7 +189,7 @@ This allows to e.g. load a source file and use Skulpt or CoffeeScript
 to generate JavaScript code on the fly and further pass the generated
 code to lint.
 
-<u>Sample code</u>: 
+Sample code: 
 
 1. load coffeescript 
 2. create a filter named _coffeescript_ which invokes the function *loco_coffeeCompile* defined in the last function parameter; such function takes care of the actual CoffeeScript -> JavaScript translation
@@ -251,7 +251,7 @@ any existing JavaScript context and marshal data between parent
 and child context. This allow the creation of sandboxed contexts
 with only a subset of the JavaScript environment exposed to scripts.
 
-<u>Sample code</u>:
+Sample code:
 
 1. create new context and install event handlers for errors or
    javascript console messages
@@ -291,7 +291,7 @@ which can be configured through a regex engine or entirely replaced to:
 * restrict access to specific network resources
 * filter and log network requests
 
-<u>Sample code 1</u>: enable file and network access from driver(C++) application
+Sample code 1: enable file and network access from driver(C++) application
 
 ```c++
 ...
@@ -309,7 +309,7 @@ app.AddModuleToJS( new loco::Network );
 
 ```
 
-<u>Sample code 2</u>: forbid read-write access to files with extension "_config_"
+Sample code 2: forbid read-write access to files with extension "_config_"
 
 ```cpp
 ...
@@ -383,7 +383,7 @@ is available.
 
 Support for tcp/udp sockets, http and ssl is included.
 
-<u>Sample code 1</u>: http request
+Sample code 1: http request
 
 ```javascript
 var http = Loco.net.create( "Http" );
@@ -403,7 +403,7 @@ if( Loco.gui ) {
 }
 ```
 
-<u>Sample code 2</u>: ssl socket
+Sample code 2: ssl socket
 
 ```javascript
 var socket = Loco.net.create( "tcp-ssl-socket" );
