@@ -21,7 +21,7 @@ A minimal number of native UI widgets is supported mainly to access system
 dialogs and some non-standard(across operating systems) controls such as
 the MacOS drawer and top menu bar.
 
-Have a look at the provided _[locoplay](/candycode/loco/blob/master/apps/locoplay/locoplay.cpp)_ 
+Have a look at the provided _[locoplay](/candycode/loco/tree/master/apps/locoplay)_ 
 app to get a feeling of what it
 takes to create a basic LoCO-based application which executes scripts
 within a custom taylored JavaScript environment. Also have a look at
@@ -68,7 +68,7 @@ new project are:
  
 but I might make also available other pieces as brand new projects,
 as I did with [QLua](/candycode/qlua) or code snippets as in the case of one
-of my many _[Any](/candycode/typeless)_ type implementation.
+of my many _[Any type](/candycode/typeless)_ implementation.
 
 _libloco_ will maintain its current interface, only additions,
 additional documentation and fixes are planned.
@@ -129,7 +129,7 @@ The page _DOM_ tree is available and can be manipulated from outside
 the page.
 
 A custom plugin factory is available to add LoCO QWidgets directly into
-a web page. Example [here](/candycode/loco/tree/master/modules/webplugins/osg-viewer).
+a web page. [Example here](/candycode/loco/tree/master/modules/webplugins/osg-viewer).
 
 
 _Note_: I plan to keep supporting the WebKit1 interface, not WebKit2
