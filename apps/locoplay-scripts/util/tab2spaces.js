@@ -4,7 +4,7 @@ try {
 if( Loco.ctx.args.length < 3 ) {
   Loco.console.println( "usage: " + Loco.ctx.args[ 1 ] +
                         "<num spaces for tab> ['extension1, extension2...']" );
-  Loco.console.exit( 1 );
+  Loco.ctx.exit( 1 );
 }
 function subst( file, spaces ) {
   Loco.console.println(file);

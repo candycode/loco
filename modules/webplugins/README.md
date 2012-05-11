@@ -4,3 +4,6 @@ from within the _LoCO_ framework.
 
 * `gl`: widget directly derived from QGLWidget embedding an osg::Viewer
 * `osg-viewer`: QWidget embedding the GLWidget returned by `osgQt::GraphicsWindowQt::getGLWidget`
+
+The plugin path is hardcoded in the html files; change it to suit your configuration.
+

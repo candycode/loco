@@ -4,17 +4,23 @@ try {
 if( Loco.ctx.args.length < 4 ) {
   Loco.console.println( "usage: " + Loco.ctx.args[ 1 ] +
                         " <placeholder> <text>" );
-  Loco.console.exit( 1 );
+  Loco.ctx.exit( 1 );
 }
 var p = Loco.console.println;
 p( Loco.ctx.args );
 function subst( file, placeholder, text ) {
-  p(file);
   var f = Loco.fs.fopen( file, ["r","w"] );
-  var content = f.readAll().replace( placeholder, text );
-  f.reset();
-  f.write( content );
+  var content = f.readAll();
+  var substituted = false;
+  if( content.indexOf( placeholder ) >= 0 ) {
+    content = content.replace( placeholder, text );
+    f.reset();
+    f.write( content );
+    substituted = true;
+  }
+  p( file + ": " + (substituted ? "yes" : "no") );
   f.close();
+  return substituted;
 }
 var files = Loco.fs.dir().entries( ["*.cpp", "*.h", "*.js"] );
 var PLACEHOLDER=Loco.ctx.args[ 2 ];
