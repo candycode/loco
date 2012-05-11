@@ -58,7 +58,11 @@ scriptable in a widespread scripting language such as ECMAScript/JavaScript.
 
 ###Status
 
-The current code is a stripped down, cleaned-up, partially rewritten
+
+The code you see here was physically extracted from a private project here on GitHub, so
+it is now my current new development branch and it is therefore a work in progress.
+
+The current project is a stripped down, cleaned-up, partially rewritten
 version of a larger and much garbled project which also had some Lua, 
 Python, Tcl and Scheme bindings; the only additional parts I'm planning to move into the
 new project are:
@@ -80,6 +84,12 @@ Everything else, namely locoplay scripts and modules might be removed/updated/ad
 
 Design documents and UML diagrams created with the excellent [yul](http://yuml.me/) tool might
 point pop up in the public repository at some point.
+
+The priority now is to add user documentation to show how to use _LoCO_ in other projects and
+some required low-level details like how memory management is performed - hint: quite a complex 
+task due to the way Qt manages menory, coupled with automatic garbage collection in JS and 
+support for run-time loaded objects.
+
 
 ###License
 
