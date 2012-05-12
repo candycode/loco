@@ -53,25 +53,25 @@ class Object : public EWL {
     Q_PROPERTY( bool cloneable READ cloneable )
 public:    
     Object( Context* c = 0, 
-		    const QString& n = "LocoObject",
-			const QString& type = "", 
-			const QString& module = "",
+            const QString& n = "LocoObject",
+            const QString& type = "", 
+            const QString& module = "",
             bool destroyable = false,
-			ObjectInfo* objInfo = 0 ) // used only for creating js instance names w/ dynamic loading 
+            ObjectInfo* objInfo = 0 ) // used only for creating js instance names w/ dynamic loading 
     : context_( c ), name_( n ), type_( type ),
-	  instanceId_( IncInstanceCount() ), module_( module ), info_( objInfo ),
+      instanceId_( IncInstanceCount() ), module_( module ), info_( objInfo ),
         pluginLoader_( 0 ), destroyable_( destroyable )  {
-    	jsInstanceName_ = objNamePrefix_ + module_ + "_" + 
-			              name() + objNameSuffix_ + QString("%1").arg( instanceId_ );
+        jsInstanceName_ = objNamePrefix_ + module_ + "_" + 
+                          name() + objNameSuffix_ + QString("%1").arg( instanceId_ );
         setObjectName( jsInstanceName_ ); //choose unique name for Qt object instance
         if( info_ != 0 ) info_->setParent( this );                   
     }
     virtual Object* Clone() const { return 0; }
     QVariant JSInstance() const;
     virtual void Init( const QVariantMap& ) {}
-	const QString& GetModule() const { return module_; }  
+    const QString& GetModule() const { return module_; }  
     void SetPluginLoader( QPluginLoader* pl ) { pluginLoader_ = pl; }
-	QPluginLoader* GetPluginLoader() const { return pluginLoader_; }
+    QPluginLoader* GetPluginLoader() const { return pluginLoader_; }
     virtual void SetContext( Context* c ) { context_ = c; }
     Context* GetContext() const { return context_; }
     const QString& name() const { return name_; }
@@ -94,13 +94,13 @@ public:
     virtual bool error() const { return EWL::error(); }  
 
     static int IncInstanceCount()  { 
-	    const int c = instanceCount_.fetchAndAddAcquire( 1 );
-	    return c + 1; 
-	}
+        const int c = instanceCount_.fetchAndAddAcquire( 1 );
+        return c + 1; 
+    }
 public:
     static void DecInstanceCount()  { 
-	    const int c = instanceCount_.fetchAndAddAcquire( -1 );
-	}
+        const int c = instanceCount_.fetchAndAddAcquire( -1 );
+    }
 public:    
     static int  GetInstanceCount() { return instanceCount_; }
     static const QString& ObjNamePrefix() { return objNamePrefix_; }
@@ -109,7 +109,7 @@ public:
     static void SetObjNameSuffix( const QString& s ) { objNameSuffix_ = s; }      
 public slots:
     virtual bool cloneable() const { return false; }
-	ObjectInfo* info() const { return info_; }
+    ObjectInfo* info() const { return info_; }
     void destroy() {
         //global objects set from Context must never be destroyed
         if( !destroyable_ ) {
@@ -137,10 +137,10 @@ public slots:
     // /*CHILD CONTEXT INSIDE A WEB PAGE*/
     // <a href="javascript:thisWindow.triggerEvent( "Link clicked" )>click</a>
     void sendMessage( const QVariant& data, QObject* sender ) {
-    	emit messageReceived( data, sender );
+        emit messageReceived( data, sender );
     }
     void triggerEvent( const QVariant& data ) {
-    	emit event( data, this );
+        emit event( data, this );
     }
 signals:
     void event( const QVariant&, QObject* /*sender*/ );
@@ -158,8 +158,8 @@ private:
     QString type_;
     QString jsInstanceName_;
     int instanceId_;
-	QString module_;
-	ObjectInfo* info_;
+    QString module_;
+    ObjectInfo* info_;
     QPointer< QPluginLoader > pluginLoader_;
     bool destroyable_; 
 private:

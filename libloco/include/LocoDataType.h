@@ -34,7 +34,7 @@ namespace loco {
 
 class DataType : public Object {
     Q_OBJECT
-	Q_PROPERTY( QVariant data READ data WRITE data )
+    Q_PROPERTY( QVariant data READ data WRITE data )
 public:
     DataType( const QVariant& data = QVariant() )
         : Object( 0, "LocoDataType", "/loco/data" ), data_( data ) {}

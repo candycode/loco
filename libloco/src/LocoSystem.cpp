@@ -42,25 +42,25 @@ namespace loco {
         return GetContext()->AddObjToJSContext( p );
     }
 
-	QVariant System::eventLoop() const {
+    QVariant System::eventLoop() const {
         if( GetContext() == 0 ) {
             error( "NULL Context" );
             return QVariant();
         }
         EventLoop* el = new EventLoop;
         return GetContext()->AddObjToJSContext( el );
-	}
+    }
 
-	QVariant System::timer() const {
-	    if( GetContext() == 0 ) {
-		    error( "NULL Context" );
-		    return QVariant();
-		}
-		Timer* t = new Timer;
-		return GetContext()->AddObjToJSContext( t );
-	}
-	QVariantMap System::SysInfo() const {
-		QVariantMap info;
+    QVariant System::timer() const {
+        if( GetContext() == 0 ) {
+            error( "NULL Context" );
+            return QVariant();
+        }
+        Timer* t = new Timer;
+        return GetContext()->AddObjToJSContext( t );
+    }
+    QVariantMap System::SysInfo() const {
+        QVariantMap info;
 #if defined( Q_OS_LINUX ) || defined( Q_OS_MAC )
         info[ "numCpu" ] = int( sysconf( _SC_NPROCESSORS_ONLN ) );
         info[ "pageSize" ] = int( sysconf( _SC_PAGE_SIZE ) );
@@ -71,5 +71,5 @@ namespace loco {
         info[ "pageSize" ] = int( sysinfo.dwPageSize );
 #endif
         return info;
-	}
+    }
 }

@@ -25,9 +25,9 @@
 
 #define LOCO_DECLARE_ARRAY_METHODS \
 public: \
-	typedef std::vector< ValueType, DynamicAlignedAllocator< ValueType > > Vector; \
-	typedef Vector::allocator_type Allocator; \
-	ClassName ( const Vector::allocator_type& a = Vector::allocator_type() ) : \
+    typedef std::vector< ValueType, DynamicAlignedAllocator< ValueType > > Vector; \
+    typedef Vector::allocator_type Allocator; \
+    ClassName ( const Vector::allocator_type& a = Vector::allocator_type() ) : \
         Object( 0, LocoClassName , "/Loco/Data/Array" ), \
         data_( a ) {} \
     ClassName ( const ClassName & other, quint64 start, quint64 length ) : \
@@ -41,21 +41,21 @@ public: \
         return data; \
     } \
     void SetData( const QVariantList& data ) { \
-    	data_.clear(); \
-    	for( QVariantList::const_iterator i = data.begin(); \
-    		 i != data.end(); ++i ) { \
-    		data_.push_back( ToType( *i ) ); \
-    	} \
+        data_.clear(); \
+        for( QVariantList::const_iterator i = data.begin(); \
+             i != data.end(); ++i ) { \
+            data_.push_back( ToType( *i ) ); \
+        } \
     } \
     quint64 GetLength() const { return data_.size(); } \
     ValueType & operator[]( quint64 i ) { return data_[ i ]; } \
     const ValueType & operator[]( quint64 i ) const { return data_[ i ]; } \
     ClassName * Clone() const { return new ClassName ( *this ); } \
     void Insert( quint64 start, const ClassName & array  ) { \
-    	data_.resize( data_.size() + array.GetLength() ); \
-    	ValueType * base = &data_[ 0 ]; \
-    	memmove( base + start + array.GetLength(), base + start, array.GetLength() * sizeof( ValueType ) ); \
-    	memcpy(  base + start, &array[ 0 ], array.GetLength() * sizeof( ValueType ) ); \
+        data_.resize( data_.size() + array.GetLength() ); \
+        ValueType * base = &data_[ 0 ]; \
+        memmove( base + start + array.GetLength(), base + start, array.GetLength() * sizeof( ValueType ) ); \
+        memcpy(  base + start, &array[ 0 ], array.GetLength() * sizeof( ValueType ) ); \
     } \
     void Set( quint64 start, const ClassName & array ) { \
         data_.resize( start + array.data_.size() ); \

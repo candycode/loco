@@ -12,8 +12,8 @@ namespace loco {
 #define ClassName Float64Array
 
 class Float64Array : public Object {
-	Q_OBJECT
-	Q_PROPERTY( quint64 length READ GetLength )
+    Q_OBJECT
+    Q_PROPERTY( quint64 length READ GetLength )
     Q_PROPERTY( QString valueType READ GetValueType )
     Q_PROPERTY( QVariantList data READ GetData WRITE SetData )
     Q_PROPERTY( quint64 address READ Address )
@@ -29,23 +29,23 @@ public slots:
         QVariantList sa;
         sa.reserve( size );
         for( Vector::const_iterator i = data_.begin();
-        	 i != data_.end(); ++i ) {
+             i != data_.end(); ++i ) {
             sa.push_back( *i );
         }
         return sa;
     }
     void set( quint64 idx, const QVariant& v ) { data_[ idx ] = ToType( v ); }
     void set( quint64 idx, QObject* arrayObj ) {
-    	if( !qobject_cast< ClassName * >( arrayObj ) ) {
-    	    error( "Not a LocoArray type" );
-    	    return;
-    	}
-    	ClassName * array = qobject_cast< ClassName * >( arrayObj );
-    	Set( idx, *array );
+        if( !qobject_cast< ClassName * >( arrayObj ) ) {
+            error( "Not a LocoArray type" );
+            return;
+        }
+        ClassName * array = qobject_cast< ClassName * >( arrayObj );
+        Set( idx, *array );
     }
     void mset( quint64 start, const QVariantList& data ) {
-    	data_.resize( start + data.length() );
-    	Vector::iterator out = data_.begin() + start;
+        data_.resize( start + data.length() );
+        Vector::iterator out = data_.begin() + start;
         for( QVariantList::const_iterator i = data.begin();
              i != data.end(); ++i, ++out ) *out = ToType( *i );
     }
@@ -53,20 +53,20 @@ public slots:
     void clear() { data_.clear(); }
     void push( const QVariant& v ) { data_.push_back( ToType( v ) ); }
     void swap( QObject* arrayObj ) {
-    	if( !dynamic_cast< ClassName * >( arrayObj ) ) {
-    	    error( "Not a LocoArray type" );
-    	    return;
-    	}
-    	ClassName * array = qobject_cast< ClassName * >( arrayObj );
-    	array->data_.swap( data_ );
+        if( !dynamic_cast< ClassName * >( arrayObj ) ) {
+            error( "Not a LocoArray type" );
+            return;
+        }
+        ClassName * array = qobject_cast< ClassName * >( arrayObj );
+        array->data_.swap( data_ );
     }
     void insert( quint64 start, QObject* arrayObj ) {
-    	if( !dynamic_cast< ClassName * >( arrayObj ) ) {
-    	    error( "Not a LocoArray type" );
-    	    return;
-    	}
-    	ClassName * array = qobject_cast< ClassName * >( arrayObj );
-    	Insert( start, *array );
+        if( !dynamic_cast< ClassName * >( arrayObj ) ) {
+            error( "Not a LocoArray type" );
+            return;
+        }
+        ClassName * array = qobject_cast< ClassName * >( arrayObj );
+        Insert( start, *array );
     }
     void insert( quint64 start, const QVariantList& data ) {
         ClassName array;
@@ -88,7 +88,7 @@ public slots:
     }
     quint64 addressOf( quint64 idx ) const { return AddressOf( idx ); }
 private:
-	Vector data_;
+    Vector data_;
 };
 
 #undef LocoClassName

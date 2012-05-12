@@ -42,22 +42,22 @@
 class QWebPluginFactory;
 
 class GraphicsWebView : public QGraphicsView {
-	Q_OBJECT
+    Q_OBJECT
 public:
-	GraphicsWebView() : gwebView_( new QGraphicsWebView ), 
+    GraphicsWebView() : gwebView_( new QGraphicsWebView ), 
                         eatContextMenuEvent_( false ),
                         eatKeyEvents_( false ),
                         eatMouseEvents_( false ) {
         setFrameShape(QFrame::NoFrame);
-		QGraphicsScene* gs = new QGraphicsScene;
+        QGraphicsScene* gs = new QGraphicsScene;
         gs->addItem( gwebView_.data() );
         setScene( gs );
 
     }
-	void EatContextMenuEvent( bool yes ) { eatContextMenuEvent_ = yes; }
-	bool EatingContextMenuEvent() const { return eatContextMenuEvent_; }
-	void EatKeyEvents( bool yes ) { eatKeyEvents_ = yes; }
-	bool EatingKeyEvents() const { return eatKeyEvents_; }
+    void EatContextMenuEvent( bool yes ) { eatContextMenuEvent_ = yes; }
+    bool EatingContextMenuEvent() const { return eatContextMenuEvent_; }
+    void EatKeyEvents( bool yes ) { eatKeyEvents_ = yes; }
+    bool EatingKeyEvents() const { return eatKeyEvents_; }
     void EatMouseEvents( bool yes ) { eatMouseEvents_ = yes; }
     bool EatingMouseEvents() const { return eatMouseEvents_; }
     void SetWebPluginFactory( QWebPluginFactory* pf ) {
@@ -80,25 +80,25 @@ public:
     qint64 totalBytes() const { return gwebView_->page()->totalBytes(); }
     bool isModified() const { return false; }
     void triggerPageAction( QWebPage::WebAction action, bool checked ) {
-    	throw std::logic_error( "'triggerPageAction' not implemented" );
+        throw std::logic_error( "'triggerPageAction' not implemented" );
     }
     
 protected:
-	void closeEvent( QCloseEvent* e ) {
-		emit closing();
-		QGraphicsView::closeEvent( e );
-	}
-	void contextMenuEvent( QContextMenuEvent* e ) {
-		if( !eatContextMenuEvent_ ) QGraphicsView::contextMenuEvent( e );
-	}
-	void keyPressEvent( QKeyEvent* ke ) {
-		emit keyPress( ke->key(), ke->modifiers(), ke->count() );
-		if( !eatKeyEvents_ ) QGraphicsView::keyPressEvent( ke );
-	}
-	void keyReleaseEvent( QKeyEvent* ke ) {
-		emit keyPress( ke->key(), ke->modifiers(), ke->count() );
-		if( !eatKeyEvents_ ) QGraphicsView::keyReleaseEvent( ke );
-	}
+    void closeEvent( QCloseEvent* e ) {
+        emit closing();
+        QGraphicsView::closeEvent( e );
+    }
+    void contextMenuEvent( QContextMenuEvent* e ) {
+        if( !eatContextMenuEvent_ ) QGraphicsView::contextMenuEvent( e );
+    }
+    void keyPressEvent( QKeyEvent* ke ) {
+        emit keyPress( ke->key(), ke->modifiers(), ke->count() );
+        if( !eatKeyEvents_ ) QGraphicsView::keyPressEvent( ke );
+    }
+    void keyReleaseEvent( QKeyEvent* ke ) {
+        emit keyPress( ke->key(), ke->modifiers(), ke->count() );
+        if( !eatKeyEvents_ ) QGraphicsView::keyReleaseEvent( ke );
+    }
     void mouseMoveEvent( QMouseEvent* me ) {
         emit mouseMove( me->globalX(),
                         me->globalY(),
@@ -141,8 +141,8 @@ protected:
     }      
 
 signals:
-	void keyPress( int, int, int );
-	void keyRelease( int, int, int );
+    void keyPress( int, int, int );
+    void keyRelease( int, int, int );
     void mousePress( int, int, int, int, bool, bool, bool );
     void mouseRelease( int, int, int, int, bool, bool, bool );
     void mouseMove( int, int, int, int, bool, bool, bool );
@@ -151,8 +151,8 @@ signals:
 private:
     QPointer< QGraphicsWebView > gwebView_;
 private:
-	bool eatContextMenuEvent_;
-	bool eatKeyEvents_;
+    bool eatContextMenuEvent_;
+    bool eatKeyEvents_;
     bool eatMouseEvents_;
 };
 

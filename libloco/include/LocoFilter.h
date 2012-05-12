@@ -44,7 +44,7 @@ public:
     void SetPluginLoader( QPluginLoader* pl ) { pl_ = pl; }
     QPluginLoader* GetPluginLoader() const { return pl_; }
 private:
-	QPluginLoader* pl_;
+    QPluginLoader* pl_;
 };
 
 }

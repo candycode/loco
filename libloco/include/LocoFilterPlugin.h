@@ -33,17 +33,17 @@
 
 namespace loco {
 class FilterPlugin : public EWL  {
-	Q_OBJECT
-	Q_INTERFACES( Filter )
+    Q_OBJECT
+    Q_INTERFACES( Filter )
 public:
-	FilterPlugin(); //implement in the cpp file creating the
-	                 //desired concrete instance of Factory
+    FilterPlugin(); //implement in the cpp file creating the
+                     //desired concrete instance of Factory
     QString Filter( const QString& code ) {
-    	return filter_->Filter( code );
+        return filter_->Filter( code );
     }
     void destroy( Filter* obj ) { obj->deleteLater(); }
 private:
-    Filter* filter_;     	
+    Filter* filter_;         
 };
 }
 

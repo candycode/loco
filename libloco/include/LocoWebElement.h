@@ -43,69 +43,69 @@
 namespace loco {
 
 class WebElement : public Object {
-	Q_OBJECT
+    Q_OBJECT
 public:
-	WebElement( const QWebElement& we ) : we_( we ) {}
-	QWebElement& qWebElement() { return we_; }
-	const QWebElement& qWebElement() const { return we_; }
+    WebElement( const QWebElement& we ) : we_( we ) {}
+    QWebElement& qWebElement() { return we_; }
+    const QWebElement& qWebElement() const { return we_; }
 public slots:
     QVariant findFirstElement( const QString& selectorQuery ) {
-   	    QWebElement we = we_.findFirst( selectorQuery );
-   	    if( we.isNull() ) return QVariant();
-   	    return GetContext()->AddObjToJSContext( new WebElement( we ) ) ;
+           QWebElement we = we_.findFirst( selectorQuery );
+           if( we.isNull() ) return QVariant();
+           return GetContext()->AddObjToJSContext( new WebElement( we ) ) ;
     }
     QList< QVariant > forEachElement( const QString& selectorQuery,
-    		                          const QString& cond,
-    		                          int maxNum = std::numeric_limits< int >::max() ) {
-    	QWebElementCollection wec = we_.findAll( selectorQuery );
-    	if( wec.count() < 1 ) return QList< QVariant >();
-    	QList< QVariant > we;
-    	int n = 0;
-    	for( QWebElementCollection::iterator i = wec.begin();
-    	     i != wec.end() && n < maxNum; ++i, ++n ) {
-    		  if( ( *i ).evaluateJavaScript( cond ).toBool() ) {
-    	   	      we.push_back( GetContext()->AddObjToJSContext( new WebElement( *i ) ) );
-    	    }
+                                      const QString& cond,
+                                      int maxNum = std::numeric_limits< int >::max() ) {
+        QWebElementCollection wec = we_.findAll( selectorQuery );
+        if( wec.count() < 1 ) return QList< QVariant >();
+        QList< QVariant > we;
+        int n = 0;
+        for( QWebElementCollection::iterator i = wec.begin();
+             i != wec.end() && n < maxNum; ++i, ++n ) {
+              if( ( *i ).evaluateJavaScript( cond ).toBool() ) {
+                     we.push_back( GetContext()->AddObjToJSContext( new WebElement( *i ) ) );
+            }
         }
         return we;
     }
     QList< QVariant > findElements( const QString& selectorQuery ) const {
-   	    QWebElementCollection wec = we_.findAll( selectorQuery );
-   	    if( wec.count() < 1 ) return QList< QVariant >();
-   	    QList< QVariant > we;
-   	    for( QWebElementCollection::const_iterator i = wec.constBegin();
-   	        i != wec.constEnd(); ++i ) {
-   		    we.push_back( GetContext()->AddObjToJSContext( new WebElement( *i ) ) );
-   	    }
-   	    return we;
+           QWebElementCollection wec = we_.findAll( selectorQuery );
+           if( wec.count() < 1 ) return QList< QVariant >();
+           QList< QVariant > we;
+           for( QWebElementCollection::const_iterator i = wec.constBegin();
+               i != wec.constEnd(); ++i ) {
+               we.push_back( GetContext()->AddObjToJSContext( new WebElement( *i ) ) );
+           }
+           return we;
     }
     void setPlainText( const QString& text ) { we_.setPlainText( text ); }
     QString toPlainText() const { return we_.toPlainText(); }
     void setAttribute( const QString& name, const QString& value ) {
-    	we_.setAttribute( name, value );
+        we_.setAttribute( name, value );
     }
     void setAttributeNS( const QString& namespaceUri, const QString& name, const QString& value ) {
-    	we_.setAttributeNS( namespaceUri, name, value );
+        we_.setAttributeNS( namespaceUri, name, value );
     }
     QString attribute( const QString& name, const QString& defaultValue = QString() ) const {
-    	return we_.attribute( name, defaultValue );
+        return we_.attribute( name, defaultValue );
     }
     QString attributeNS( const QString& namespaceUri, const QString& name, const QString& defaultValue = QString() ) const {
-    	return we_.attributeNS( namespaceUri, name, defaultValue );
+        return we_.attributeNS( namespaceUri, name, defaultValue );
     }
     bool hasAttribute( const QString& name ) const {
-    	return we_.hasAttribute( name );
+        return we_.hasAttribute( name );
     }
     bool hasAttributeNS(const QString& namespaceUri, const QString& name) const {
-    	return we_.hasAttributeNS( namespaceUri, name );
+        return we_.hasAttributeNS( namespaceUri, name );
     }
     void removeAttribute( const QString& name ) { we_.removeAttribute( name ); }
     void removeAttributeNS( const QString& namespaceUri, const QString& name ) {
-    	we_.removeAttributeNS( namespaceUri, name );
+        we_.removeAttributeNS( namespaceUri, name );
     }
     bool hasAttributes() const { return we_.hasAttributes(); }
     QStringList attributeNames(const QString& namespaceUri = QString()) const {
-    	return we_.attributeNames( namespaceUri );
+        return we_.attributeNames( namespaceUri );
     }
     QStringList classes() const { return we_.classes(); }
     bool hasClass( const QString& name ) const { return we_.hasClass( name ); }
@@ -115,35 +115,35 @@ public slots:
     bool hasFocus() const { return we_.hasFocus(); }
     void setFocus() { we_.setFocus(); }
     QVariantMap geometry() const {
-    	const QRect r = we_.geometry();
-    	QVariantMap m;
-    	m[ "x" ] = r.x();
-    	m[ "y" ] = r.y();
-    	m[ "width" ] = r.width();
-    	m[ "height" ] = r.height();
-    	return m;
+        const QRect r = we_.geometry();
+        QVariantMap m;
+        m[ "x" ] = r.x();
+        m[ "y" ] = r.y();
+        m[ "width" ] = r.width();
+        m[ "height" ] = r.height();
+        return m;
     }
     QString tagName() const { return we_.tagName(); }
     QString prefix() const { return we_.prefix(); }
     QString localName() const { return we_.localName(); }
     QString namespaceUri() const { return we_.namespaceUri(); }
     QVariant parent() {
-    	return GetContext()->AddObjToJSContext( new WebElement( we_.parent() ) );
+        return GetContext()->AddObjToJSContext( new WebElement( we_.parent() ) );
     }
     QVariant firstChild() {
-    	return GetContext()->AddObjToJSContext( new WebElement( we_.firstChild() ) );
+        return GetContext()->AddObjToJSContext( new WebElement( we_.firstChild() ) );
     }
     QVariant lastChild() {
-    	return GetContext()->AddObjToJSContext( new WebElement( we_.lastChild() ) );
+        return GetContext()->AddObjToJSContext( new WebElement( we_.lastChild() ) );
     }
     QVariant nextSibling() {
-    	return GetContext()->AddObjToJSContext( new WebElement( we_.nextSibling() ) );
+        return GetContext()->AddObjToJSContext( new WebElement( we_.nextSibling() ) );
     }
     QVariant previousSibling() {
-    	return GetContext()->AddObjToJSContext( new WebElement( we_.previousSibling() ) );
+        return GetContext()->AddObjToJSContext( new WebElement( we_.previousSibling() ) );
     }
     QVariant document() {
-    	return GetContext()->AddObjToJSContext( new WebElement( we_.document() ) );
+        return GetContext()->AddObjToJSContext( new WebElement( we_.document() ) );
     }
     QWebFrame *webFrame() const { return we_.webFrame(); }
     void appendInside( const QString& markup ) { we_.appendInside( markup ); }
@@ -155,30 +155,30 @@ public slots:
     void prependOutside( const QString& markup ) { we_.prependOutside( markup ); }
     void prependOutside( const WebElement& element ) { we_.prependOutside( element.qWebElement() ); }
     void encloseContentsWith( const WebElement& element ) {
-    	we_.encloseContentsWith( element.qWebElement() );
+        we_.encloseContentsWith( element.qWebElement() );
     }
     void encloseContentsWith( const QString& markup ) {
-    	we_.encloseContentsWith( markup );
+        we_.encloseContentsWith( markup );
     }
     void encloseWith( const QString& markup ) { we_.encloseWith( markup ); }
     void encloseWith( const WebElement& element ) {
-    	we_.encloseWith( element.qWebElement() );
+        we_.encloseWith( element.qWebElement() );
     }
     void replace( const QString& markup ) { we_.replace( markup ); }
     void replace( const WebElement& element ) {
-       	we_.replace( element.qWebElement() );
+           we_.replace( element.qWebElement() );
     }
     QVariant clone() {
-    	return GetContext()->AddObjToJSContext( new WebElement( we_.clone() ) );
+        return GetContext()->AddObjToJSContext( new WebElement( we_.clone() ) );
     }
     //QWebElement& takeFromDocument();
     void removeFromDocument() { we_.removeFromDocument(); }
     void removeAllChildren() { we_.removeAllChildren(); }
     QVariant eval( const QString& scriptSource ) {
-    	return we_.evaluateJavaScript( scriptSource );
+        return we_.evaluateJavaScript( scriptSource );
     }
 private:
-	QWebElement we_;
+    QWebElement we_;
 };
 
 }

@@ -43,13 +43,13 @@ class TempFile : public Object {
 
 public:
    TempFile( const QString& templateName ) :
-	   Object( 0, "LocoTempFile", "Loco/IO/File" ), file_( templateName ) {}
+       Object( 0, "LocoTempFile", "Loco/IO/File" ), file_( templateName ) {}
 public slots:
-	bool open() {
+    bool open() {
         return file_.open();
     }
-	QString fileName() const { return file_.fileName(); }
-	void setAutoRemove( bool on ) { file_.setAutoRemove( on ); } //on by default
+    QString fileName() const { return file_.fileName(); }
+    void setAutoRemove( bool on ) { file_.setAutoRemove( on ); } //on by default
     void close() {
         if( !file_.isOpen() ) {
             error( "File close requested on non-open file" );
@@ -65,7 +65,7 @@ public slots:
     qint64 size() { return file_.size(); }
     bool resize( qint64 ns ) { return file_.resize( ns ); }
     qint64 write( const char* data, qint64 maxSize = -1 ) { return file_.write( data, maxSize ); }
-	qint64 write( const QString& data, qint64 maxSize = -1 ) { return file_.write( data.toAscii().constData(), maxSize ); }
+    qint64 write( const QString& data, qint64 maxSize = -1 ) { return file_.write( data.toAscii().constData(), maxSize ); }
     qint64 writeBytes( QByteArray data ) { return file_.write( data ); }
     bool reset() { return file_.reset(); }
     bool seek( qint64 pos ) { return file_.seek( pos ); }

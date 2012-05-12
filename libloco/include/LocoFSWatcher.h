@@ -55,7 +55,7 @@ public slots:
     QStringList files() const { return fsw_.files(); } 
     void removePath( const QString& path ) { fsw_.removePath( path ); }
     void removePaths( const QStringList& paths ) { fsw_.removePaths( paths ); }
-    	
+        
 signals:
     void dirChanged( const QString& path );
     void fileChanged( const QString& file );

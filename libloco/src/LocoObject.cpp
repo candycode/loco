@@ -37,8 +37,8 @@ QString Object::objNamePrefix_ = "loco_";
 QString Object::objNameSuffix_ = "__";
 
 QVariant Object::JSInstance() const {
-	if( !GetContext() ) return QVariant();
-	else return GetContext()->Eval( jsInstanceName() );
+    if( !GetContext() ) return QVariant();
+    else return GetContext()->Eval( jsInstanceName() );
 }
 
 }

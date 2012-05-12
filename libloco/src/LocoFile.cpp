@@ -31,15 +31,15 @@
 namespace loco {
 
 bool File::open( const QStringList& openMode ) {
-	if( GetContext() == 0 || GetContext()->GetFileAccessManager() == 0 ) {
+    if( GetContext() == 0 || GetContext()->GetFileAccessManager() == 0 ) {
         error( "FileAccessManager not available, aborting open operation" );
-		return false;
-	}
+        return false;
+    }
     const FileAccessManager* fm = GetContext()->GetFileAccessManager();
-	if( !fm->CheckAccess( file_.fileName(), MapOpenMode( openMode ) ) ) {
-		error( "Not authorized to access file " + file_.fileName() );
-		return false;
-	} else if( file_.fileName().isEmpty() ) {
+    if( !fm->CheckAccess( file_.fileName(), MapOpenMode( openMode ) ) ) {
+        error( "Not authorized to access file " + file_.fileName() );
+        return false;
+    } else if( file_.fileName().isEmpty() ) {
         error( "Empty file name" );
         return false; 
     } else if( file_.open( MapOpenMode( openMode ) ) ) {

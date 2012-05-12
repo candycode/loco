@@ -7,19 +7,17 @@ if( Loco.ctx.args.length < 3 ) {
   Loco.ctx.exit( 1 );
 }
 function subst( file, spaces ) {
-  Loco.console.println(file);
+  Loco.console.println( file );
   var f = Loco.fs.fopen( file, ["r","w"] );
-  if(f==null) return -1;
   var content = f.readAll();
-  var prevContentLength = content.length;
   content = content.replace( /\t/g, spaces );
   f.reset();
   f.write( content );
   f.close();
 }
-var extensions = ["*"];
-if( Loco.ctx.args.length > 3 ) extensions = Loco.args.split(","); 
-var files = Loco.fs.dir().entries( extensions );
+var patterns = ["*"];
+if( Loco.ctx.args.length > 3 ) patterns = Loco.ctx.args[ 3 ].split(","); 
+var files = Loco.fs.dir().entries( patterns );
 var NUMSPACES=Loco.ctx.args[ 2 ];
 if( NUMSPACES < 1 ) throw( "wrong number of spaces (" + NUMSPACES + ")" );
 var spaces = "";

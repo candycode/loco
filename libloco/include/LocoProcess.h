@@ -112,13 +112,13 @@ public slots:
         p_.closeReadChannel( MapReadChannel( ch ) );
     }
     void closeWriteChannel() { p_.closeWriteChannel(); }
-    int	exitCode() const { return p_.exitCode(); }
-    QString	exitStatus () const {
+    int    exitCode() const { return p_.exitCode(); }
+    QString    exitStatus () const {
         if( p_.exitStatus() == QProcess::NormalExit ) return "normal";
         else if( p_.exitStatus() == QProcess::CrashExit ) return "crash";
         else return QString("%1").arg( p_.exitStatus() );
     }
-    QString	nativeArguments() const { 
+    QString    nativeArguments() const { 
 #if defined(Q_OS_WIN) || defined(Q_OS_SYMBIAN)         
         return p_.nativeArguments(); 
 #else
@@ -127,7 +127,7 @@ public slots:
 #endif
     }
     Q_PID pid () const { return p_.pid(); }
-    QString	processChannelMode () const { 
+    QString    processChannelMode () const { 
         if( p_.processChannelMode() == QProcess::SeparateChannels )
             return "separate";
         else if( p_.processChannelMode() == QProcess::MergedChannels )
@@ -145,8 +145,8 @@ public slots:
         }
         return penv;
     }
-    QString	readAllStandardError() { return p_.readAllStandardError(); }
-    QString	readAllStandardOutput() { return p_.readAllStandardOutput(); }
+    QString    readAllStandardError() { return p_.readAllStandardError(); }
+    QString    readAllStandardOutput() { return p_.readAllStandardOutput(); }
     QString readChannel () const {
         if( p_.readChannel() == QProcess::StandardOutput ) return "stdout";
         else if( p_.readChannel() == QProcess::StandardError ) return "stderr";
@@ -181,7 +181,7 @@ public slots:
 //    QProcess::ProcessState state() const
     bool waitForFinished( int msecs = 30000 ) { return p_.waitForFinished( msecs ); }
     bool waitForStarted ( int msecs = 30000 ) { return p_.waitForStarted( msecs ); }
-    QString	workingDirectory() const { return p_.workingDirectory(); }
+    QString    workingDirectory() const { return p_.workingDirectory(); }
     QString read( qint64 maxSize ) { return p_.read( maxSize ); }
     QString readLine() { return p_.readLine(); } 
     qint64 write( const QString& d ) { return p_.write( d.toAscii().constData() ); }

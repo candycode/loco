@@ -76,7 +76,7 @@ public slots:
     }   
     QString os() const {
         #if defined( Q_OS_LINUX )
-    	    return "LINUX";
+            return "LINUX";
         #elif defined( Q_OS_MAC )
             return "MAC"
         #elif defined( Q_OS_AIX ) || defined( Q_OS_BSD4 ) || defined( Q_OS_FREEBSD ) || \
@@ -90,7 +90,7 @@ public slots:
             return "";
         #endif
     }
-	QString qtVersion() const { return qVersion(); }
+    QString qtVersion() const { return qVersion(); }
     bool hasGUI() const {
         #if defined( Q_WS_WIN )
             return true;
@@ -136,11 +136,11 @@ public slots:
             return output;
         }                          
     } 
-	qint64 runDetached( const QString& program,
+    qint64 runDetached( const QString& program,
                         const QStringList& args,
                         const QString& workingDir = "./" ) {
-    	    qint64 pid = -1;
-			QProcess::startDetached( program, args, workingDir, &pid );
+            qint64 pid = -1;
+            QProcess::startDetached( program, args, workingDir, &pid );
             return pid;
 
     }
@@ -155,18 +155,18 @@ public slots:
         return vm;          
     }
     QVariant process() const;
-	QVariant eventLoop() const;
-	void sleep( int ms ) const {
-	  sleepMutex_.lock();
+    QVariant eventLoop() const;
+    void sleep( int ms ) const {
+      sleepMutex_.lock();
       sleepWCond_.wait( &sleepMutex_, ms );
     }
-	int cpuCount() const { return QThread::idealThreadCount(); }
-	quint64 threadId() const { return quint64( QThread::currentThreadId() ); }
-	quint64 clock() const { return quint64( ::clock() ); }
-	quint64 clocksPerSecond() const { return CLOCKS_PER_SEC; }
+    int cpuCount() const { return QThread::idealThreadCount(); }
+    quint64 threadId() const { return quint64( QThread::currentThreadId() ); }
+    quint64 clock() const { return quint64( ::clock() ); }
+    quint64 clocksPerSecond() const { return CLOCKS_PER_SEC; }
 private:
-	mutable QMutex sleepMutex_;
-	mutable QWaitCondition sleepWCond_;
+    mutable QMutex sleepMutex_;
+    mutable QWaitCondition sleepWCond_;
 };
 
 }

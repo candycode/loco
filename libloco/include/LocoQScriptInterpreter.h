@@ -41,35 +41,35 @@
 namespace loco {
 
 class QScriptInterpreter : public IJSInterpreter {
-	Q_OBJECT
+    Q_OBJECT
 public:
-	QVariant EvaluateJavaScript( const QString& code ) {
-		QVariant ret = jsEngine_.evaluate( code ).toVariant();
-		if( jsEngine_.hasUncaughtException() ) {
-			const QString msg = jsEngine_.uncaughtException().toString();
-			const int lineno = jsEngine_.uncaughtExceptionLineNumber();
+    QVariant EvaluateJavaScript( const QString& code ) {
+        QVariant ret = jsEngine_.evaluate( code ).toVariant();
+        if( jsEngine_.hasUncaughtException() ) {
+            const QString msg = jsEngine_.uncaughtException().toString();
+            const int lineno = jsEngine_.uncaughtExceptionLineNumber();
             const QStringList bt = jsEngine_.uncaughtExceptionBacktrace();
             emit JavaScriptConsoleMessage( "ERROR - " + msg + "\nBack trace:\n" + bt.join( "\n" ), lineno, "" );
-		}
-		return ret;
-	}
-	void AddObjectToJS( const QString& name, QObject* obj ) {
-		jsEngine_.globalObject().setProperty( name, jsEngine_.newQObject( obj, QScriptEngine::AutoOwnership ) );
-	}
-	void AddObjectToJS( const QString& name, QObject* obj, QScriptEngine::ValueOwnership vo ) {
-		jsEngine_.globalObject().setProperty( name, jsEngine_.newQObject( obj, vo ) );
-	}
-	void Init() { 
-		emit JavaScriptContextCleared(); 
-	}
-	QString Name() const { return "qtscript"; }
-	bool SetAllowInterrupt( bool ) { return false; }
-	bool GetAllowInterrupt() const { return false; }
+        }
+        return ret;
+    }
+    void AddObjectToJS( const QString& name, QObject* obj ) {
+        jsEngine_.globalObject().setProperty( name, jsEngine_.newQObject( obj, QScriptEngine::AutoOwnership ) );
+    }
+    void AddObjectToJS( const QString& name, QObject* obj, QScriptEngine::ValueOwnership vo ) {
+        jsEngine_.globalObject().setProperty( name, jsEngine_.newQObject( obj, vo ) );
+    }
+    void Init() { 
+        emit JavaScriptContextCleared(); 
+    }
+    QString Name() const { return "qtscript"; }
+    bool SetAllowInterrupt( bool ) { return false; }
+    bool GetAllowInterrupt() const { return false; }
 signals:
-	void JavaScriptContextCleared();
+    void JavaScriptContextCleared();
     void JavaScriptConsoleMessage( const QString& /*text*/, int /*line*/, const QString& /*source id*/ );
 private slots:
-	void EmitJavaScriptContextCleared() { emit JavaScriptContextCleared(); }
+    void EmitJavaScriptContextCleared() { emit JavaScriptContextCleared(); }
 private:
     QScriptEngine jsEngine_;
 };

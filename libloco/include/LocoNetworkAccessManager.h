@@ -93,38 +93,38 @@ public:
     void SetLogRequestsEnabled( bool yes ) { logRequests_ = yes; }
     void EmitRequestSignal( bool yes ) { emitRequestSignal_ = yes; }
     void SetAuthenticator( IAuthenticator* auth ) {
-    	authenticator_ = auth;
-    	if( !authenticator_.isNull() ) authenticator_->setParent( this );
+        authenticator_ = auth;
+        if( !authenticator_.isNull() ) authenticator_->setParent( this );
     }
     void SetSSLExceptionHandler( ISSLExceptionHandler* sa ) {
-    	sslHandler_ = sa;
-    	if( !sslHandler_.isNull() ) sslHandler_->setParent( this );
+        sslHandler_ = sa;
+        if( !sslHandler_.isNull() ) sslHandler_->setParent( this );
     }
     void SetDefaultSSLExceptionHandler() { SetSSLExceptionHandler( new DefaultSSLExceptionHandler() ); }
     void SetDefaultAuthenticator( const QString& user, const QString& pwd ) {
-    	if( dynamic_cast< DefaultAuthenticator* >( authenticator_.data() ) == 0 ) {
-    		SetAuthenticator( new DefaultAuthenticator( user, pwd ) );
-    	} else {
-    		DefaultAuthenticator* auth = dynamic_cast< DefaultAuthenticator* >( authenticator_.data() );
-    	    auth->setUser( user );
-    	    auth->setPassword( pwd );
-    	}
+        if( dynamic_cast< DefaultAuthenticator* >( authenticator_.data() ) == 0 ) {
+            SetAuthenticator( new DefaultAuthenticator( user, pwd ) );
+        } else {
+            DefaultAuthenticator* auth = dynamic_cast< DefaultAuthenticator* >( authenticator_.data() );
+            auth->setUser( user );
+            auth->setPassword( pwd );
+        }
     }
     void RemoveAuthenticator()       { authenticator_->deleteLater(); authenticator_ = 0; }
     void RemoveSSLExceptionHandler() { sslHandler_->deleteLater(); sslHandler_ = 0; }
     // request handler runtime in managed by this object, objects are destroyed in the destructor
     void AddNetworkRequestHandler( const QString& scheme,
-    		                       INetworkRequestHandler* nrh  ) {
-    	requestHandlers_[ scheme ] = nrh;
+                                   INetworkRequestHandler* nrh  ) {
+        requestHandlers_[ scheme ] = nrh;
     }
     ~NetworkAccessManager() {
-    	for( RequestHandlers::iterator i = requestHandlers_.begin();
-    		 i != requestHandlers_.end(); ++i ) {
-    		delete i.value();
-    	}
+        for( RequestHandlers::iterator i = requestHandlers_.begin();
+             i != requestHandlers_.end(); ++i ) {
+            delete i.value();
+        }
     }
     void SetEnableCustomRequestHandlers( bool yes ) {
-    	customRequestHandlingEnabled_ = yes;
+        customRequestHandlingEnabled_ = yes;
     }
 protected:
     virtual QNetworkReply* createRequest( Operation op,
@@ -134,23 +134,23 @@ private:
     QNetworkReply* HandleRequest( Operation op,
                                   const QNetworkRequest& req,
                                   QIODevice* outgoingData = 0 ) {
-    	if( customRequestHandlingEnabled_ && requestHandlers_.contains( req.url().scheme() ) ) {
-    		return requestHandlers_[ req.url().scheme() ]->HandleRequest( op, req, outgoingData );
-    	} else {
-    		return QNetworkAccessManager::createRequest( op, req, outgoingData );
-    	}
+        if( customRequestHandlingEnabled_ && requestHandlers_.contains( req.url().scheme() ) ) {
+            return requestHandlers_[ req.url().scheme() ]->HandleRequest( op, req, outgoingData );
+        } else {
+            return QNetworkAccessManager::createRequest( op, req, outgoingData );
+        }
     }
     void LoadSettings();
 signals:
     void UrlAccessDenied( QString );
     void UnauthorizedNetworkAccessAttempt();
     void OnRequest( const QVariantMap& );
-	void OnError( const QString& ); 
+    void OnError( const QString& ); 
 private slots:
     void OnReplyError( QNetworkReply::NetworkError );
-	void OnAuthenticateRequest( QNetworkReply*, QAuthenticator* );
+    void OnAuthenticateRequest( QNetworkReply*, QAuthenticator* );
 #ifndef QT_NO_OPENSSL
-	void OnSSLErrors( QNetworkReply*, const QList< QSslError >& errors );
+    void OnSSLErrors( QNetworkReply*, const QList< QSslError >& errors );
 #endif
 private:
     QNetworkAccessManager nam_;
@@ -166,7 +166,7 @@ private:
     bool logRequests_;
     QList< QVariantMap > requests_;
     bool emitRequestSignal_;
-	QNetworkDiskCache* networkDiskCache_;
+    QNetworkDiskCache* networkDiskCache_;
     QPointer< IAuthenticator > authenticator_;
     QPointer< ISSLExceptionHandler  > sslHandler_;
     RequestHandlers requestHandlers_;

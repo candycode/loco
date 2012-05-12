@@ -48,14 +48,14 @@ typedef QList< QPluginLoader* > PluginLoaders;
 class DynamicWebPluginFactory : public QWebPluginFactory {
     Q_OBJECT
 public:
-	DynamicWebPluginFactory( QObject* parent = 0 ) : 
+    DynamicWebPluginFactory( QObject* parent = 0 ) : 
         QWebPluginFactory( parent ),
         mimeType_( "application/x-qt-plugin" ),
         initMethodSignature_( "init(QStringList,QStringList)" ) {}
-	virtual QObject* create ( const QString& mimeType, 
-				  			  const QUrl& url, 
-							  const QStringList& argumentNames, 
-							  const QStringList& argumentValues ) const {
+    virtual QObject* create ( const QString& mimeType, 
+                                const QUrl& url, 
+                              const QStringList& argumentNames, 
+                              const QStringList& argumentValues ) const {
 
         QString path = url.toLocalFile();
         QPluginLoader* pluginLoader = new QPluginLoader( path );
@@ -64,8 +64,8 @@ public:
             const QString errorString = pluginLoader->errorString();
             delete pluginLoader;
             throw std::runtime_error( "Cannot load web plugin " +
-            		                  path.toStdString() + "\n" +
-            		                  errorString.toStdString() );
+                                      path.toStdString() + "\n" +
+                                      errorString.toStdString() );
             return 0;
         }
         connect( this, SIGNAL( destroyed( QObject* ) ), this, SLOT( OnDestroy( QObject* ) ) );
@@ -94,32 +94,32 @@ public:
             const QMetaObject* mo = webObj->metaObject();
             if( mo->indexOfMethod( initMethodSignature_.toAscii().constData() ) >= 0 ) {
                 QMetaMethod method = mo->method( mo->indexOfMethod( initMethodSignature_.toAscii().constData() ) );
-            	method.invoke( webObj, Qt::DirectConnection,
-            			       Q_ARG( QStringList, argumentNames ),
-            			       Q_ARG( QStringList, argumentValues) );
+                method.invoke( webObj, Qt::DirectConnection,
+                               Q_ARG( QStringList, argumentNames ),
+                               Q_ARG( QStringList, argumentValues) );
 
             }
         }
         pluginLoaders_.push_back( pluginLoader );
         return webObj;
-	}
+    }
 
-	virtual QList<Plugin> plugins () const {
-		QWebPluginFactory::MimeType mt;
-		mt.description = "LoCO plugin";
-		mt.fileExtensions << "";
-		mt.name = mimeType_;
-		QList<QWebPluginFactory::MimeType> mtl;
-		mtl.push_back( mt );
-		QWebPluginFactory::Plugin p;
-		p.description = "LoCO plugin";
-		p.mimeTypes = mtl;
-		p.name = "LoCO plugin";
-		QList< QWebPluginFactory::Plugin > pl;
-		pl.push_back( p );
-		return pl;
-	}
-	virtual void refreshPlugins () {}
+    virtual QList<Plugin> plugins () const {
+        QWebPluginFactory::MimeType mt;
+        mt.description = "LoCO plugin";
+        mt.fileExtensions << "";
+        mt.name = mimeType_;
+        QList<QWebPluginFactory::MimeType> mtl;
+        mtl.push_back( mt );
+        QWebPluginFactory::Plugin p;
+        p.description = "LoCO plugin";
+        p.mimeTypes = mtl;
+        p.name = "LoCO plugin";
+        QList< QWebPluginFactory::Plugin > pl;
+        pl.push_back( p );
+        return pl;
+    }
+    virtual void refreshPlugins () {}
 
 private slots:
 

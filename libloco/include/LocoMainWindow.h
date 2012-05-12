@@ -69,20 +69,20 @@ public:
         throw std::logic_error( "'MainWindow' is a top level Widget not to embed into anything else!" );
     }
 public slots:
-	bool setCentralWidget( QObject* widget ) {
-		QWidget *w = qobject_cast< QWidget* >( widget );
-		if( !w ) {
-	        WrappedWidget* ww = dynamic_cast< WrappedWidget* >( widget );
-			if( !ww ) {
-			   error( "'setCentralWidget' requires a QWidget or WrappedWidget instance" );
-			   return false;
-			} else {
-				w = ww->Widget();
-			}
-		}
-		mw_.setCentralWidget( w );
-		return true;
-	}
+    bool setCentralWidget( QObject* widget ) {
+        QWidget *w = qobject_cast< QWidget* >( widget );
+        if( !w ) {
+            WrappedWidget* ww = dynamic_cast< WrappedWidget* >( widget );
+            if( !ww ) {
+               error( "'setCentralWidget' requires a QWidget or WrappedWidget instance" );
+               return false;
+            } else {
+                w = ww->Widget();
+            }
+        }
+        mw_.setCentralWidget( w );
+        return true;
+    }
     void setStatusBarText( const QString& text, int timeout = 0 ) {
         mw_.statusBar()->showMessage( text, timeout );
     }
@@ -133,60 +133,60 @@ public slots:
     void setMenuBarVisibility( bool on ) { if( mw_.menuBar() ) mw_.menuBar()->setVisible( on ); }
     void setStatusBarVisibility( bool on ) { if( mw_.statusBar() ) mw_.statusBar()->setVisible( on ); }
     bool setActionProperties( const QString& actionPath, const QVariantMap& p ) {
-    	if( !actions_.contains( actionPath ) ) {
-    	    error( "Action path " + actionPath + " not found" );
-    	    return false;
-    	} else {
-    	    ConfigureAction( actions_[ actionPath ], p );
-    	    return false;
-    	}
+        if( !actions_.contains( actionPath ) ) {
+            error( "Action path " + actionPath + " not found" );
+            return false;
+        } else {
+            ConfigureAction( actions_[ actionPath ], p );
+            return false;
+        }
     }
 
 private:
     void ConfigureAction( QAction* a, const QVariantMap& m ) {
-		a->setToolTip( m[ "tooltip" ].toString() );
-		a->setStatusTip( m[ "status" ].toString() );
-		a->setIcon( QIcon( m[ "icon" ].toString() ) );
-		a->setIconText( m[ "icon_text" ].toString() );
-		a->setChecked( m[ "checked" ].toBool() );
-		QString cback = m[ "cback" ].toString();
-		if( !cback.isEmpty() ) cbacks_[ a ] = cback;
+        a->setToolTip( m[ "tooltip" ].toString() );
+        a->setStatusTip( m[ "status" ].toString() );
+        a->setIcon( QIcon( m[ "icon" ].toString() ) );
+        a->setIconText( m[ "icon_text" ].toString() );
+        a->setChecked( m[ "checked" ].toBool() );
+        QString cback = m[ "cback" ].toString();
+        if( !cback.isEmpty() ) cbacks_[ a ] = cback;
     }
     void SetMenu( QMenu* parent, const QVariantMap& jsonTree, QString path ) {
         for( QVariantMap::const_iterator i = jsonTree.begin();
-	        i != jsonTree.end(); ++i ) {
-	        const bool leaf = i.value().type() == QVariant::Map &&
-						   (i.value().toMap().begin()).value().type() == QVariant::String;
-		    if( leaf ) {
-		        QString key =  i.key();
-			    key.remove( 0, key.indexOf(  QRegExp("[^0-9_]") ) ); //prepend with _<number>_ to force ordering
-			    QAction* a = new QAction( key, &mw_ );
-			    mapper_->setMapping( a, a );
-			    connect( a, SIGNAL( triggered() ), mapper_, SLOT( map() ) );
-			    parent->addAction( a );
-			    ConfigureAction( a, i.value().toMap() );
-			    actions_[ path ] = a;
-			    actionPath_[ a ] = path;
-		    } else {
-		 	    QMenu* m = 0;
-			    if( parent != 0 ) {
-			        const QString entry = i.key();
-				    if( !entry.startsWith( "__" ) && !entry.startsWith( "--" ) ) {
-					    m = parent->addMenu( i.key() );
-				    } else {
-				        parent->addSeparator();
-				        continue;
-				    }
-			    } else {
-				    QString key =  i.key();
-				    key.remove( 0, key.indexOf(  QRegExp("[^0-9_]") ) ); //prepend with _<number>_ to force ordering
-				    m = mw_.menuBar()->addMenu( key );
-			    }
-			    const QString menuPath = path + "/" + i.key();
-			    menuItems_[ menuPath ] = m;
-			    SetMenu( m, i.value().toMap(), menuPath );
-		   }
-	    }
+            i != jsonTree.end(); ++i ) {
+            const bool leaf = i.value().type() == QVariant::Map &&
+                           (i.value().toMap().begin()).value().type() == QVariant::String;
+            if( leaf ) {
+                QString key =  i.key();
+                key.remove( 0, key.indexOf(  QRegExp("[^0-9_]") ) ); //prepend with _<number>_ to force ordering
+                QAction* a = new QAction( key, &mw_ );
+                mapper_->setMapping( a, a );
+                connect( a, SIGNAL( triggered() ), mapper_, SLOT( map() ) );
+                parent->addAction( a );
+                ConfigureAction( a, i.value().toMap() );
+                actions_[ path ] = a;
+                actionPath_[ a ] = path;
+            } else {
+                 QMenu* m = 0;
+                if( parent != 0 ) {
+                    const QString entry = i.key();
+                    if( !entry.startsWith( "__" ) && !entry.startsWith( "--" ) ) {
+                        m = parent->addMenu( i.key() );
+                    } else {
+                        parent->addSeparator();
+                        continue;
+                    }
+                } else {
+                    QString key =  i.key();
+                    key.remove( 0, key.indexOf(  QRegExp("[^0-9_]") ) ); //prepend with _<number>_ to force ordering
+                    m = mw_.menuBar()->addMenu( key );
+                }
+                const QString menuPath = path + "/" + i.key();
+                menuItems_[ menuPath ] = m;
+                SetMenu( m, i.value().toMap(), menuPath );
+           }
+        }
     }
 signals:
     void actionTriggered( const QString& path );

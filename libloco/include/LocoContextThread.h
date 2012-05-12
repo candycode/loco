@@ -48,17 +48,17 @@ public:
     ContextThread() : obj_( 0, "LocoContextThread", "/loco/sys/thread" ),
         threadId_( 0 ), autoDestroy_( false ) {}
     void SetAutoDestroy( bool on ) {
-    	if( on ) {
-    		connect( this, SIGNAL( finished() ), this, SLOT( deleteLater() ) );
-    		autoDestroy_ = true;
-    	} else {
-    		disconnect( this, SIGNAL( finished() ), this, SLOT( deleteLater() ) );
-    		autoDestroy_ = false;
-    	}
+        if( on ) {
+            connect( this, SIGNAL( finished() ), this, SLOT( deleteLater() ) );
+            autoDestroy_ = true;
+        } else {
+            disconnect( this, SIGNAL( finished() ), this, SLOT( deleteLater() ) );
+            autoDestroy_ = false;
+        }
     }
     bool AutoDestroy() const { return autoDestroy_; }
     void run() {
-    	threadId_ = quint64( currentThreadId() );
+        threadId_ = quint64( currentThreadId() );
         result_ = ctx_->eval( code_, filters_ );
     }
     QString JSInstanceName() const { return obj_.jsInstanceName(); }
@@ -71,18 +71,18 @@ public:
     void SetContext( QObject* ctx ) { ctx_ = qobject_cast< JSContext* >( ctx ); }
     QObject* GetContext() const { return ctx_; }
 signals:
-	void notify( const QVariant& ); //connect to this signal to receive notifications from thread
+    void notify( const QVariant& ); //connect to this signal to receive notifications from thread
 public slots:
     void eval( const QString& code, const QStringList& filters = QStringList() ) {
-    	code_ = code;
-    	filters_ = filters;
-    	start();
+        code_ = code;
+        filters_ = filters;
+        start();
     }
     void setContext( QObject* ctx ) {
-    	ctx_ = qobject_cast< JSContext* >( ctx );
+        ctx_ = qobject_cast< JSContext* >( ctx );
     }
     void execute( const QString& f ) {
-    	eval( "(" + f + ")()" );
+        eval( "(" + f + ")()" );
     }
     bool sync( unsigned long usTimeout = -1) { return wait( usTimeout ); }
 private:

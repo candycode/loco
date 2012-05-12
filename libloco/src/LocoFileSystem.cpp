@@ -40,29 +40,29 @@ QString FileSystem::fread( const QString& fname ) const {
     f.open( QIODevice::ReadOnly );
     QByteArray data;
     if( f.error() != QFile::NoError ) {
-    	error( f.errorString() );
-    	return data;
+        error( f.errorString() );
+        return data;
     }
     data = f.readAll();
     if( f.error() != QFile::NoError ) {
-       	error( f.errorString() );
+           error( f.errorString() );
     }
     return data;
 }
 
 bool FileSystem::fwrite( const QString& fname,
-		                 const QByteArray& data,
-		                 bool append ) const {
-	QFile f(fname);
-	f.open( ( append ? QIODevice::WriteOnly | QIODevice::Append : QIODevice::WriteOnly ) );
-	if( f.error() != QFile::NoError ) {
-	    error( f.errorString() );
-	    return false;
-	}
+                         const QByteArray& data,
+                         bool append ) const {
+    QFile f(fname);
+    f.open( ( append ? QIODevice::WriteOnly | QIODevice::Append : QIODevice::WriteOnly ) );
+    if( f.error() != QFile::NoError ) {
+        error( f.errorString() );
+        return false;
+    }
     f.write( data );
     if( f.error() != QFile::NoError ) {
         error( f.errorString() );
-    	return false;
+        return false;
     }
     return true;
 }
@@ -140,26 +140,26 @@ QVariantMap FileSystem::MapPermissions( QFile::Permissions fp ) const {
 
 QVariant FileSystem::tmpFile( const QString& templateName ) const {
     if( GetContext() == 0 ) {
-	    error( "NULL Context" );
-	    return QVariant();
-	}
+        error( "NULL Context" );
+        return QVariant();
+    }
     if( GetContext()->GetFileAccessManager() == 0 ) {
         error( "FileAccessManager not available, aborting open operation" );
-    	return QVariant();
+        return QVariant();
     }
     TempFile* f = new TempFile( templateName );
     const FileAccessManager* fm = GetContext()->GetFileAccessManager();
     if( !fm->CheckAccess( f->fileName(), QIODevice::ReadWrite ) ) {
         error( "Not authorized to access file " + f->fileName() );
-    	return QVariant();
+        return QVariant();
     }
-	QVariant obj = GetContext()->AddObjToJSContext( f );
-	if( !f->open() ) {
-		delete f;
-		error( "Cannot open temporary file " + f->fileName() );
-		return QVariant();
-	}
-	return obj;
+    QVariant obj = GetContext()->AddObjToJSContext( f );
+    if( !f->open() ) {
+        delete f;
+        error( "Cannot open temporary file " + f->fileName() );
+        return QVariant();
+    }
+    return obj;
 }
 
 QVariant FileSystem::stdIn() const {

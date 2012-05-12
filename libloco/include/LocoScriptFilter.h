@@ -38,9 +38,9 @@ class ScriptFilter : public Filter {
     Q_OBJECT
 public:
     ScriptFilter( IJSInterpreter* jsInterpreter,
-				  const QString& jfun,
-				  const QString& jcodeBegin = "",
-				  const QString& jcodeEnd = "",
+                  const QString& jfun,
+                  const QString& jcodeBegin = "",
+                  const QString& jcodeEnd = "",
                   const QString& jerrfun = "",
                   const QString& codePlaceHolder = "" ) 
         : jsInterpreter_( jsInterpreter ), jfun_( jfun), jcodeBegin_( jcodeBegin ),
@@ -54,12 +54,12 @@ public:
     void SetJErrCode( const QString& f ) { jerrfun_ = f; }
     const QString& GetJErrCode() const { return jerrfun_; }
 public:
-	QByteArray Apply( const QByteArray& ba ) const { return Apply( QString( ba ) ).toAscii();  } 
+    QByteArray Apply( const QByteArray& ba ) const { return Apply( QString( ba ) ).toAscii();  } 
     QString Apply( const QString& ss ) const;
     ~ScriptFilter() {}
 private:
-	QPointer< IJSInterpreter > jsInterpreter_;
-	QString jfun_; 
+    QPointer< IJSInterpreter > jsInterpreter_;
+    QString jfun_; 
     QString jcodeBegin_;
     QString jcodeEnd_;
     QString jerrfun_;

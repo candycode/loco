@@ -72,7 +72,7 @@ public:
     const FileAccessEntries& GetAllowRules() const { return allow_; }
     bool GetAllowFileAccess() const { return allowFileAccess_; }
     void SetAllowFileAccess( bool na ) { allowFileAccess_ = na; }
-	bool CheckAccess( QString filePath, QIODevice::OpenMode openMode = QIODevice::ReadWrite ) const {
+    bool CheckAccess( QString filePath, QIODevice::OpenMode openMode = QIODevice::ReadWrite ) const {
         if( !allowFileAccess_ ) return false;
         if( !filterAccess_ ) return true;  
         const QString path = filePath
