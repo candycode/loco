@@ -88,7 +88,7 @@ document some important low-level details like how memory management is performe
 task due to the way Qt manages memory, coupled with automatic garbage collection in JS and 
 support for run-time loaded objects.
 
-##Why are you not just using plain html5 ?
+##"Why not just use plain html5 ?"
 
 * full supprt for OpenGL 4.x not OpenGL ES
 * direct access to hardware
@@ -100,9 +100,8 @@ support for run-time loaded objects.
 * native widgets
 * proper audio and video support, including capture
 
-Said this, once browsers are available which implement the full html5 standard + WebGL
-+ WebCL **and** creating plugins for web browsers becomes easier I might indeed consider
-develop applications for use in standard web browsers.
+Said this, once browsers are available which implement the full html5 standard + WebGL + WebCL **and** creating plugins for web browsers becomes easier I might indeed consider
+developing applications for use in standard web browsers.
 `
 
 ###License
