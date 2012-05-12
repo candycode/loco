@@ -88,21 +88,7 @@ document some important low-level details like how memory management is performe
 task due to the way Qt manages memory, coupled with automatic garbage collection in JS and 
 support for run-time loaded objects.
 
-##_"Why not just use plain html5 ?"_
-
-* full supprt for OpenGL 4.x not OpenGL ES
-* direct access to hardware
-* need anyway to use C++ for processing data: when you need to process large datasets, possibily in
-  parallel, in real-time  not many options are available
-* easy access to external libraries
-* native widgets
-* proper audio and video support, including capture
-
-Said this, once browsers are available which implement the full html5 standard + WebGL + WebCL **and** creating plugins for web browsers becomes easier I might indeed consider
-developing applications for use in standard web browsers.
-`
-
-###License
+##License
 
 _LoCO_ is distributes under the terms of the [New BSD License](/candycode/loco/blob/master/license/README.md)
 
