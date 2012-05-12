@@ -12,6 +12,6 @@ accessible from within _LoCO_ and do have little or in most cases no dependency 
 Looking from a different perspecive they also show how to use _LoCO_ to load,
 inspect and use any pre-built Qt plugin. 
 
--> ![rtaudio](/candycode/loco/raw/master/modules/plugins/rtaudio/test/spectrum-analyzer/sshot.png) <-
+![rtaudio](/candycode/loco/raw/master/modules/plugins/rtaudio/test/spectrum-analyzer/sshot.png)
 
 ![rtaudio](https://github.com/candycode/loco/raw/master/modules/plugins/osgview/test/sshot.png)
