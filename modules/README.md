@@ -13,4 +13,5 @@ Looking from a different perspecive they also show how to use _LoCO_ to load,
 inspect and use any pre-built Qt plugin. 
 
 ![rtaudio](/candycode/loco/blob/master/modules/plugins/rtaudio/test/spectrum-analyzer/sshot.png)
-![rtaudio](/candycode/loco/blob/master/modules/plugins/osgview/test/sshot.png)
+
+![rtaudio](https://github.com/candycode/loco/blob/master/modules/plugins/osgview/test/sshot.png)
