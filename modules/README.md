@@ -14,4 +14,4 @@ inspect and use any pre-built Qt plugin.
 
 ![rtaudio](/candycode/loco/blob/master/modules/plugins/rtaudio/test/spectrum-analyzer/sshot.png)
 
-![rtaudio](https://github.com/candycode/loco/blob/master/modules/plugins/osgview/test/sshot.png)
+![rtaudio](https://github.com/candycode/loco/raw/master/modules/plugins/osgview/test/sshot.png)
