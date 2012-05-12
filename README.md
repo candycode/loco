@@ -88,14 +88,12 @@ document some important low-level details like how memory management is performe
 task due to the way Qt manages memory, coupled with automatic garbage collection in JS and 
 support for run-time loaded objects.
 
-##"Why not just use plain html5 ?"
+##_"Why not just use plain html5 ?"_
 
 * full supprt for OpenGL 4.x not OpenGL ES
 * direct access to hardware
-* need anyway to use C++ for processing data: when you are dealing with volumetric datasets
-  or need to parse files several megabytes to gigabytes long or need to process real-time streams or
-  just perform image processing operations on images which are a several megabytes in size
-  you do not have many options
+* need anyway to use C++ for processing data: when you need to process large datasets, possibily in
+  parallel, in real-time  not many options are available
 * easy access to external libraries
 * native widgets
 * proper audio and video support, including capture
