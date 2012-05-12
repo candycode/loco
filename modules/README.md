@@ -11,3 +11,5 @@ These plugins are just examples of how to create run-time loadable modules
 accessible from within _LoCO_ and do have little or in most cases no dependency on _LoCO_ itself.
 Looking from a different perspecive they also show how to use _LoCO_ to load,
 inspect and use any pre-built Qt plugin. 
+
+![rtaudio](/candycode/loco/tree/master/modules/plugins/rtaudio/test/spectrum-analyzer/sshot.png)
