@@ -26,33 +26,45 @@
 //SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ////////////////////////////////////////////////////////////////////////////////
 
+////////////////////////////////////////////////////////////
+// IN POGRESS: copied from loco::WebView, not added to build
+////////////////////////////////////////////////////////////
 
-#include <stdexcept>
 
-#include <QGraphicsView>
-#include <QGraphicsScene>
-#include <QtWebKit/QGraphicsWebView>
-#include <QKeyEvent>
-#include <QMouseEvent>
-#include <QPointer>
-#include <QAction>
+#include <QtWebKit/QWebView>
+#include <QtGui/QKeyEvent>
+#include <QtGui/QMouseEvent>
 #include <QtWebKit/QWebFrame>
-#include <QtOpenGL/QGLWidget>
+#include <QTimer>
+#include <QEventLoop>
+#include <QVariantMap>
+#include <QList>
+#include <QPair>
+#include <QtWebKit/QWebPage>
+#include <QRegExp>
+#include <QtWebKit/QWebElement>
+#include <QtWebKit/QWebElementCollection>
+#include <QNetworkRequest>
+#include <QNetworkReply>
+#include <QDir>
+
+#include "LocoWebPage.h"
+#include "LocoURLUtility.h"
+
 
 class QWebPluginFactory;
 
-class GraphicsWebView : public QGraphicsView {
+namespace loco {
+
+class WebView : public QWebView {
     Q_OBJECT
 public:
-    GraphicsWebView() : gwebView_( new QGraphicsWebView ), 
-                        eatContextMenuEvent_( false ),
-                        eatKeyEvents_( false ),
-                        eatMouseEvents_( false ) {
-        setFrameShape(QFrame::NoFrame);
-        QGraphicsScene* gs = new QGraphicsScene;
-        gs->addItem( gwebView_.data() );
-        setScene( gs );
-
+    WebView(); 
+    void SetUserAgentForUrl( const QRegExp& url, const QString& userAgent ) {
+        qobject_cast< WebPage* >( page() )->SetUserAgentForUrl( url, userAgent );
+    }
+    void SetAllowInterruptJavaScript( bool yes ) {
+        qobject_cast< WebPage* >( page() )->SetAllowInterruptJavaScript( yes );
     }
     void EatContextMenuEvent( bool yes ) { eatContextMenuEvent_ = yes; }
     bool EatingContextMenuEvent() const { return eatContextMenuEvent_; }
@@ -61,45 +73,81 @@ public:
     void EatMouseEvents( bool yes ) { eatMouseEvents_ = yes; }
     bool EatingMouseEvents() const { return eatMouseEvents_; }
     void SetWebPluginFactory( QWebPluginFactory* pf ) {
-        gwebView_->page()->setPluginFactory( pf );       
+        page()->setPluginFactory( pf );
     }
-    QWebPluginFactory* GetWebPluginFactory() const { return gwebView_->page()->pluginFactory(); }
-    const QWebPage* page() const { return gwebView_->page(); }
-    QWebPage* page() { return gwebView_->page(); }
-    QAction* pageAction( QWebPage::WebAction action ) { return gwebView_->pageAction( action ); }
-    void load( const QString& url ) { gwebView_->load( url ); }
-    void setHtml( const QString& html, const QUrl& baseUrl ) { 
-        gwebView_->setHtml( html, baseUrl );
+    QWebPluginFactory* GetWebPluginFactory() const { return page()->pluginFactory(); } 
+    void SetPageSize( int w, int h ) { page()->setViewportSize( QSize( w, h ) ); }
+    QSize PageSize() const { return page()->viewportSize(); }
+    void SaveSnapshot( const QString& filePath, int quality = -1 ) const;
+    QPixmap Snapshot() const {
+        QPixmap p( page()->viewportSize() );
+        QPainter painter( &p );
+        page()->mainFrame()->render( &painter, QWebFrame::ContentsLayer );
+        return p;
     }
-    void setZoomFactor( qreal zf ) { gwebView_->setZoomFactor( zf ); }
-    qreal zoomFactor() const { return gwebView_->zoomFactor(); }
-    void setTextSizeMultiplier( qreal tm ) { gwebView_->page()->mainFrame()->setTextSizeMultiplier( tm ); }
-    qreal textSizeMultiplier() const { return gwebView_->page()->mainFrame()->textSizeMultiplier(); }
-    void reload() { gwebView_->reload(); }
-    void setContentEditable( bool yes ) { gwebView_->page()->setContentEditable( yes ); }
-    qint64 totalBytes() const { return gwebView_->page()->totalBytes(); }
-    bool isModified() const { return false; }
-    void triggerPageAction( QWebPage::WebAction action, bool checked ) {
-        throw std::logic_error( "'triggerPageAction' not implemented" );
+    QString SavePDF( const QString& filePath, const QVariantMap& options = QVariantMap() ) const;
+    bool SyncLoad( const QUrl& url, int timeout );
+    bool SyncLoad( const QString& url, int timeout ) {
+        return SyncLoad( QUrl( TranslateUrl( url ) ), timeout );
     }
-    
+    bool SyncLoad( const QString& urlString, const QVariantMap& opt, int timeout ) {
+        return SyncLoad( ConfigureURL( urlString, opt ), timeout );
+    }
+    void Load( const QString& urlString, const QVariantMap& opt ) {
+        load( ConfigureURL( urlString, opt ) );
+    }
+    void Load( const QString& urlString ) {
+        load( TranslateUrl( urlString ) );
+    }
+    QWebElement FindFirstElement( const QString& selector )  {
+        return page()->mainFrame()->findFirstElement( selector );
+    }
+    QWebElementCollection FindElements( const QString& selector ) {
+        return page()->mainFrame()->findAllElements( selector );
+    }
+    void HighlightText( const QString& substring ) {
+        page()->findText( substring, QWebPage::HighlightAllOccurrences );
+    }
+    bool SaveUrl( const QString& url, const QString& filename, int timeout );
+    bool TriggerAction( const QString&, bool );
+    void SetEmitWebActionSignal( bool yes ) {
+        WebPage* wp = qobject_cast< WebPage* >( page() );
+        if( !wp ) return;
+        wp->SetEmitWebActionSignal( yes );
+    }
+private slots:
+    void OnLoadFinished( bool ok ) { syncLoadOK_ = ok; }
+    void OnDownloadRequested( const QNetworkRequest& nr ) {
+        emit downloadRequested( nr.url().toString() );
+    }
+    void OnUnsupportedContent( QNetworkReply* nr ) {
+        emit unsupportedContent( nr->url().toString() );
+    }
+    void OnFrameCreated( QWebFrame* wf ) {
+        emit onFrameCreated( wf );
+    }
+    void OnActionTriggered( QWebPage::WebAction, bool );
+
 protected:
     void closeEvent( QCloseEvent* e ) {
+        QWebView::closeEvent( e );
         emit closing();
-        QGraphicsView::closeEvent( e );
     }
     void contextMenuEvent( QContextMenuEvent* e ) {
-        if( !eatContextMenuEvent_ ) QGraphicsView::contextMenuEvent( e );
+        if( !eatContextMenuEvent_ ) QWebView::contextMenuEvent( e );
     }
     void keyPressEvent( QKeyEvent* ke ) {
+        if( !eatKeyEvents_ ) QWebView::keyPressEvent( ke );
         emit keyPress( ke->key(), ke->modifiers(), ke->count() );
-        if( !eatKeyEvents_ ) QGraphicsView::keyPressEvent( ke );
+
     }
     void keyReleaseEvent( QKeyEvent* ke ) {
+        if( !eatKeyEvents_ ) QWebView::keyReleaseEvent( ke );
         emit keyPress( ke->key(), ke->modifiers(), ke->count() );
-        if( !eatKeyEvents_ ) QGraphicsView::keyReleaseEvent( ke );
+
     }
     void mouseMoveEvent( QMouseEvent* me ) {
+        if( !eatMouseEvents_ ) QWebView::mouseMoveEvent( me );
         emit mouseMove( me->globalX(),
                         me->globalY(),
                         me->x(),
@@ -107,9 +155,10 @@ protected:
                         bool( me->buttons() & Qt::LeftButton ),
                         bool( me->buttons() & Qt::MiddleButton ),
                         bool( me->buttons() & Qt::RightButton ) );
-       if( !eatMouseEvents_ ) QGraphicsView::mouseMoveEvent( me );  
+
     }
     void mousePressEvent( QMouseEvent* me ) {
+        if( !eatMouseEvents_ ) QWebView::mousePressEvent( me );
         emit mousePress( me->globalX(),
                          me->globalY(),
                          me->x(),
@@ -117,9 +166,10 @@ protected:
                          bool( me->buttons() & Qt::LeftButton ),
                          bool( me->buttons() & Qt::MiddleButton ),
                          bool( me->buttons() & Qt::RightButton ) );
-        if( !eatMouseEvents_ ) QGraphicsView::mousePressEvent( me );  
+
     }
     void mouseReleaseEvent( QMouseEvent* me ) {
+        if( !eatMouseEvents_ ) QWebView::mouseReleaseEvent( me );
         emit mouseRelease( me->globalX(),
                            me->globalY(),
                            me->x(),
@@ -127,9 +177,10 @@ protected:
                            bool( me->buttons() & Qt::LeftButton ),
                            bool( me->buttons() & Qt::MiddleButton ),
                            bool( me->buttons() & Qt::RightButton ) );
-       if( !eatMouseEvents_ ) QGraphicsView::mouseReleaseEvent( me );  
+
     }
     void mouseDoubleClickEvent( QMouseEvent* me ) {
+        if( !eatMouseEvents_ ) QWebView::mouseDoubleClickEvent( me );
         emit mouseDoubleClick( me->globalX(),
                                me->globalY(),
                                me->x(),
@@ -137,9 +188,8 @@ protected:
                                bool( me->buttons() & Qt::LeftButton ),
                                bool( me->buttons() & Qt::MiddleButton ),
                                bool( me->buttons() & Qt::RightButton ) );
-        if( !eatMouseEvents_ ) QGraphicsView::mouseDoubleClickEvent( me );  
-    }      
 
+    }
 signals:
     void keyPress( int, int, int );
     void keyRelease( int, int, int );
@@ -148,11 +198,16 @@ signals:
     void mouseMove( int, int, int, int, bool, bool, bool );
     void mouseDoubleClick( int, int, int, int, bool, bool, bool );
     void closing();
-private:
-    QPointer< QGraphicsWebView > gwebView_;
+    void downloadRequested( const QString& );
+    void unsupportedContent( const QString& );
+    void actionTriggered( const QString&, bool );
+    void fileDownloadProgress( qint64, qint64 );
+    void onFrameCreated( QWebFrame* );
+    void JavaScriptConsoleMessage( const QString&, int, const QString& );
 private:
     bool eatContextMenuEvent_;
     bool eatKeyEvents_;
     bool eatMouseEvents_;
+    mutable bool syncLoadOK_;
 };
-
+}
