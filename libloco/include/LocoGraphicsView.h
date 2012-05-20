@@ -33,6 +33,7 @@
 
 #include "LocoWrappedWidget.h"
 #include "LocoQGLFormat.h"
+#include "LocoGraphicsScene.h"
 
 
 namespace loco {
@@ -54,9 +55,15 @@ public:
     ~GraphicsView() { if( graphicsView_ && graphicsView_->parent() == 0 ) graphicsView_->deleteLater(); }
 public:
     void SetScene( QObject* obj ) {
-        if( qobject_cast< QGraphicsScene* >( obj ) == 0 ) {
+        QGraphicsScene* gs = 0;
+    	if( qobject_cast< loco::GraphicsScene* >( obj ) != 0 ) {
+            gs = qobject_cast< loco::GraphicsScene* >( obj )->GetQGraphicsScene() );
+        } else if( qobject_cast< QGraphicsScene* >( obj ) != 0 ) {
+            gs = qobject_cast< QGraphicsScene* >( obj );
+        }
+        if( gs == 0 ) {
             error( "Invalid object type: QGraphicsScene expected" );
-        } else graphicsView_->setScene( qobject_cast< QGraphicsScene* >( obj ) );
+        } else graphicsView_->setScene( gs );
     }
     QObject* GetScene() const { return graphicsView_->scene(); }
     void SetViewport( QObject* obj ) {
