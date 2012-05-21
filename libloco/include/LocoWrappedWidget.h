@@ -35,6 +35,7 @@
 
 #include "LocoObject.h"
 #include "LocoLayout.h"
+#include "LocoWindowAttributes.h"
 
 namespace loco {
 
@@ -100,8 +101,8 @@ public slots:
         QCursor c( pmap, hotX, hotY );
         Widget()->setCursor( c );
     }
-    void setWindowAttribute( Qt::WidgetAttribute wa ) {
-        Widget()->setAttribute( wa );
+    void setWindowAttribute( const QString& attr ) {
+        Widget()->setAttribute( WindowAttribute( wa ) );
     }
     void setWindowIcon( const QPixmap& p ) { Widget()->setWindowIcon( p ); }
     void setWindowIcon( const QString& f ) { Widget()->setWindowIcon( QIcon( f ) ); }

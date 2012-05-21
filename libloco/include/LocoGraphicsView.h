@@ -33,20 +33,32 @@
 
 #include "LocoWrappedWidget.h"
 #include "LocoQGLFormat.h"
-
+#include "LocoGraphicsScene.h"
 
 namespace loco {
+
+class LGraphicsView : public QGraphicsView {
+protected:
+    void resizeEvent( QResizeEvent* ev ) {
+        emit resized( ev->size() );
+        QGraphicsView::resizeEvent( ev );
+    }
+signals:
+    void resized( QSize );
+};
+
 class GraphicsView : public WrappedWidget {
     Q_OBJECT
     Q_PROPERTY( QObject* scene READ GetScene WRITE SetScene )
     Q_PROPERTY( QObject* viewport READ GetViewport WRITE SetViewport )
 public:
     GraphicsView() : WrappedWidget( 0, "LocoGraphicsView", "Loco/GUI/GraphicsView" ),
-        graphicsView_( new QGraphicsView() ) {
+        graphicsView_( new LGraphicsView() ) {
         // base class instance is constructed before current instance, it is therefore
         // not possible to connect signals in base class constructor since Widget() method
         // must return a pointer which is set within this constructor
         WrappedWidget::ConnectSignals();
+        connect( graphicsView_, SIGNAL( resized( QSize ) ), this SIGNAL( resized( QSize ) ) );
     }
     QWidget* Widget() { return graphicsView_; }
     virtual const QWidget* Widget() const { return graphicsView_; }
@@ -54,9 +66,12 @@ public:
     ~GraphicsView() { if( graphicsView_ && graphicsView_->parent() == 0 ) graphicsView_->deleteLater(); }
 public:
     void SetScene( QObject* obj ) {
-        if( qobject_cast< QGraphicsScene* >( obj ) == 0 ) {
-            error( "Invalid object type: QGraphicsScene expected" );
-        } else graphicsView_->setScene( qobject_cast< QGraphicsScene* >( obj ) );
+        QGraphicsScene* gs = 0;
+        if( qobject_cast< QGraphicsScene* >( obj ) != 0 ) gs = qobject_cast< QGraphicsScene* >( obj );
+        else if( qobject_cast< ::loco::GraphicsScene* >( obj ) != 0 ) {
+            gs = qobject_cast< ::loco::GraphicsScene* >( obj )->GetQGraphicsScene();
+        } 
+        if( gs == 0 ) error( "Invalid object type: QGraphicsScene expected" );
     }
     QObject* GetScene() const { return graphicsView_->scene(); }
     void SetViewport( QObject* obj ) {
@@ -65,9 +80,15 @@ public:
         } else graphicsView_->setViewport( qobject_cast< QWidget* >( obj ) );
     }
     QObject* GetViewport() const { return graphicsView_->viewport(); }
+signals:
+    void resized( QSize );    
 public slots:
     bool createOpenGLViewport( const QVariantMap& properties ) {
         graphicsView_->setViewport( new QGLWidget( OpenGLFormat( properties ) ) );
+    }
+    QObject* createGraphicsSceneProxy() {
+        SetScene( new GraphicsSceneProxy );
+        return GetScene();
     }
 private:
     QGraphicsView* graphicsView_;
