@@ -102,7 +102,7 @@ public slots:
         Widget()->setCursor( c );
     }
     void setWindowAttribute( const QString& attr ) {
-        Widget()->setAttribute( WindowAttribute( wa ) );
+        Widget()->setAttribute( WindowAttribute( attr ) );
     }
     void setWindowIcon( const QPixmap& p ) { Widget()->setWindowIcon( p ); }
     void setWindowIcon( const QString& f ) { Widget()->setWindowIcon( QIcon( f ) ); }

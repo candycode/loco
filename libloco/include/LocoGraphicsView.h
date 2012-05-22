@@ -30,6 +30,7 @@
 #include <QGraphicsScene>
 #include <QtOpenGL/QGLWidget>
 #include <QVariantMap>
+#include <QSize>
 
 #include "LocoWrappedWidget.h"
 #include "LocoQGLFormat.h"
@@ -38,6 +39,7 @@
 namespace loco {
 
 class LGraphicsView : public QGraphicsView {
+    Q_OBJECT
 protected:
     void resizeEvent( QResizeEvent* ev ) {
         emit resized( ev->size() );
@@ -58,7 +60,7 @@ public:
         // not possible to connect signals in base class constructor since Widget() method
         // must return a pointer which is set within this constructor
         WrappedWidget::ConnectSignals();
-        connect( graphicsView_, SIGNAL( resized( QSize ) ), this SIGNAL( resized( QSize ) ) );
+        connect( graphicsView_, SIGNAL( resized( QSize ) ), this, SIGNAL( resized( QSize ) ) );
     }
     QWidget* Widget() { return graphicsView_; }
     virtual const QWidget* Widget() const { return graphicsView_; }
@@ -69,7 +71,8 @@ public:
         QGraphicsScene* gs = 0;
         if( qobject_cast< QGraphicsScene* >( obj ) != 0 ) gs = qobject_cast< QGraphicsScene* >( obj );
         else if( qobject_cast< ::loco::GraphicsScene* >( obj ) != 0 ) {
-            gs = qobject_cast< ::loco::GraphicsScene* >( obj )->GetQGraphicsScene();
+            gs = qobject_cast< QGraphicsScene* >( 
+                     qobject_cast< ::loco::GraphicsScene* >( obj )->GetQGraphicsScene() );
         } 
         if( gs == 0 ) error( "Invalid object type: QGraphicsScene expected" );
     }

@@ -25,7 +25,10 @@
 //SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ////////////////////////////////////////////////////////////////////////////////
 
+#include <stdexcept>
+
 #include <QMap>
+#include <QString>
 
 #include "../include/LocoWindowAttributes.h"
 
@@ -38,7 +41,6 @@ QMap< QString, Qt::WidgetAttribute >
 AttrMap() {
     QMap< QString, Qt::WidgetAttribute > attrMap;
     attrMap[ "accept-drops"                 ] = Qt::WA_AcceptDrops;
-    attrMap[ "always-show-tooltips"         ] = Qt::WA_AlwaysShowTooltips;
     attrMap[ "delete-on- close"             ] = Qt::WA_DeleteOnClose;
     attrMap[ "disabled"                     ] = Qt::WA_Disabled; 
     attrMap[ "dont-show-on-screen"          ] = Qt::WA_DontShowOnScreen;
@@ -63,7 +65,7 @@ AttrMap() {
 
 Qt::WidgetAttribute WindowAttribute( const QString& attr ) {
 
-    const static QMap< Qstring, Qt::WidgetAttribute > attrMap = AttrMap();
+    const static QMap< QString, Qt::WidgetAttribute > attrMap = AttrMap();
     
     if( !attrMap.contains( attr ) ) {
         throw std::logic_error( "Invalid window attribute " + attr.toStdString() );

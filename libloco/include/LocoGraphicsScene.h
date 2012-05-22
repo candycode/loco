@@ -26,17 +26,34 @@
 //SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ////////////////////////////////////////////////////////////////////////////////
 
-#include <Qwidget>
+#include <QWidget>
 #include <QGraphicsScene>
+
+class QPainter;
+class QRect;
+#include <QGraphicsSceneContextMenuEvent>
+#include <QGraphicsSceneDragDropEvent>
+#include <QFocusEvent>
+#include <QGraphicsSceneHelpEvent>
+#include <QKeyEvent>
+#include <QGraphicsSceneMouseEvent>
+#include <QGraphicsSceneWheelEvent>
+#include <QGraphicsSceneContextMenuEvent>
+#include <QGraphicsItem>
 
 #include "LocoObject.h"
 #include "LocoWrappedWidget.h"
-
 namespace loco {
 
 class GraphicsSceneProxy : public QGraphicsScene {
     Q_OBJECT
 protected:
+    void drawBackground( QPainter* painter, const QRectF& rect ) {
+        emit backDraw( painter, rect );
+    }
+    void drawForeground( QPainter* painter, const QRectF& rect ) {
+        emit frontDraw( painter, rect );
+    }
     void contextMenuEvent( QGraphicsSceneContextMenuEvent* event ) {
         QGraphicsScene::contextMenuEvent( event );
         if( event->isAccepted() ) return;
@@ -56,12 +73,6 @@ protected:
         QGraphicsScene::dragMoveEvent( event );
         if( event->isAccepted() ) return;
         emit dragMove( event );
-    }
-    void drawBackground( QPainter* painter, const QRectF& rect ) {
-        emit drawBackground( painter, rect );
-    }
-    void drawForeground( QPainter* painter, const QRectF& rect ) {
-        emit drawForeground( painter, rect );
     }
     void dropEvent( QGraphicsSceneDragDropEvent* event ) {
         QGraphicsScene::dropEvent( event );
@@ -130,8 +141,8 @@ signals:
     void dragEnter( QGraphicsSceneDragDropEvent* event );
     void dragLeave( QGraphicsSceneDragDropEvent* event );
     void dragMove( QGraphicsSceneDragDropEvent* event );
-    void drawBackground( QPainter* painter, const QRectF& rect );
-    void drawForeground( QPainter* painter, const QRectF& rect );
+    void backDraw( QPainter* painter, const QRectF& rect );
+    void frontDraw( QPainter* painter, const QRectF& rect );
     void drop( QGraphicsSceneDragDropEvent* event );
     void focusIn( QFocusEvent* focusEvent );
     void focusOut( QFocusEvent* focusEvent );
@@ -164,8 +175,8 @@ public:
     void SetQGraphicsScene( QObject* gs ) {
         if( !qobject_cast< QGraphicsScene* >( gs ) ) error( "QGraphicsScene type expected" );
         else { 
-            if( graphicsView_ ) graphicsView_->deleteLater();
-            graphicsScene_ = gs; 
+            if( graphicsScene_ ) graphicsScene_->deleteLater();
+            graphicsScene_ = qobject_cast< QGraphicsScene* >( gs ); 
         }
     }
     QObject* GetQGraphicsScene() const { return graphicsScene_; }
@@ -173,10 +184,10 @@ public:
         if( graphicsScene_ ) graphicsScene_->deleteLater();
     }
 public slots:
-    void addWidget( QObject* w, const QVariantMap& flags = QVariantMap() ) {
-        QWidget* w = qobject_cast< QWidget* >( w );
-        if( w == 0 && qobject_cast< ::loco::WrappedWidget* >( w ) ) {
-            w = qobject_cast< ::loco::WrappedWidget* >( w );    
+    void addWidget( QObject* widget, const QVariantMap& flags = QVariantMap() ) {
+        QWidget* w = qobject_cast< QWidget* >( widget );
+        if( w == 0 && qobject_cast< ::loco::WrappedWidget* >( widget ) ) {
+            w = qobject_cast< ::loco::WrappedWidget* >( widget )->Widget();    
         } else error( "QWidget or loco::WrappedWidget type expected" );
         graphicsScene_->addWidget( w ) != 0;
     }
