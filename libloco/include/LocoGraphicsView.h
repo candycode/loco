@@ -83,10 +83,20 @@ public:
         } else graphicsView_->setViewport( qobject_cast< QWidget* >( obj ) );
     }
     QObject* GetViewport() const { return graphicsView_->viewport(); }
+    void SetViewportUpdateMode( const QString& um ) {
+        if( um == "full" ) graphicsView_->setViewportUpdateMode( QGraphicsView::FullViewportUpdate );
+        else if( um == "minimal" ) {
+            graphicsView_->setViewportUpdateMode( QGraphicsView::MinimalViewportUpdate );
+        } else if( um == "smart" ) {
+            graphicsView_->setViewportUpdateMode( QGraphicsView::SmartViewportUpdate );
+        } else if( um == "none" ) {
+            graphicsView_->setViewportUpdateMode( QGraphicsView::NoViewportUpdate );
+        } else error( "Unrecognized viewport update mode: " + um );
+    }
 signals:
     void resized( QSize );    
 public slots:
-    bool createOpenGLViewport( const QVariantMap& properties ) {
+    void createOpenGLViewport( const QVariantMap& properties ) {
         graphicsView_->setViewport( new QGLWidget( OpenGLFormat( properties ) ) );
     }
     QObject* createGraphicsSceneProxy() {
