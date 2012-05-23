@@ -43,10 +43,13 @@ class QRect;
 
 #include "LocoObject.h"
 #include "LocoWrappedWidget.h"
+
 namespace loco {
 
 class GraphicsSceneProxy : public QGraphicsScene {
     Q_OBJECT
+public:
+    GraphicsSceneProxy() : handled_( false ) {}
 protected:
     void drawBackground( QPainter* painter, const QRectF& rect ) {
         emit backDraw( painter, rect );
@@ -57,104 +60,145 @@ protected:
     void contextMenuEvent( QGraphicsSceneContextMenuEvent* event ) {
         QGraphicsScene::contextMenuEvent( event );
         if( event->isAccepted() ) return;
-        emit contextMenu( event );
+        emit contextMenu( handled_ );
+        if( handled_ ) event->accept();
     } 
     void dragEnterEvent( QGraphicsSceneDragDropEvent* event ) {
         QGraphicsScene::dragEnterEvent( event );
         if( event->isAccepted() ) return;
-        emit dragEnter( event );
+        emit dragEnter( event->pos().x(), event->pos().y(), event->mimeData(), handled_ );
+        if( handled_ ) event->accept();
     }
     void dragLeaveEvent( QGraphicsSceneDragDropEvent* event ) {
         QGraphicsScene::dragLeaveEvent( event );
         if( event->isAccepted() ) return;
-        emit dragLeave( event );   
+        emit dragLeave( event->pos().x(), event->pos().y(), event->mimeData(), handled_ );
+        if( handled_ ) event->accept();   
     }
     void dragMoveEvent( QGraphicsSceneDragDropEvent* event ) {
         QGraphicsScene::dragMoveEvent( event );
         if( event->isAccepted() ) return;
-        emit dragMove( event );
+        emit dragMove( event->pos().x(), event->pos().y(), event->mimeData(), handled_ );
+        if( handled_ ) event->accept();
     }
     void dropEvent( QGraphicsSceneDragDropEvent* event ) {
         QGraphicsScene::dropEvent( event );
         if( event->isAccepted() ) return;
-        emit drop( event );
+        emit drop( event->pos().x(), event->pos().y(), event->mimeData(), handled_ );
+        if( handled_ ) event->accept();
     }
     void focusInEvent( QFocusEvent* event ) {
         QGraphicsScene::focusInEvent( event );
         if( event->isAccepted() ) return;
-        emit focusIn( event );
+        emit focusIn( handled_ );
+        if( handled_ ) event->accept();
     }
     void focusOutEvent( QFocusEvent* event ) {
         QGraphicsScene::focusOutEvent( event );
         if( event->isAccepted() ) return;
-        emit focusOut( event );
+        emit focusOut( handled_ );
+        if( handled_ ) event->accept();
     }
     void helpEvent( QGraphicsSceneHelpEvent* event ) {
         QGraphicsScene::helpEvent( event );
         if( event->isAccepted() ) return;
-        emit help( event );
+        emit help( handled_ );
+        if( handled_ ) event->accept();
     }
-    void inputMethodEvent( QInputMethodEvent* event ) {
-        QGraphicsScene::inputMethodEvent( event );
-        if( event->isAccepted() ) return;
-        emit inputMethod( event );
-    }
+    //void inputMethodEvent( QInputMethodEvent* event ) {
+    //    QGraphicsScene::inputMethodEvent( event );
+    //    if( event->isAccepted() ) return;
+    //    emit inputMethod( event, handled_ );
+    //    if( handled_ ) event->accept();
+    //}
     void keyPressEvent( QKeyEvent* event ) {
         QGraphicsScene::keyPressEvent( event );
         if( event->isAccepted() ) return;
-        emit keyPress( event );
+        emit keyPress( event, handled_ );
+        if( handled_ ) event->accept();
     }
     void keyReleaseEvent( QKeyEvent* event ) {
         QGraphicsScene::keyReleaseEvent( event );
         if( event->isAccepted() ) return;
-        emit keyRelease( event );
+        emit keyRelease( event, handled_ );
+        if( handled_ ) event->accept();
     }
     void mouseDoubleClickEvent( QGraphicsSceneMouseEvent* event ) {
         QGraphicsScene::mouseDoubleClickEvent( event );
         if( event->isAccepted() ) return;
-        emit mouseDoubleClick( event );
+        emit mouseDoubleClick( event->button(),
+                               event->buttons(),
+                               event->modifiers(),
+                               event->scenePos().x(),
+                               event->scenePos().y(),
+                               handled_ );
+        if( handled_ ) event->accept();
     }
     void mouseMoveEvent( QGraphicsSceneMouseEvent* event ) {
         QGraphicsScene::mouseMoveEvent( event );
         if( event->isAccepted() ) return;
-        emit mouseMove( event );
+        emit mouseMove( event->button(),
+                        event->buttons(),
+                        event->modifiers(),
+                        event->lastScenePos().x(),
+                        event->lastScenePos().y(),
+                        event->scenePos().x(),
+                        event->scenePos().y(),
+                        handled_ );
+        if( handled_ ) event->accept();
     }
     void mousePressEvent( QGraphicsSceneMouseEvent* event ) {
         QGraphicsScene::mousePressEvent( event );
         if( event->isAccepted() ) return;
-        emit mousePress( event );
+        emit mousePress( event->button(),
+                         event->buttons(),
+                         event->modifiers(),
+                         event->scenePos().x(),
+                         event->scenePos().y(),
+                         handled_ );
+        if( handled_ ) event->accept();
     }
     void mouseReleaseEvent( QGraphicsSceneMouseEvent* event ) {
         QGraphicsScene::mouseReleaseEvent( event );
         if( event->isAccepted() ) return;
-        emit mouseRelease( event );
+        emit mouseRelease( event->button(),
+                           event->buttons(),
+                           event->modifiers(),
+                           event->scenePos().x(),
+                           event->scenePos().y(),
+                           handled_ );
+        if( handled_ ) event->accept(); 
     }
     void wheelEvent( QGraphicsSceneWheelEvent* event ) {
         QGraphicsScene::wheelEvent( event );
         if( event->isAccepted() ) return;
-        emit wheel( event );
+        emit wheel( event->delta(), event->orientation(), event->modifiers(), handled_ );
+        if( handled_ ) event->accept();
     }
 public slots:
     void redraw() { update(); }
 signals:
-    void contextMenu( QGraphicsSceneContextMenuEvent* contextMenuEvent );
-    void dragEnter( QGraphicsSceneDragDropEvent* event );
-    void dragLeave( QGraphicsSceneDragDropEvent* event );
-    void dragMove( QGraphicsSceneDragDropEvent* event );
+    void contextMenu( bool& handled_ );
+    void dragEnter( int x, int y, const QMimeData* data, bool& handled_ );
+    void dragLeave( int x, int y, const QMimeData* data, bool& handled_ );
+    void dragMove( int x, int y, const QMimeData* data, bool& handled_  );
     void backDraw( QPainter* painter, const QRectF& rect );
     void frontDraw( QPainter* painter, const QRectF& rect );
-    void drop( QGraphicsSceneDragDropEvent* event );
-    void focusIn( QFocusEvent* focusEvent );
-    void focusOut( QFocusEvent* focusEvent );
-    void help( QGraphicsSceneHelpEvent* helpEvent );
-    void inputMethod( QInputMethodEvent* event );
-    void keyPress( QKeyEvent* keyEvent );
-    void keyRelease( QKeyEvent* keyEvent );
-    void mouseDoubleClick( QGraphicsSceneMouseEvent* mouseEvent );
-    void mouseMove( QGraphicsSceneMouseEvent* mouseEvent );
-    void mousePress( QGraphicsSceneMouseEvent* mouseEvent );
-    void mouseRelease( QGraphicsSceneMouseEvent* mouseEvent );
-    void wheel( QGraphicsSceneWheelEvent* wheelEvent );
+    void drop( int x, int y, const QMimeData* data, bool& handled_ );
+    void focusIn( bool& handled_ );
+    void focusOut( bool& handled_ );
+    void help( bool& handled_ );
+    //void inputMethod( QInputMethodEvent* event );
+    void keyPress( QKeyEvent* keyEvent, bool& handled_ );
+    void keyRelease( QKeyEvent* keyEvent, bool& handled_ );
+    void mouseDoubleClick( Qt::MouseButton button, Qt::MouseButtons buttons, Qt::KeyboardModifiers modifiers, int x, int y, bool& handled_  );
+    void mouseMove( Qt::MouseButton button, Qt::MouseButtons buttons, Qt::KeyboardModifiers modifiers, int prevX, int prevY, int x, int y, bool& handled_ );
+    void mousePress( Qt::MouseButton button, Qt::MouseButtons buttons, Qt::KeyboardModifiers modifiers, int x, int y, bool& handled_ );
+    void mouseRelease( Qt::MouseButton button, Qt::MouseButtons buttons, Qt::KeyboardModifiers modifiers, int x, int y, bool& handled_ );
+    void wheel( int delta, Qt::Orientation orientation, Qt::KeyboardModifiers modifiers, bool& handled_ );
+private:
+    mutable bool handled_;
+
 };
 
 
