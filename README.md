@@ -5,7 +5,7 @@ applications with any language that compiles to JavaScript.
 JavaScript is used to glue together binary components, optionally loaded
 at run-time, developed in C++.
 Objects are connected through signals/slots or by direct reference through
-a QObject pointer, giving to the objects the reponsibility to check the
+a QObject pointer, giving to the objects the responsibility to check the
 interface semantic or the object type.
 Note that with Qt it is possible to perform duck-typing with C++: only
 check if a property or method is available, **not** if an object is of
