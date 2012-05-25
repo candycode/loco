@@ -401,7 +401,7 @@ Results can be retrieved from the parent context/thread by:
 * reading from the _thread.data_ variable which implements future-like behavior and waits
   until data become available
 
-[A working example example](/candycode/loco/blob/master/apps/locoplay-scripts/test23-thread-loop.js)
+[A working example](/candycode/loco/blob/master/apps/locoplay-scripts/test23-thread-loop.js)
 is available.
 
 ### Network
