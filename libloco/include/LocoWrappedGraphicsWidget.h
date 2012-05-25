@@ -46,7 +46,7 @@ namespace loco {
 //to be able to cast from QObject we need to pass a QObject derived object to qobject_cast 
 class  WrappedGraphicsWidget : public Object {
     Q_OBJECT
-    Q_PROPERTY( bool autoFillBackground READ GetAutoFillBackround WRITE SetAutoFillBackGround )
+    Q_PROPERTY( bool autoFillBackground READ GetAutoFillBackground WRITE SetAutoFillBackground )
     Q_PROPERTY( QObject* qGraphicsWidget READ Widget )
     Q_PROPERTY( QVariantMap size READ GetSize WRITE SetSize )
     Q_PROPERTY( qreal opacity READ GetOpacity )
@@ -60,7 +60,7 @@ public:
                            ObjectInfo* objInfo = 0 ) : Object( c, n, type, module, destroyable, objInfo ) {}
     virtual QGraphicsWidget* Widget()  = 0;
     virtual const QGraphicsWidget* Widget() const = 0;
-    void SetAutoFillBackground( bool on ) { Widget()->setAutoDillBackground( on ); }
+    void SetAutoFillBackground( bool on ) { Widget()->setAutoFillBackground( on ); }
     bool GetAutoFillBackground() const { return Widget()->autoFillBackground(); }
     QVariantMap GetSize() const {
         QVariantMap m;
@@ -72,9 +72,9 @@ public:
     void SetSize( const QVariantMap& m ) {
         qreal w = 0;
         qreal h = 0;
-        if( m.contains[ "width"  ] ) w = m[ "width" ].toFloat();
-        if( m.contains[ "height" ] ) h = m[ "height" ].toFloat();
-        if( w > 0 && h > 0 ) graphicsWidget_->resize( w, h );
+        if( m.contains( "width"  ) ) w = m[ "width" ].toFloat();
+        if( m.contains( "height" ) ) h = m[ "height" ].toFloat();
+        if( w > 0 && h > 0 ) Widget()->resize( w, h );
         else error( "Invalid size parameters" );
     }
     qreal GetOpacity() const { return Widget()->opacity(); }
@@ -85,10 +85,11 @@ public slots:
     void resize( qreal w, qreal h ) { Widget()->resize( w, h ); }
     void setGeometry( const QVariantMap& g ) {
         QRectF geom = Widget()->geometry();
-        if( g.contains[ "x" ] ) g.setLeft( g[ "x" ].toFloat() );
-        if( g.contains[ "y" ] ) g.setTop( g[ "y" ].toFloat() );
-        if( g.contains[ "width" ] g.setWidth( g[ "width" ].toFloat() );
-        if( g.contains[ "height" ] g.setHeight( g[ "height" ].toFloat() ); 
+        if( g.contains( "x" ) ) geom.setLeft( g[ "x" ].toFloat() );
+        if( g.contains( "y" ) ) geom.setTop( g[ "y" ].toFloat() );
+        if( g.contains( "width" ) ) geom.setWidth( g[ "width" ].toFloat() );
+        if( g.contains( "height" ) ) geom.setHeight( g[ "height" ].toFloat() ); 
+        Widget()->setGeometry( geom );
     }
     void setOpacity( qreal alpha ) { Widget()->setOpacity( alpha ); } 
     void setWindowStyle( const QStringList& flags ) {

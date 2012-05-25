@@ -40,9 +40,11 @@ class QRect;
 #include <QGraphicsSceneWheelEvent>
 #include <QGraphicsSceneContextMenuEvent>
 #include <QGraphicsItem>
+#include <QGraphicsWidget>
 
 #include "LocoObject.h"
 #include "LocoWrappedWidget.h"
+#include "LocoWrappedGraphicsWidget.h"
 
 namespace loco {
 
@@ -228,16 +230,20 @@ public:
         if( graphicsScene_ ) graphicsScene_->deleteLater();
     }
 public slots:
-    void addWidget( QObject* widget, const QVariantMap& flags = QVariantMap() ) {
-        QWidget* w = qobject_cast< QWidget* >( widget );
-        if( w == 0 && qobject_cast< ::loco::WrappedWidget* >( widget ) ) {
-            w = qobject_cast< ::loco::WrappedWidget* >( widget )->Widget();    
-        } else error( "QWidget or loco::WrappedWidget type expected" );
-        graphicsScene_->addWidget( w ) != 0;
-    }
-    void addItem( QObject* item ) {
-        if( qobject_cast< QGraphicsItem* >( item ) == 0 ) error( "QGraphicsItem type expected" );
-        graphicsScene_->addItem( qobject_cast< QGraphicsItem* >( item ) );    
+    void add( QObject* item ) {
+        if( qobject_cast< QGraphicsItem* >( item ) != 0 ) {
+            graphicsScene_->addItem( qobject_cast< QGraphicsItem* >( item ) );
+        } else if( qobject_cast< QGraphicsWidget* >( item ) != 0 ) {
+            graphicsScene_->addItem( qobject_cast< QGraphicsWidget* >( item ) );
+        } else if( qobject_cast< QWidget* >( item ) != 0 ) {   
+            graphicsScene_->addWidget( qobject_cast< QWidget* >( item ) );
+        } else if( qobject_cast< WrappedWidget* >( item ) ) {
+            add( qobject_cast< WrappedWidget* >( item )->Widget() );
+        } else if( qobject_cast< WrappedGraphicsWidget* >( item ) ) {
+            add( qobject_cast< WrappedGraphicsWidget* >( item )->Widget() );
+        } else error( "Wrong object type, supported types are:\n"
+                      "QWidget, QGraphicsWidget, QGraphicsItem, loco::WrappedWidget,"
+                      "  loco::WrappedGraphicsWidget" );       
     }
     void update() { graphicsScene_->update(); }
 private:
