@@ -39,6 +39,7 @@
 
 #ifdef LOCO_WKIT
 #include "LocoWebWindow.h"
+#include "LocoGraphicsWebWindow.h"
 #endif
 
 namespace loco {
@@ -61,12 +62,24 @@ QVariant GUI::create( const QString& name, const QVariantMap& params ) const {
     //if support for different Widget sets is needed
 #ifdef LOCO_WKIT
     if( name == "WebWindow" ) {
+        if( !GetContext()->GetNetworkAccessManager() ) {
+            throw std::runtime_error( "NULL Network Access Manager" );
+            return QVariant();
+        }
         WebWindow* wv = new WebWindow();
-        if( !GetContext()->GetNetworkAccessManager() ) throw std::runtime_error( "NULL Network Access Manager" );
         wv->SetNetworkAccessManager( GetContext()->GetNetworkAccessManager() );
         QVariant obj = GetContext()->AddObjToJSContext( wv );
         return obj;
-    } 
+    } else if( name == "GraphicsWebWindow" ) {
+        if( !GetContext()->GetNetworkAccessManager() ) {
+                   throw std::runtime_error( "NULL Network Access Manager" );
+                   return QVariant();
+        }
+        GraphicsWebWindow* wv = new GraphicsWebWindow();
+        wv->SetNetworkAccessManager( GetContext()->GetNetworkAccessManager() );
+        QVariant obj = GetContext()->AddObjToJSContext( wv );
+        return obj;
+    } else
 #endif 
     if( name == "WidgetWrapper" ) {
         WidgetWrapper *ww = new WidgetWrapper;

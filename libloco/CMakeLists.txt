@@ -117,7 +117,8 @@ endif()
 if( LOCO_WKIT )
   set( LOCO_WKIT_MOC_HEADERS ${LINC}/LocoWebWindow.h ${LINC}/LocoGraphicsWebView.h
        ${LINC}/LocoWebKitJSCore.h ${LINC}/LocoWebKitJSCoreWrapper.h ${LINC}/LocoWebView.h
-       ${LINC}/LocoDynamicWebPluginFactory.h ${LINC}/LocoWebElement.h ${LINC}/LocoWebPage.h )
+       ${LINC}/LocoDynamicWebPluginFactory.h ${LINC}/LocoWebElement.h ${LINC}/LocoWebPage.h
+       ${LINC}/LocoGraphicsWebWindow.h )
   set( LOCO_WKIT_HEADERS ${LINC}/LocoWebKitAttributeMap.h ${LINC}/LocoStaticWebPluginFactory.h )
   set( LOCO_WKIT_SRCS ${LSRC}/LocoWebKitAttributeMap.cpp ${LSRC}/LocoWebView.cpp )
 endif()

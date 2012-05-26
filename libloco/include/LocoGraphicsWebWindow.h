@@ -44,7 +44,9 @@
 #include <QtWebKit/QWebInspector>
 #include <QtGui/QCursor>
 #include <QtWebKit/QGraphicsWebView>
-
+#include <QGraphicsSceneMouseEvent>
+#include <QGraphicsSceneContextMenuEvent>
+#include <QAction>
 
 #include "LocoObject.h"
 #include "LocoContext.h"
@@ -146,9 +148,9 @@ public:
         ctx_.SetJSContextName( "wctx" ); //web window context
         ctx_.AddContextToJS();
     }
-    QWidget* Widget() { return webView_; }
-    virtual const QWidget* Widget() const { return webView_; }
-    ~WebWindow() { if( webView_ && webView_->parent() == 0 ) webView_->deleteLater(); }
+    QGraphicsWidget* Widget() { return webView_; }
+    virtual const QGraphicsWidget* Widget() const { return webView_; }
+    ~GraphicsWebWindow() { if( webView_ && webView_->parent() == 0 ) webView_->deleteLater(); }
 
     void AddSelfToJSContext() {
         ctx_.AddJSStdObject( this );
@@ -245,11 +247,6 @@ public slots:
         if( !nam ) return;
         nam->EmitRequestSignal( yes );
     }
-
-    bool syncLoad( const QString& url, int timeout ) { return webView_->SyncLoad( url,  timeout ); }
-    bool syncLoad( const QString& urlString, const QVariantMap& opt, int timeout ) {
-        return webView_->SyncLoad( urlString, opt, timeout );
-    }
     void createWebPluginFactory( const QString& type = "dynamic" ) {
         if( type.toLower() == "dynamic" ) {
             DynamicWebPluginFactory* pf = new DynamicWebPluginFactory;
@@ -264,23 +261,17 @@ public slots:
     void setName( const QString& n ) { Object::setName( n ); }
     void addSelfToJSContext() { AddSelfToJSContext(); }
     QString frameName() const { return wf_->frameName(); }
-    void setEnableContextMenu( bool yes ) { webView_->EatContextMenuEvent( !yes ); }
-    bool getEnableContextMenu() const { return !webView_->EatingContextMenuEvent(); }
-    void setForwardKeyEvents( bool yes ) { webView_->EatKeyEvents( !yes ); }
-    bool getForwardKeyEvents( bool yes ) const { return !webView_->EatingKeyEvents(); }
     //connect from parent context Context::onError() -> WebWindow::onParentError()
     void onParentError( const QString& err ) {
         ctx_.Eval( "throw " + err + ";\n" );
     }  
-    void load( const QString& url ) { webView_->Load( url ); }
+    void load( const QString& url ) { webView_->load( QUrl( url ) ); }
     bool isModified() { return webView_->isModified(); }
     //QList< QWebHistoryItem > history();
     void setHtml( const QString& html, const QString& baseUrl = "" ) { webView_->setHtml( html, QUrl( baseUrl ) ); }
     void setBaseUrl( const QString& url ) { webView_->page()->mainFrame()->setUrl( url ); }
     void setZoomFactor( qreal zf ) { webView_->setZoomFactor( zf ); }
     qreal zoomFactor() const { return webView_->zoomFactor(); }
-    void setTextSizeMultiplier( qreal tm ) { webView_->setTextSizeMultiplier( tm ); }
-    qreal textSizeMultiplier() const { return webView_->textSizeMultiplier(); }
     void reload() { webView_->reload(); }
     //QVariant geometry() const;
     //void setGeometry( const QVariant& g );
@@ -365,7 +356,7 @@ signals:
     void urlChanged( const QUrl& );
     void onRequest( const QVariantMap& );
 private:
-    WebView* webView_; //owned by this object
+    QGraphicsWebView* webView_; //owned by this object
     Context ctx_; // this is where objects are created
     QPointer< QWebFrame > wf_; //owned by webview
     QWebSettings* ws_; //owned by web frame; not a QObject: cannot wrap with a QPointer
