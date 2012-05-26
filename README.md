@@ -147,7 +147,7 @@ a web page. [Example here](/candycode/loco/tree/master/modules/webplugins/osg-vi
 
 _Note_: I plan to keep supporting the WebKit1 interface, not WebKit2
 since it requires one additional process for each web page which is 
-__not__ something I want to have in a Desktop application. The current
+__not__ something I want to have in a desktop application. The current
 version of QtWebKit based on WebKit 2.2 works well and will be supported
 for quite some time anyway with commitments to fix all the high priority bugs.
 
@@ -335,7 +335,7 @@ Note that access control is not entirely exposed to JavaScript, to allow
 for the creation of binaries that have built-in, user-configurable access
 control at the interpreter level.
 
-This is something I borrowed from the mobile environment, Desktop applications
+This is something I borrowed from the mobile environment, desktop applications
 are unfortunately still being developed with patterns from the 80s/90s with
 no concept of security or access control, any desktop application can easily
 access the file system to read and broadcast data over the internet with little control
