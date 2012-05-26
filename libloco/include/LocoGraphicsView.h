@@ -30,24 +30,37 @@
 #include <QGraphicsScene>
 #include <QtOpenGL/QGLWidget>
 #include <QVariantMap>
+#include <QSize>
 
 #include "LocoWrappedWidget.h"
 #include "LocoQGLFormat.h"
 #include "LocoGraphicsScene.h"
 
-
 namespace loco {
+
+class LGraphicsView : public QGraphicsView {
+    Q_OBJECT
+protected:
+    void resizeEvent( QResizeEvent* ev ) {
+        emit resized( ev->size() );
+        QGraphicsView::resizeEvent( ev );
+    }
+signals:
+    void resized( QSize );
+};
+
 class GraphicsView : public WrappedWidget {
     Q_OBJECT
     Q_PROPERTY( QObject* scene READ GetScene WRITE SetScene )
     Q_PROPERTY( QObject* viewport READ GetViewport WRITE SetViewport )
 public:
     GraphicsView() : WrappedWidget( 0, "LocoGraphicsView", "Loco/GUI/GraphicsView" ),
-        graphicsView_( new QGraphicsView() ) {
+        graphicsView_( new LGraphicsView() ) {
         // base class instance is constructed before current instance, it is therefore
         // not possible to connect signals in base class constructor since Widget() method
         // must return a pointer which is set within this constructor
         WrappedWidget::ConnectSignals();
+        connect( graphicsView_, SIGNAL( resized( QSize ) ), this, SIGNAL( resized( QSize ) ) );
     }
     QWidget* Widget() { return graphicsView_; }
     virtual const QWidget* Widget() const { return graphicsView_; }
@@ -56,14 +69,12 @@ public:
 public:
     void SetScene( QObject* obj ) {
         QGraphicsScene* gs = 0;
-    	if( qobject_cast< loco::GraphicsScene* >( obj ) != 0 ) {
-            gs = qobject_cast< loco::GraphicsScene* >( obj )->GetQGraphicsScene() );
-        } else if( qobject_cast< QGraphicsScene* >( obj ) != 0 ) {
-            gs = qobject_cast< QGraphicsScene* >( obj );
-        }
-        if( gs == 0 ) {
-            error( "Invalid object type: QGraphicsScene expected" );
-        } else graphicsView_->setScene( gs );
+        if( qobject_cast< QGraphicsScene* >( obj ) != 0 ) gs = qobject_cast< QGraphicsScene* >( obj );
+        else if( qobject_cast< ::loco::GraphicsScene* >( obj ) != 0 ) {
+            gs = qobject_cast< QGraphicsScene* >( 
+                     qobject_cast< ::loco::GraphicsScene* >( obj )->GetQGraphicsScene() );
+        } 
+        if( gs == 0 ) error( "Invalid object type: QGraphicsScene expected" );
     }
     QObject* GetScene() const { return graphicsView_->scene(); }
     void SetViewport( QObject* obj ) {
@@ -72,9 +83,25 @@ public:
         } else graphicsView_->setViewport( qobject_cast< QWidget* >( obj ) );
     }
     QObject* GetViewport() const { return graphicsView_->viewport(); }
+    void SetViewportUpdateMode( const QString& um ) {
+        if( um == "full" ) graphicsView_->setViewportUpdateMode( QGraphicsView::FullViewportUpdate );
+        else if( um == "minimal" ) {
+            graphicsView_->setViewportUpdateMode( QGraphicsView::MinimalViewportUpdate );
+        } else if( um == "smart" ) {
+            graphicsView_->setViewportUpdateMode( QGraphicsView::SmartViewportUpdate );
+        } else if( um == "none" ) {
+            graphicsView_->setViewportUpdateMode( QGraphicsView::NoViewportUpdate );
+        } else error( "Unrecognized viewport update mode: " + um );
+    }
+signals:
+    void resized( QSize );    
 public slots:
-    bool createOpenGLViewport( const QVariantMap& properties ) {
+    void createOpenGLViewport( const QVariantMap& properties ) {
         graphicsView_->setViewport( new QGLWidget( OpenGLFormat( properties ) ) );
+    }
+    QObject* createGraphicsSceneProxy() {
+        SetScene( new GraphicsSceneProxy );
+        return GetScene();
     }
 private:
     QGraphicsView* graphicsView_;

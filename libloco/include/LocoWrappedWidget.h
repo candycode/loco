@@ -35,6 +35,7 @@
 
 #include "LocoObject.h"
 #include "LocoLayout.h"
+#include "LocoWindowAttributes.h"
 
 namespace loco {
 
@@ -43,7 +44,7 @@ namespace loco {
 class  WrappedWidget : public Object {
     Q_OBJECT
     Q_PROPERTY( bool fullScreen READ IsFullScreen )
-    Q_PROPERTY( QObject* qwidget READ GetWidget() )
+    Q_PROPERTY( QObject* qwidget READ GetWidget )
 public:
     WrappedWidget( Context* c = 0, 
                    const QString& n = "LocoWrappedWidget",
@@ -100,8 +101,8 @@ public slots:
         QCursor c( pmap, hotX, hotY );
         Widget()->setCursor( c );
     }
-    void setWindowAttribute( Qt::WidgetAttribute wa ) {
-        Widget()->setAttribute( wa );
+    void setWindowAttribute( const QString& attr ) {
+        Widget()->setAttribute( WindowAttribute( attr ) );
     }
     void setWindowIcon( const QPixmap& p ) { Widget()->setWindowIcon( p ); }
     void setWindowIcon( const QString& f ) { Widget()->setWindowIcon( QIcon( f ) ); }

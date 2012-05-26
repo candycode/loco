@@ -5,7 +5,7 @@ applications with any language that compiles to JavaScript.
 JavaScript is used to glue together binary components, optionally loaded
 at run-time, developed in C++.
 Objects are connected through signals/slots or by direct reference through
-a QObject pointer, giving to the objects the reponsibility to check the
+a QObject pointer, giving to the objects the responsibility to check the
 interface semantic or the object type.
 Note that with Qt it is possible to perform duck-typing with C++: only
 check if a property or method is available, **not** if an object is of
@@ -57,8 +57,8 @@ scriptable in a widespread scripting language such as ECMAScript/JavaScript.
 
 ###Status
 
-The code you see here was physically extracted from a private project here on GitHub, so
-it is now what used to be my private development branch and it is therefore a work in progress.
+The code you see here was physically extracted from a private project hosted here on GitHub, so
+this is now what used to be my private development branch and it is therefore a work in progress.
 
 The current project is a stripped down, cleaned-up, partially rewritten
 version of a larger and much garbled project which also had some Lua, 
@@ -401,7 +401,7 @@ Results can be retrieved from the parent context/thread by:
 * reading from the _thread.data_ variable which implements future-like behavior and waits
   until data become available
 
-[A working example example](/candycode/loco/blob/master/apps/locoplay-scripts/test23-thread-loop.js)
+[A working example](/candycode/loco/blob/master/apps/locoplay-scripts/test23-thread-loop.js)
 is available.
 
 ### Network

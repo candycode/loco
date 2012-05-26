@@ -123,8 +123,9 @@ if( LOCO_WKIT )
 endif()
 if( LOCO_GUI )
   set( LOCO_GUI_MOC_HEADERS ${LINC}/LocoGUI.h ${LINC}/LocoMainWindow.h ${LINC}/LocoWidgetWrapper.h ${LINC}/LocoWrappedWidget.h
-       ${LINC}/LocoLayout.h ${LINC}/LocoWidget.h )
-  set( LOCO_GUI_SRCS ${LSRC}/LocoGUI.cpp ${LSRC}/LocoWrappedWidget.cpp ${LSRC}/LocoLayout.cpp )
+       ${LINC}/LocoLayout.h ${LINC}/LocoWidget.h ${LINC}/LocoGraphicsScene.h ${LINC}/LocoGraphicsView.h ${LINC}/LocoWrappedGraphicsWidget.h )
+  set( LOCO_GUI_SRCS ${LSRC}/LocoGUI.cpp ${LSRC}/LocoWrappedWidget.cpp ${LSRC}/LocoLayout.cpp ${LSRC}/LocoWindowAttributes.cpp
+       ${LSRC}/LocoWindowFlags.cpp )
 endif()
 if( LOCO_SCRIPT )
   set( LOCO_SCRIPT_MOC_HEADERS ${LINC}/LocoQScriptInterpreter.h )

@@ -26,6 +26,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "LocoWrappedWidget.h"
+#include "LocoWindowFlags.h"
 
 namespace loco {
 //slots:
@@ -55,28 +56,8 @@ void WrappedWidget::setMouseCursor( const QString& shape ) {
 }
 
 void WrappedWidget::setWindowStyle( const QStringList& flags ) {
-    Qt::WindowFlags w = 0;
-    for( QStringList::const_iterator i = flags.begin(); i != flags.end(); ++i ) {
-        const QString& f = *i;
-        if( f == "dialog" ) w |= Qt::Dialog;
-        else if( f == "window" ) w |= Qt::Window;
-        else if( f == "sheet" ) w |= Qt::Sheet;
-        else if( f == "drawer" ) w |= Qt::Drawer;
-        else if( f == "popup" ) w |= Qt::Popup;
-        else if( f == "tool" ) w |= Qt::Tool;
-        else if( f == "splash" ) w |= Qt::SplashScreen;
-        else if( f == "sub" ) w |= Qt::SubWindow;
-        else if( f == "frameless-hint" ) w |= Qt::FramelessWindowHint;
-        else if( f == "modal-hint" ) Widget()->setWindowModality( Qt::ApplicationModal );
-        else if( f == "sys-menu-hint" ) w |= Qt::WindowSystemMenuHint;
-        else if( f == "close-button-hint" ) w |= Qt::WindowCloseButtonHint;
-        else if( f == "bypass-graphics-proxy-hint" ) w |= Qt::BypassGraphicsProxyWidget;
-        else if( f == "stay-on-top-hint" ) w |= Qt ::WindowStaysOnTopHint;
-        else if( f == "stay-on-bottom-hint") w |= Qt ::WindowStaysOnBottomHint;
-        else if( f == "ok-button-hint" ) w |= Qt::WindowOkButtonHint;
-        else if( f == "cancel-button-hint" ) w |= Qt::WindowCancelButtonHint;
-    }
-    Widget()->setWindowFlags( w );
+    Widget()->setWindowFlags( WindowFlags( flags ) );
+    if( flags.contains( "modal-hint" ) ) Widget()->setWindowModality( Qt::ApplicationModal );
 }
 
 
