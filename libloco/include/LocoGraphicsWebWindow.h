@@ -63,13 +63,7 @@ class QWebPluginFactory;
 
 namespace loco {
 
-typedef QMap< QString, QMenu* > MenuMap;
-typedef QMap< QString, QAction* > ActionMap;
-typedef QMap< QAction*, QString > ActionPath;
-typedef QMap< QAction*, QString > CBackMap;
-
-
-class WebWindow : public WrappedWidget {
+class WebWindow : public WrappedGraphicsWidget {
     Q_OBJECT
 private:
     struct ObjectEntry {
