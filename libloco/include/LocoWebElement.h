@@ -49,6 +49,9 @@ public:
     QWebElement& qWebElement() { return we_; }
     const QWebElement& qWebElement() const { return we_; }
 public slots:
+    QString styleProperty( const QString& name ) const {
+        return we_.styleProperty( name, QWebElement::ComputedStyle );
+    }
     QVariant findFirstElement( const QString& selectorQuery ) {
            QWebElement we = we_.findFirst( selectorQuery );
            if( we.isNull() ) return QVariant();
