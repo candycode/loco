@@ -31,10 +31,8 @@
 // IN PROGRESS: copied from loco::WebWindow, not added to build
 ///////////////////////////////////////////////////////////////
 
-#include <QtGui/QMainWindow>
 #include <QString>
 #include <QVariantMap>
-#include <QtGui/QMenu>
 #include <QMap>
 #include <QtGui/QPixmap>
 #include <QtGui/QBitmap>
@@ -45,25 +43,82 @@
 #include <QtWebKit/QWebElement>
 #include <QtWebKit/QWebInspector>
 #include <QtGui/QCursor>
+#include <QtWebKit/QGraphicsWebView>
 
 
 #include "LocoObject.h"
 #include "LocoContext.h"
-#include "LocoWebView.h"
 #include "LocoWebKitAttributeMap.h"
 #include "LocoWebKitJSCoreWrapper.h"
 #include "LocoDynamicWebPluginFactory.h"
 #include "LocoStaticWebPluginFactory.h"
 #include "LocoNetworkAccessManager.h"
-#include "LocoWebElement.h"
-#include "LocoWrappedWidget.h"
-
+#include "LocoWrappedGraphicsWidget.h"
 
 class QWebPluginFactory;
 
 namespace loco {
 
-class WebWindow : public WrappedGraphicsWidget {
+//temporary QGraphicsView proxy which forwards mouse event
+//targeting the page background
+class TransparentGraphicsWebView : public QGraphicsWebView {
+private:
+    bool HandleEvent( QGraphicsSceneMouseEvent* ev ) {
+        QWebHitTestResult tr = this->page()->currentFrame()
+            ->hitTestContent( ev->scenePos().toPoint() );
+        if( tr.element().tagName() == "HTML" ) {
+            focus_ = false;
+            return false;
+        }
+        focus_ = true;
+        return true;
+    }
+protected:
+    void contextMenuEvent ( QGraphicsSceneContextMenuEvent* ev ) {
+        ev->setAccepted( false );
+    }
+    void keyPressEvent( QKeyEvent* event ) {
+        if( focus_ ) {
+            QGraphicsWebView::keyPressEvent( event );
+        } else event->setAccepted( false );
+    }
+    void keyReleaseEvent( QKeyEvent* event ) {
+        if( focus_ ) {
+            QGraphicsWebView::keyReleaseEvent( event );
+        } else event->setAccepted( false );
+    }
+    void mousePressEvent( QGraphicsSceneMouseEvent * ev ) {
+        if( HandleEvent( ev ) ) QGraphicsWebView::mousePressEvent( ev );
+        else ev->setAccepted( false );
+    }
+    void mouseReleaseEvent( QGraphicsSceneMouseEvent * ev ) {
+        if( HandleEvent( ev ) ) {
+            QGraphicsWebView::mouseReleaseEvent( ev );
+        }
+        else ev->setAccepted( false );
+    }
+    void mouseMoveEvent( QGraphicsSceneMouseEvent * ev ) {
+        QPointF p = mapFromScene( ev->scenePos().x(), ev->scenePos().y() );
+        if( focus_ ) QGraphicsWebView::mouseMoveEvent( ev );
+        else ev->setAccepted( false );
+    }
+    void mouseDoubleClickEvent( QGraphicsSceneMouseEvent * ev ) {
+        if( HandleEvent( ev ) ) QGraphicsWebView::mouseDoubleClickEvent( ev );
+        else ev->setAccepted( false );
+    }
+    void wheelEvent( QGraphicsSceneWheelEvent* ev ) {
+        //if( HandleEvent( ev ) ) QGraphicsWebView::wheelEvent( ev );
+        ev->setAccepted( false );
+    }
+public:
+   TransparentGraphicsWebView() : focus_( true ) {}
+private:
+   bool focus_;
+
+};
+
+
+class GraphicsWebWindow : public WrappedGraphicsWidget {
     Q_OBJECT
 private:
     struct ObjectEntry {
@@ -75,47 +130,21 @@ private:
     };
     typedef QList< ObjectEntry > ContextObjects;
 public:
-    WebWindow() : WrappedWidget( 0, "LocoWebWindow", "Loco/GUI/Window" ),
-        webView_( new WebView() ), jsInterpreter_( new WebKitJSCoreWrapper )  {
+    GraphicsWebWindow() : WrappedGraphicsWidget( 0, "LocoGraphicsWebWindow", "Loco/GUI/GraphicsWindow" ),
+        webView_( new QGraphicsWebView() ), jsInterpreter_( new WebKitJSCoreWrapper )  {
         wf_ = webView_->page()->mainFrame();
         ws_ = webView_->page()->settings();
-        connect( webView_, SIGNAL( keyPress( int, int, int ) ), this, SIGNAL( keyPress( int, int, int ) ) );
-        connect( webView_, SIGNAL( keyRelease( int, int, int ) ), this, SIGNAL( keyRelease( int, int, int ) ) );
         connect( webView_->page(), SIGNAL( loadFinished( bool ) ), this, SIGNAL( loadFinished( bool ) ) );
         connect( webView_->page(), SIGNAL( loadProgress( int ) ), this, SIGNAL( loadProgress( int ) ) );
         connect( webView_->page(), SIGNAL( loadStarted() ), this, SIGNAL( loadStarted() ) );
         connect( webView_->page(), SIGNAL( linkClicked( const QUrl& ) ), this, SIGNAL( linkClicked( const QUrl& ) ) );
-        connect( wf_, SIGNAL( urlChanged( const QUrl& ) ), this, SIGNAL( urlChanged( const QUrl& ) ) );
-        connect( wf_, SIGNAL( titleChanged( const QString& ) ), this, SIGNAL( titleChanged( const QString& ) ) );
-        connect( webView_->page(), SIGNAL( selectionChanged() ), this, SIGNAL( selectionChanged() ) );
         connect( &ctx_, SIGNAL( JSContextCleared() ), this, SLOT( PreLoadCBack() ) );
-        connect( webView_, SIGNAL( unsupportedContent( const QString& )  ),
-                 this, SIGNAL( unsupportedContent( const QString& ) ) );
-        connect( webView_, SIGNAL( downloadRequested( const QString& ) ),
-                 this, SIGNAL( downloadRequested( const QString& ) ) );
-        connect( webView_, SIGNAL( fileDownloadProgress( qint64, qint64 ) ), this, SIGNAL( fileDownloadProgress( qint64, qint64 ) ) );
-        connect( webView_, SIGNAL( actionTriggered( const QString&, bool ) ), this, SIGNAL( webActionTriggered( const QString&, bool ) ) );
-        connect( webView_, SIGNAL( fileDownloadProgress( qint64, qint64 ) ), this, SIGNAL( fileDownloadProgress( qint64, qint64 ) ) );
-        connect( webView_, SIGNAL( JavaScriptConsoleMessage( const QString&, int, const QString& ) ),
-                 this, SIGNAL( javaScriptConsoleMessage( const QString&, int, const QString& ) ) );
-        connect( webView_, SIGNAL( actionTriggered( const QString&, bool ) ), this, SIGNAL( webActionTriggered( const QString&, bool ) ) );
-        connect( webView_->page(), SIGNAL( statusBarMessage( const QString& ) ), this, SIGNAL( statusBarMessage( const QString& ) ) );
-        connect( webView_->page(), SIGNAL( statusBarVisibilityChangeRequested( bool ) ),
-                 this, SIGNAL( statusBarVisibilityChangeRequested( bool ) ) );
-        connect( webView_->page(), SIGNAL( toolBarVisibilityChangeRequested( bool ) ),
-                 this, SIGNAL( toolBarVisibilityChangeRequested( bool ) ) );
-        connect( webView_->page(), SIGNAL( linkHovered( const QString&, const QString&, const QString& ) ),
-                 this, SIGNAL( linkHovered( const QString&, const QString&, const QString& ) ) );
         connect( jsInterpreter_, SIGNAL( JavaScriptContextCleared() ), this, SLOT( JavaScriptContextCleared() ) );
         jsInterpreter_->setParent( this );
         jsInterpreter_->SetWebPage( webView_->page() );   
         ctx_.Init( jsInterpreter_ );
         ctx_.SetJSContextName( "wctx" ); //web window context
         ctx_.AddContextToJS();
-        // base class instance is constructed before current instance, it is therefore
-        // not possible to connect signals in base class constructor since Widget() method
-        // must return a pointer which is set within this constructor
-        WrappedWidget::ConnectSignals();
     }
     QWidget* Widget() { return webView_; }
     virtual const QWidget* Widget() const { return webView_; }
@@ -124,7 +153,6 @@ public:
     void AddSelfToJSContext() {
         ctx_.AddJSStdObject( this );
     }
-    
     void SetNetworkAccessManager( QNetworkAccessManager* nam ) {
         NetworkAccessManager* na = qobject_cast< NetworkAccessManager* >( nam );
         if( na != 0 ) {
@@ -133,13 +161,12 @@ public:
         }
         webView_->page()->setNetworkAccessManager( nam );
     }
-
     void SetContext( Context* ctx ) {
         Object::SetContext( ctx );
         ctx_.SetParentContext( GetContext() );
     }
 
-    WebView* GetWebView() const { return webView_; }
+    QGraphicsWebView* GetWebView() const { return webView_; }
 
     void SetWebPluginFactory( QWebPluginFactory* wpf ) { webView_->page()->setPluginFactory( wpf ); }
 
@@ -163,7 +190,7 @@ public slots:
         webView_->setAttribute(Qt::WA_TranslucentBackground, true);
     }
     void openInspector() {
-        QWebInspector* wi = new QWebInspector( webView_ );
+        QWebInspector* wi = new QWebInspector;
         wi->setPage( webView_->page() );
         wi->show();
     }
@@ -189,11 +216,7 @@ public slots:
         ctxObjects_.push_back( ObjectEntry( obj, jsName, own ) );
     }
     void resetObject() { ctxObjects_.clear(); }
-    void setEmitWebActionSignal( bool yes ) { webView_->SetEmitWebActionSignal( yes ); }
-    void triggerAction( const QString& action, bool checked = false ) {
-        if( !webView_->TriggerAction( action, checked ) ) error( "Cannot trigger action " + action );
-    }
-    void syncLoad( const QUrl& url, int timeout ) { webView_->SyncLoad( url, timeout ); }
+    ///@todo void syncLoad( const QUrl& url, int timeout );
     void load( const QUrl& url ) { webView_->load( url ); }
     void setLinkDelegationPolicy( const QString& p ) {
         if( p == "all" ) webView_->page()->setLinkDelegationPolicy( QWebPage::DelegateAllLinks );
@@ -201,41 +224,7 @@ public slots:
         else if( p == "none ") webView_->page()->setLinkDelegationPolicy( QWebPage::DontDelegateLinks );
         else error( "Wrong link delegation policy '" + p +"'" );
     }
-    bool saveUrl( const QString& url, const QString& filename, int timeout ) { return webView_->SaveUrl( url, filename, timeout ); }
     QString webKitVersion() const { return QTWEBKIT_VERSION_STR; }
-
-    void highLightText( const QString& substring ) { webView_->HighlightText( substring ); }
-    QList< QVariant > forEachElement( const QString& selectorQuery,
-                                      const QString& cond,
-                                      int maxNum = std::numeric_limits< int >::max() ) {
-        QWebElementCollection wec = webView_->FindElements( selectorQuery );
-        if( wec.count() < 1 ) return QList< QVariant >();
-        QList< QVariant > we;
-        int n = 0;
-        for( QWebElementCollection::iterator i = wec.begin();
-             i != wec.end() && n < maxNum; ++i, ++n ) {
-              if( ( *i ).evaluateJavaScript( cond ).toBool() ) {
-                  we.push_back( GetContext()->AddObjToJSContext( new WebElement( *i ) ) );
-            }
-        }
-        return we;
-    }
-    QVariant findFirstElement( const QString& selectorQuery ) {
-        QWebElement we = webView_->FindFirstElement( selectorQuery );
-        if( we.isNull() ) return QVariant();
-        return GetContext()->AddObjToJSContext( new WebElement( we ) ) ;
-    }
-    QList< QVariant > findElements( const QString& selectorQuery ) const {
-        QWebElementCollection wec = webView_->FindElements( selectorQuery );
-        if( wec.count() < 1 ) return QList< QVariant >();
-        QList< QVariant > we;
-        for(QWebElementCollection::const_iterator i = wec.constBegin();
-            i != wec.constEnd(); ++i ) {
-            we.push_back( GetContext()->AddObjToJSContext( new WebElement( *i ) ) );
-        }
-        return we;
-    }
-
     bool canLogRequests() const {
         return qobject_cast< NetworkAccessManager* >(
                webView_->page()->networkAccessManager() ) != 0;
@@ -256,33 +245,10 @@ public slots:
         if( !nam ) return;
         nam->EmitRequestSignal( yes );
     }
-    void setUserAgentForUrl( const QRegExp& url, const QString& userAgent ) {
-        webView_->SetUserAgentForUrl( url, userAgent );
-    }
-    void setAllowInterruptJavaScript( bool yes ) {
-        webView_->SetAllowInterruptJavaScript( yes );
-    }
+
     bool syncLoad( const QString& url, int timeout ) { return webView_->SyncLoad( url,  timeout ); }
     bool syncLoad( const QString& urlString, const QVariantMap& opt, int timeout ) {
         return webView_->SyncLoad( urlString, opt, timeout );
-    }
-    void load( const QString& urlString, const QVariantMap& opt ) { return webView_->Load( urlString, opt ); }
-    void setPageSize( int w, int h ) { webView_->SetPageSize( w, h ); }
-    QVariantMap pageSize() const {
-        QSize sz = webView_->PageSize();
-        QVariantMap m;
-        m[ "width"  ] = sz.width();
-        m[ "height" ] = sz.height();
-        return m;
-    }
-    void saveSnapshot( const QString& filePath, int quality = -1 ) const {
-        webView_->SaveSnapshot( filePath );
-    }
-    QPixmap snapshot() const {
-        return webView_->Snapshot();
-    }
-    void saveToPDF( const QString& fname ) const {
-        webView_->SavePDF( fname );
     }
     void createWebPluginFactory( const QString& type = "dynamic" ) {
         if( type.toLower() == "dynamic" ) {
@@ -321,17 +287,17 @@ public slots:
     void setContentEditable( bool yes ) { webView_->page()->setContentEditable( yes ); }
     qint64 totalBytes() const { return webView_->page()->totalBytes(); }
     void setAttribute( const QString& attr, bool on ) {
-           webView_->page()->settings()->setAttribute( attrMap_[ attr ], on );
+        webView_->page()->settings()->setAttribute( attrMap_[ attr ], on );
     }
     bool testAttribute( const QString& attr) const {
         return webView_->page()->settings()->testAttribute( attrMap_[ attr ] );
     }
     void setAttributes( const QVariantMap& attr ) {
-           QWebSettings& s = *( webView_->page()->settings() );
-           for( QVariantMap::const_iterator i = attr.begin();
-                i != attr.end(); ++i ) {
-               s.setAttribute( attrMap_[ i.key() ], i.value().toBool() );
-           }
+        QWebSettings& s = *( webView_->page()->settings() );
+        for( QVariantMap::const_iterator i = attr.begin();
+            i != attr.end(); ++i ) {
+            s.setAttribute( attrMap_[ i.key() ], i.value().toBool() );
+        }
     }
     QVariant getAttributes() const {
            const QWebSettings& s = *( webView_->page()->settings() );
@@ -396,20 +362,8 @@ signals:
     void loadFinished( bool );
     void loadProgress( int );
     void loadStarted();
-    void selectionChanged();
-    void titleChanged( const QString& );
     void urlChanged( const QUrl& );
     void onRequest( const QVariantMap& );
-    void keyPress( int key, int modifiers, int count );
-    void keyRelease( int key, int modifiers, int count );
-    void downloadRequested( const QString& );
-    void unsupportedContent( const QString& );
-    void webActionTriggered( const QString&, bool );
-    void fileDownloadProgress( qint64, qint64 );
-    void javaScriptConsoleMessage( const QString&, int, const QString& );
-    void statusBarMessage( const QString& );
-    void statusBarVisibilityChangeRequested( bool );
-    void toolBarVisibilityChangeRequested( bool );
 private:
     WebView* webView_; //owned by this object
     Context ctx_; // this is where objects are created

@@ -78,6 +78,7 @@ public:
         else error( "Invalid size parameters" );
     }
     qreal GetOpacity() const { return Widget()->opacity(); }
+    virtual ~WrappedGraphicsWidget() {}
 public slots:
     void setWindowAttribute( const QString& attr ) {
         Widget()->setAttribute( WindowAttribute( attr ) );
