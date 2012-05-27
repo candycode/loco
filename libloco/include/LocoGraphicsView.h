@@ -40,31 +40,45 @@ namespace loco {
 
 class LGraphicsView : public QGraphicsView {
     Q_OBJECT
+public:
+    LGraphicsView() : sceneAutoResize_( true ) {}
+    void SetSceneAutoResize( bool on ) { sceneAutoResize_ = on; }
+    bool GetSceneAutoResize() const { return sceneAutoResize_; }
 protected:
     void resizeEvent( QResizeEvent* ev ) {
-        emit resized( ev->size() );
+        if ( sceneAutoResize_ && scene() ) {
+            scene()->setSceneRect(
+                        QRect( QPoint( 0, 0 ), ev->size() ) );
+
+        }
+        emit resized( ev->size().width(), ev->size().height() );
         QGraphicsView::resizeEvent( ev );
     }
 signals:
-    void resized( QSize );
+    void resized( int width, int height );
+private:
+    bool sceneAutoResize_;
 };
 
 class GraphicsView : public WrappedWidget {
     Q_OBJECT
     Q_PROPERTY( QObject* scene READ GetScene WRITE SetScene )
     Q_PROPERTY( QObject* viewport READ GetViewport WRITE SetViewport )
+    Q_PROPERTY( bool sceneAutoResize READ GetSceneAutoResize WRITE SetSceneAutoResize )
 public:
     GraphicsView() : WrappedWidget( 0, "LocoGraphicsView", "Loco/GUI/GraphicsView" ),
         graphicsView_( new LGraphicsView() ) {
         // base class instance is constructed before current instance, it is therefore
         // not possible to connect signals in base class constructor since Widget() method
         // must return a pointer which is set within this constructor
-        WrappedWidget::ConnectSignals();
-        connect( graphicsView_, SIGNAL( resized( QSize ) ), this, SIGNAL( resized( QSize ) ) );
+        //WrappedWidget::ConnectSignals();
+        connect( graphicsView_, SIGNAL( resized( int, int ) ), this, SIGNAL( resized( int, int ) ) );
     }
     QWidget* Widget() { return graphicsView_; }
     virtual const QWidget* Widget() const { return graphicsView_; }
     QGraphicsView* GetQGraphicsView() const { return graphicsView_; }
+    void SetSceneAutoResize( bool on ) { graphicsView_->SetSceneAutoResize( on ); }
+    bool GetSceneAutoResize() const { return graphicsView_->GetSceneAutoResize(); }
     ~GraphicsView() { if( graphicsView_ && graphicsView_->parent() == 0 ) graphicsView_->deleteLater(); }
 public:
     void SetScene( QObject* obj ) {
@@ -75,6 +89,7 @@ public:
                      qobject_cast< ::loco::GraphicsScene* >( obj )->GetQGraphicsScene() );
         } 
         if( gs == 0 ) error( "Invalid object type: QGraphicsScene expected" );
+        graphicsView_->setScene( gs );
     }
     QObject* GetScene() const { return graphicsView_->scene(); }
     void SetViewport( QObject* obj ) {
@@ -94,7 +109,7 @@ public:
         } else error( "Unrecognized viewport update mode: " + um );
     }
 signals:
-    void resized( QSize );    
+    void resized( int width, int height );
 public slots:
     void createOpenGLViewport( const QVariantMap& properties ) {
         graphicsView_->setViewport( new QGLWidget( OpenGLFormat( properties ) ) );
@@ -104,6 +119,6 @@ public slots:
         return GetScene();
     }
 private:
-    QGraphicsView* graphicsView_;
+    LGraphicsView* graphicsView_;
 };
 }

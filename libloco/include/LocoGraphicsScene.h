@@ -45,7 +45,7 @@ class QRect;
 #include "LocoObject.h"
 #include "LocoWrappedWidget.h"
 #include "LocoWrappedGraphicsWidget.h"
-
+#include <iostream>
 namespace loco {
 
 class GraphicsSceneProxy : public QGraphicsScene {
@@ -54,7 +54,8 @@ public:
     GraphicsSceneProxy() : handled_( false ) {}
 protected:
     void drawBackground( QPainter* painter, const QRectF& rect ) {
-        emit backDraw( painter, rect );
+        std::cout << "*";
+        emit backDraw();// painter, rect );
     }
     void drawForeground( QPainter* painter, const QRectF& rect ) {
         emit frontDraw( painter, rect );
@@ -184,7 +185,7 @@ signals:
     void dragEnter( int x, int y, const QMimeData* data, bool& handled_ );
     void dragLeave( int x, int y, const QMimeData* data, bool& handled_ );
     void dragMove( int x, int y, const QMimeData* data, bool& handled_  );
-    void backDraw( QPainter* painter, const QRectF& rect );
+    void backDraw();// QPainter* painter, const QRectF& rect );
     void frontDraw( QPainter* painter, const QRectF& rect );
     void drop( int x, int y, const QMimeData* data, bool& handled_ );
     void focusIn( bool& handled_ );
