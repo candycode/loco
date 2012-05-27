@@ -36,6 +36,7 @@
 
 #include "LocoLayout.h"
 #include "LocoWidget.h"
+#include "LocoGraphicsView.h"
 
 #ifdef LOCO_WKIT
 #include "LocoWebWindow.h"
@@ -43,6 +44,8 @@
 #endif
 
 namespace loco {
+
+//probably better to start using a map also allowing external registration of types
 
 QVariant GUI::create( const QString& name, const QVariantMap& params ) const {
    
@@ -62,19 +65,11 @@ QVariant GUI::create( const QString& name, const QVariantMap& params ) const {
     //if support for different Widget sets is needed
 #ifdef LOCO_WKIT
     if( name == "WebWindow" ) {
-        if( !GetContext()->GetNetworkAccessManager() ) {
-            throw std::runtime_error( "NULL Network Access Manager" );
-            return QVariant();
-        }
         WebWindow* wv = new WebWindow();
         wv->SetNetworkAccessManager( GetContext()->GetNetworkAccessManager() );
         QVariant obj = GetContext()->AddObjToJSContext( wv );
         return obj;
     } else if( name == "GraphicsWebWindow" ) {
-        if( !GetContext()->GetNetworkAccessManager() ) {
-                   throw std::runtime_error( "NULL Network Access Manager" );
-                   return QVariant();
-        }
         GraphicsWebWindow* wv = new GraphicsWebWindow();
         wv->SetNetworkAccessManager( GetContext()->GetNetworkAccessManager() );
         QVariant obj = GetContext()->AddObjToJSContext( wv );
@@ -97,6 +92,10 @@ QVariant GUI::create( const QString& name, const QVariantMap& params ) const {
         HBoxLayout *l = new HBoxLayout;
         QVariant obj = GetContext()->AddObjToJSContext( l  );
         return obj;        
+    } else if( name == "GraphicsView" ){
+        GraphicsView* gv = new GraphicsView;
+        QVariant obj = GetContext()->AddObjToJSContext( gv );
+        return obj;
     } else {
         error( "GUI object \"" + name + "\" not recognized" );
         return QVariant();

@@ -56,6 +56,7 @@ endif()
 set( QT_USE_QTNETWORK ON )
 
 if( LOCO_GUI )
+  set( QT_USE_QTOPENGL ON )
   set( QT_DONT_USE_QTGUI OFF )
   add_definitions( -DLOCO_GUI ) 
 else()
