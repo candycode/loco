@@ -54,7 +54,6 @@ public:
     GraphicsSceneProxy() : handled_( false ) {}
 protected:
     void drawBackground( QPainter* painter, const QRectF& rect ) {
-        std::cout << "*";
         emit backDraw();// painter, rect );
     }
     void drawForeground( QPainter* painter, const QRectF& rect ) {

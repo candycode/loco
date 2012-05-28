@@ -4,8 +4,6 @@
 #include <QPainter>
 #include <QRectF>
 
-#include <iostream>
-
 #include <GL/gl.h>
 #include <GL/glu.h>
 
@@ -18,9 +16,8 @@ class GLApp : public QObject, public IDummy {
 public slots:
     void init( const QVariantMap& args ) {} 
     void render() {
-        std::cout << "*";
+        glClearColor( 0, 1, 0, 1 );
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glClearColor( 0, 0, 0, 1 );
     }
     void resize( int width, int height ) {
         glMatrixMode(GL_PROJECTION);
@@ -31,8 +28,10 @@ public slots:
         glMatrixMode(GL_MODELVIEW);
         glPushMatrix();
         glLoadIdentity();
-
+        emit update();
     }
+signals:
+    void update();
 };
 
 Q_EXPORT_PLUGIN2( opengl-app, GLApp )

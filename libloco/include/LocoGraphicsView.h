@@ -112,12 +112,14 @@ signals:
     void resized( int width, int height );
 public slots:
     void createOpenGLViewport( const QVariantMap& properties ) {
-        graphicsView_->setViewport( new QGLWidget( OpenGLFormat( properties ) ) );
+        //graphicsView_->setViewport( new QGLWidget( QGLFormat(QGL::SampleBuffers | QGL::AccumBuffer | QGL::AlphaChannel), graphicsView_, 0 ) );
+        graphicsView_->setViewport( new QGLWidget( OpenGLFormat( properties ), graphicsView_, 0 ) );
     }
     QObject* createGraphicsSceneProxy() {
         SetScene( new GraphicsSceneProxy );
         return GetScene();
     }
+    void setViewportUpdateMode( const QString& um ) { SetViewportUpdateMode( um ); }
 private:
     LGraphicsView* graphicsView_;
 };
