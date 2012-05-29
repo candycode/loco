@@ -181,6 +181,7 @@ public slots:
     void redraw() { update(); }
     void add( QObject* item ) {
         if( qobject_cast< QGraphicsItem* >( item ) != 0 ) {
+            std::cout << "ADDED" << std::endl;   
             addItem( qobject_cast< QGraphicsItem* >( item ) );
         } else if( qobject_cast< QGraphicsWidget* >( item ) != 0 ) {
             addItem( qobject_cast< QGraphicsWidget* >( item ) );

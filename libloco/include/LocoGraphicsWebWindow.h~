@@ -133,7 +133,7 @@ private:
     typedef QList< ObjectEntry > ContextObjects;
 public:
     GraphicsWebWindow() : WrappedGraphicsWidget( 0, "LocoGraphicsWebWindow", "Loco/GUI/GraphicsWindow" ),
-        webView_( new TransparentGraphicsWebView() ), jsInterpreter_( new WebKitJSCoreWrapper )  {
+        webView_( new QGraphicsWebView() ), jsInterpreter_( new WebKitJSCoreWrapper )  {
         wf_ = webView_->page()->mainFrame();
         ws_ = webView_->page()->settings();
         connect( webView_->page(), SIGNAL( loadFinished( bool ) ), this, SIGNAL( loadFinished( bool ) ) );
