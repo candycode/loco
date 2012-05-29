@@ -12,7 +12,7 @@ if( !openGLApp ) throw "Cannot load plugin";
 var glformat = openGLApp.glFormat ? openGLApp.glFormat : 
                { alpha: true,
                  depth: true,
-                 profile: "compatibility", 
+//                 profile: "core", 
                  rgba: true }; 
 view.createOpenGLViewport( glformat );
 view.setViewportUpdateMode( "full" );
@@ -38,11 +38,11 @@ if( openGLApp.render ) {
 } else throw "Could not find a suitable paint slot; tried 'render', 'draw' and 'paint'";
 print( "Checking for OpenGL init slot..." );
 if( openGLApp.initGL ) {
-  view.initgl.connect( openGLApp.initGL );
-  print( "...'initGL' found and connected to GraphicsView.initgl signal" );
+  openGLApp.initGL();
+  print( "...'initGL' found and invoked" );
 } else if( openGLApp.initgl ) {
-  view.initgl.connect( openGLApp.initgl );
-  print( "...'initgl' found and connected to GraphicsView.initgl signal" );
+  openGLApp.initgl();  
+  print( "...'initgl' found and invoked" );
 } else print( "...no slot found" );
 print( "Checking if 'resize' or 'resized' slots exist..." );
 if( openGLApp.resize ) {
@@ -54,6 +54,7 @@ if( openGLApp.resize ) {
 } else print( "...no slot found" ); 
 openGLApp.update.connect( view.scene.update );
 view.show();
+print( "DONE" );
 } catch( e ) {
 if( e.message ) perror( p.message )
 else perror( e );

@@ -26,7 +26,7 @@ set( SRCS ${MOC_SRCS} )
 
 add_library( ${PLUGIN_NAME} SHARED ${SRCS} )
 
-target_link_libraries( ${PLUGIN_NAME} ${QT_LIBRARIES} GLU )
+target_link_libraries( ${PLUGIN_NAME} ${QT_LIBRARIES} GLU GLEW )
 
 set_target_properties( ${PLUGIN_NAME} 
                        PROPERTIES PREFIX "" SUFFIX ".qtplugin" )

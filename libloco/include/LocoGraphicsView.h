@@ -31,11 +31,12 @@
 #include <QtOpenGL/QGLWidget>
 #include <QVariantMap>
 #include <QSize>
+#include <QGLContext>
 
 #include "LocoWrappedWidget.h"
 #include "LocoQGLFormat.h"
 #include "LocoGraphicsScene.h"
-
+#include <iostream>
 namespace loco {
 
 class LGraphicsView : public QGraphicsView {
@@ -60,23 +61,6 @@ private:
     bool sceneAutoResize_;
 };
 
-class LGLWidget : public QGLWidget {
-    Q_OBJECT
-public:
-    LGLWidget( const QGLFormat& glformat, 
-               QWidget* parent = 0, 
-               QGLWidget* sharedWidget = 0,
-               Qt::WindowFlags f = 0 ) : QGLWidget( glformat, parent, sharedWidget, f ) {}
-protected:
-    void initializeGL() {
-        QGLWidget::initializeGL();
-        emit initgl();
-    }
-signals:
-    void initgl();
-};
-
-
 
 class GraphicsView : public WrappedWidget {
     Q_OBJECT
@@ -97,7 +81,12 @@ public:
     QGraphicsView* GetQGraphicsView() const { return graphicsView_; }
     void SetSceneAutoResize( bool on ) { graphicsView_->SetSceneAutoResize( on ); }
     bool GetSceneAutoResize() const { return graphicsView_->GetSceneAutoResize(); }
-    ~GraphicsView() { if( graphicsView_ && graphicsView_->parent() == 0 ) graphicsView_->deleteLater(); }
+    ~GraphicsView() { 
+        if( qobject_cast< QGLWidget* >( graphicsView_->viewport() ) ) {
+            qobject_cast< QGLWidget* >( graphicsView_->viewport() )->doneCurrent();
+        }
+        if( graphicsView_ && graphicsView_->parent() == 0 ) graphicsView_->deleteLater();
+    }
 public:
     void SetScene( QObject* obj ) {
         QGraphicsScene* gs = 0;
@@ -131,8 +120,8 @@ signals:
     void initgl();
 public slots:
     void createOpenGLViewport( const QVariantMap& properties ) {
-        LGLWidget* gl = new LGLWidget( OpenGLFormat( properties ), graphicsView_, 0 );
-        connect( gl, SIGNAL( initgl() ), this, SIGNAL( initgl() ) );
+        QGLWidget* gl = new QGLWidget( OpenGLFormat( properties ), graphicsView_, 0 );
+        gl->makeCurrent();
         graphicsView_->setViewport( gl );
     }
     QObject* createGraphicsSceneProxy() {
