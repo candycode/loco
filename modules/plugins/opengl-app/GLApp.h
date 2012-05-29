@@ -11,9 +11,15 @@ Q_DECLARE_INTERFACE(IDummy,"dummy")
 
 class GLApp : public QObject, public IDummy {
 	Q_OBJECT
+        Q_PROPERTY( QString name READ GetName )
+        Q_PROPERTY( QString description READ GetDescription )
 	Q_INTERFACES( IDummy )
 public:
-    GLApp( QObject* parent = 0 ) : QObject( parent ), vertices_( 9, 0.0f ), vbo_( 0 ), inited_( false ) {}
+    GLApp( QObject* parent = 0 ) : QObject( parent ), vertices_( 9, 0.0f ), vbo_( 0 ), count_( 0 ) {}
+    QString GetName() const { return "OpenGL App"; }
+    QString GetDescription() const { 
+        return "Sample OpenGL application;\nat each resize the background green value is increased";
+    }  
 public slots:
     void initGL() {
         GLenum status = glewInit();
@@ -33,7 +39,7 @@ public slots:
         vertices_[ 6 + 1 ] =  1; 
     } 
     void render() {
-        glClearColor( 0, 1, 0, 1 );
+        glClearColor( 0, float( count_ % 21 ) / 20, 0, 1 );
         glClear( GL_COLOR_BUFFER_BIT );
         glEnableVertexAttribArray( 0 );
         glBindBuffer( GL_ARRAY_BUFFER, vbo_ );
@@ -42,6 +48,7 @@ public slots:
         glDisableVertexAttribArray( 0 );
     }
     void resize( int width, int height ) {
+        ++count_;
         /*glMatrixMode(GL_PROJECTION);
         glPushMatrix();
         glLoadIdentity();
@@ -57,7 +64,7 @@ signals:
 private:
     std::vector< float  > vertices_;
     GLuint vbo_;
-    bool inited_;
+    int count_;
 };
 
 Q_EXPORT_PLUGIN2( opengl-app, GLApp )

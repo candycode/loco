@@ -2,6 +2,8 @@ try {
 var print = Loco.console.println;
 var perror = Loco.console.printerrln;
 var view = Loco.gui.create( "GraphicsView" );
+//remove border
+view.setStyleSheet( "QGraphicsView { border-style: none; }" );
 Loco.ctx.suppressQtMessages( true );
 Loco.ctx.onError.connect( function( msg ) { throw msg; } );
 print( "Created graphics scene proxy to forward events" );
@@ -9,11 +11,8 @@ var openGLApp = Loco.ctx.loadQtPlugin( Loco.ctx.args[ 2 ] );
 if( openGLApp.error ) openGLApp.error.connect( function( msg ) { throw msg; } );
 else if( openGLApp.onError ) openGLApp.onError.connect( function( msg ) { throw msg; } ); 
 if( !openGLApp ) throw "Cannot load plugin";
-var glformat = openGLApp.glFormat ? openGLApp.glFormat : 
-               { alpha: true,
-                 depth: true,
-//                 profile: "core", 
-                 rgba: true }; 
+var glformat = openGLApp.glFormat ? openGLApp.glFormat : { alpha: true, depth: true };
+if( openGLApp.description ) Loco.gui.infoDialog( "Info", openGLApp.description ); 
 view.createOpenGLViewport( glformat );
 view.setViewportUpdateMode( "full" );
 print( "Configured OpenGL viewport" );
@@ -52,9 +51,8 @@ if( openGLApp.resize ) {
   view.resized.connect( openGLApp.resized );
   print( "...'resized' found and connected to GraphicsView.resized signal" );
 } else print( "...no slot found" ); 
-openGLApp.update.connect( view.scene.update );
-view.show();
-print( "DONE" );
+if( openGLApp.name ) view.setWindowTitle( openGLApp.name );
+view.show( 50, 50, 800,600 );
 } catch( e ) {
 if( e.message ) perror( p.message )
 else perror( e );

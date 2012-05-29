@@ -123,6 +123,7 @@ public slots:
     void showFullScreen() { Widget()->showFullScreen(); }
     void show() {  Widget()->show(); }
     void show( int w, int h ) {  Widget()->show(); Widget()->resize( w, h ); }
+    void show( int x, int y, int w, int h ) { show( w, h ); move( x, y ); }
     void hide() {  Widget()->hide(); }
 signals:
     void closing();
