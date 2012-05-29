@@ -1,9 +1,7 @@
 #include <QObject>
 #include <QtPlugin>
 #include <QVariantMap>
-#include <QPainter>
-#include <QRectF>
-
+#include <GL/glew.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
 
@@ -14,7 +12,11 @@ class GLApp : public QObject, public IDummy {
 	Q_OBJECT
 	Q_INTERFACES( IDummy )
 public slots:
-    void init( const QVariantMap& args ) {} 
+    void initGL() {
+        GLenum status = glewInit();
+        if( status != GLEW_OK ) emit error( "GLEW initialization failed" );      
+    }
+    void init( const QVariantMap& ) {} 
     void render() {
         glClearColor( 0, 1, 0, 1 );
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -32,6 +34,7 @@ public slots:
     }
 signals:
     void update();
+    void error( const QString& );
 };
 
 Q_EXPORT_PLUGIN2( opengl-app, GLApp )

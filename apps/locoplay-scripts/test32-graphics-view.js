@@ -6,6 +6,8 @@ Loco.ctx.suppressQtMessages( true );
 Loco.ctx.onError.connect( function( msg ) { throw msg; } );
 print( "Created graphics scene proxy to forward events" );
 var openGLApp = Loco.ctx.loadQtPlugin( Loco.ctx.args[ 2 ] );
+if( openGLApp.error ) openGLApp.error.connect( function( msg ) { throw msg; } );
+else if( openGLApp.onError ) openGLApp.onError.connect( function( msg ) { throw msg; } ); 
 if( !openGLApp ) throw "Cannot load plugin";
 var glformat = openGLApp.glFormat ? openGLApp.glFormat : 
                { alpha: true,
@@ -34,6 +36,14 @@ if( openGLApp.render ) {
   view.scene.backDraw.connect( openGLApp.paint );
   print( "...'paint()' found and connected to GraphicsScene.backDraw signal" );
 } else throw "Could not find a suitable paint slot; tried 'render', 'draw' and 'paint'";
+print( "Checking for OpenGL init slot..." );
+if( openGLApp.initGL ) {
+  view.initgl.connect( openGLApp.initGL );
+  print( "...'initGL' found and connected to GraphicsView.initgl signal" );
+} else if( openGLApp.initgl ) {
+  view.initgl.connect( openGLApp.initgl );
+  print( "...'initgl' found and connected to GraphicsView.initgl signal" );
+} else print( "...no slot found" );
 print( "Checking if 'resize' or 'resized' slots exist..." );
 if( openGLApp.resize ) {
   view.resized.connect( openGLApp.resize );

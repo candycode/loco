@@ -60,6 +60,24 @@ private:
     bool sceneAutoResize_;
 };
 
+class LGLWidget : public QGLWidget {
+    Q_OBJECT
+public:
+    LGLWidget( const QGLFormat& glformat, 
+               QWidget* parent = 0, 
+               QGLWidget* sharedWidget = 0,
+               Qt::WindowFlags f = 0 ) : QGLWidget( glformat, parent, sharedWidget, f ) {}
+protected:
+    void initializeGL() {
+        QGLWidget::initializeGL();
+        emit initgl();
+    }
+signals:
+    void initgl();
+};
+
+
+
 class GraphicsView : public WrappedWidget {
     Q_OBJECT
     Q_PROPERTY( QObject* scene READ GetScene WRITE SetScene )
@@ -110,10 +128,12 @@ public:
     }
 signals:
     void resized( int width, int height );
+    void initgl();
 public slots:
     void createOpenGLViewport( const QVariantMap& properties ) {
-        //graphicsView_->setViewport( new QGLWidget( QGLFormat(QGL::SampleBuffers | QGL::AccumBuffer | QGL::AlphaChannel), graphicsView_, 0 ) );
-        graphicsView_->setViewport( new QGLWidget( OpenGLFormat( properties ), graphicsView_, 0 ) );
+        LGLWidget* gl = new LGLWidget( OpenGLFormat( properties ), graphicsView_, 0 );
+        connect( gl, SIGNAL( initgl() ), this, SIGNAL( initgl() ) );
+        graphicsView_->setViewport( gl );
     }
     QObject* createGraphicsSceneProxy() {
         SetScene( new GraphicsSceneProxy );
