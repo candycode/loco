@@ -5,7 +5,10 @@ if( Loco.ctx.os() === "WINDOWS" )
 else
   ppath = Loco.ctx.homeDir() + "/build/loco/modules/plugins/glview/libglview.so";
 var mw = Loco.gui.create("MainWindow");
-mw.setCentralWidget( Loco.ctx.loadQtPlugin(ppath));
+var gl = Loco.ctx.loadQtPlugin(ppath);
+//uncomment to load overlay
+//gl.loadPage( "./hud.html", true );
+mw.setCentralWidget(gl);
 mw.show();
 } catch(e){
   Loco.console.printerrln( e.message || e );

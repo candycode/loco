@@ -56,9 +56,9 @@ protected:
     void drawBackground( QPainter* painter, const QRectF& rect ) {
         emit backDraw();// painter, rect );
     }
-    void drawForeground( QPainter* painter, const QRectF& rect ) {
+    /*void drawForeground( QPainter* painter, const QRectF& rect ) {
         emit frontDraw( painter, rect );
-    }
+    }*/
     void contextMenuEvent( QGraphicsSceneContextMenuEvent* event ) {
         QGraphicsScene::contextMenuEvent( event );
         if( event->isAccepted() ) return;
@@ -219,7 +219,7 @@ private:
 
 };
 
-
+/*
 class GraphicsScene : public Object {
     Q_OBJECT
     Q_PROPERTY( QObject* graphicsScene READ GetQGraphicsScene WRITE SetQGraphicsScene )
@@ -265,6 +265,6 @@ public slots:
     void update() { graphicsScene_->update(); }
 private:
     QGraphicsScene* graphicsScene_;
-};
+};*/
 }
 

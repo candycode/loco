@@ -27,10 +27,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 
-///////////////////////////////////////////////////////////////
-// IN PROGRESS: copied from loco::WebWindow, not added to build
-///////////////////////////////////////////////////////////////
-
 #include <QString>
 #include <QVariantMap>
 #include <QMap>
@@ -122,6 +118,7 @@ private:
 
 class GraphicsWebWindow : public WrappedGraphicsWidget {
     Q_OBJECT
+    Q_PROPERTY( bool resizesToContents READ GetResizesToContents WRITE SetResizesToContents )
 private:
     struct ObjectEntry {
         QObject* obj_;
@@ -148,6 +145,8 @@ public:
         ctx_.SetJSContextName( "wctx" ); //web window context
         ctx_.AddContextToJS();
     }
+    bool GetResizesToContents() const { webView_->resizesToContents(); }
+    void SetResizesToContents( bool on ) { webView_->setResizesToContents( on ); }
     QGraphicsWidget* Widget() { return webView_; }
     virtual const QGraphicsWidget* Widget() const { return webView_; }
     ~GraphicsWebWindow() { if( webView_ && webView_->parent() == 0 ) webView_->deleteLater(); }
@@ -189,7 +188,6 @@ public slots:
         palette.setBrush(QPalette::Base, Qt::transparent);
         webView_->page()->setPalette(palette);
         webView_->setAttribute(Qt::WA_OpaquePaintEvent, false);
-        webView_->setAttribute(Qt::WA_TranslucentBackground, true);
     }
     void openInspector() {
         QWebInspector* wi = new QWebInspector;
@@ -217,9 +215,8 @@ public slots:
         ctx_.AddQObjectToJSContext( obj, jsName, own );
         ctxObjects_.push_back( ObjectEntry( obj, jsName, own ) );
     }
-    void resetObject() { ctxObjects_.clear(); }
+    void resetObjects() { ctxObjects_.clear(); }
     ///@todo void syncLoad( const QUrl& url, int timeout );
-    void load( const QUrl& url ) { webView_->load( url ); }
     void setLinkDelegationPolicy( const QString& p ) {
         if( p == "all" ) webView_->page()->setLinkDelegationPolicy( QWebPage::DelegateAllLinks );
         else if( p == "external" ) webView_->page()->setLinkDelegationPolicy( QWebPage::DelegateExternalLinks );
@@ -264,8 +261,18 @@ public slots:
     //connect from parent context Context::onError() -> WebWindow::onParentError()
     void onParentError( const QString& err ) {
         ctx_.Eval( "throw " + err + ";\n" );
-    }  
-    void load( const QString& url ) { webView_->load( QUrl( url ) ); }
+    }
+    ///@todo make it synchronous  
+    void load( QString url ) {
+        if( !url.contains( "://" ) ) {
+        #ifdef Q_OS_WIN 
+            url = "file:///" + QDir().absoluteFilePath( url );
+        #else
+            url = "file://" + QDir().absoluteFilePath( url );
+        #endif
+        }
+        webView_->load( QUrl( url ) ); 
+    }
     bool isModified() { return webView_->isModified(); }
     //QList< QWebHistoryItem > history();
     void setHtml( const QString& html, const QString& baseUrl = "" ) { webView_->setHtml( html, QUrl( baseUrl ) ); }

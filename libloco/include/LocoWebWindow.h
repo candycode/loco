@@ -183,7 +183,7 @@ public slots:
         ctx_.AddQObjectToJSContext( obj, jsName, own );
         ctxObjects_.push_back( ObjectEntry( obj, jsName, own ) );
     }
-    void resetObject() { ctxObjects_.clear(); }
+    void resetObjects() { ctxObjects_.clear(); }
     void setEmitWebActionSignal( bool yes ) { webView_->SetEmitWebActionSignal( yes ); }
     void triggerAction( const QString& action, bool checked = false ) {
         if( !webView_->TriggerAction( action, checked ) ) error( "Cannot trigger action " + action );

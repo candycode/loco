@@ -32,7 +32,6 @@
 #include <QVariantMap>
 #include <QSize>
 #include <QGLContext>
-
 #include "LocoWrappedWidget.h"
 #include "LocoQGLFormat.h"
 #include "LocoGraphicsScene.h"
@@ -60,7 +59,6 @@ signals:
 private:
     bool sceneAutoResize_;
 };
-
 
 class GraphicsView : public WrappedWidget {
     Q_OBJECT
@@ -91,10 +89,10 @@ public:
     void SetScene( QObject* obj ) {
         QGraphicsScene* gs = 0;
         if( qobject_cast< QGraphicsScene* >( obj ) != 0 ) gs = qobject_cast< QGraphicsScene* >( obj );
-        else if( qobject_cast< ::loco::GraphicsScene* >( obj ) != 0 ) {
+        /*else if( qobject_cast< ::loco::GraphicsScene* >( obj ) != 0 ) {
             gs = qobject_cast< QGraphicsScene* >( 
                      qobject_cast< ::loco::GraphicsScene* >( obj )->GetQGraphicsScene() );
-        } 
+        } */
         if( gs == 0 ) error( "Invalid object type: QGraphicsScene expected" );
         graphicsView_->setScene( gs );
     }
@@ -117,15 +115,17 @@ public:
     }
 signals:
     void resized( int width, int height );
-    void initgl();
+    void initGL();
 public slots:
     void createOpenGLViewport( const QVariantMap& properties ) {
         QGLWidget* gl = new QGLWidget( OpenGLFormat( properties ), graphicsView_, 0 );
         gl->makeCurrent();
+        emit initGL();
         graphicsView_->setViewport( gl );
     }
     QObject* createGraphicsSceneProxy() {
-        SetScene( new GraphicsSceneProxy );
+        QGraphicsScene* s = new GraphicsSceneProxy;
+        SetScene( s );
         return GetScene();
     }
     void setViewportUpdateMode( const QString& um ) { SetViewportUpdateMode( um ); }

@@ -1,7 +1,8 @@
+#include <GL/glew.h>
+//#define GL_GLEXT_PROTOTYPES 1
 #include <QObject>
 #include <QtPlugin>
 #include <QVariantMap>
-#include <GL/glew.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <vector>
@@ -29,7 +30,8 @@ public slots:
         }        
         glGenBuffers( 1, &vbo_ );
 	glBindBuffer( GL_ARRAY_BUFFER, vbo_ );
-	glBufferData( GL_ARRAY_BUFFER, 9 * sizeof( float ), &vertices_[ 0 ], GL_STATIC_DRAW );       
+	glBufferData( GL_ARRAY_BUFFER, 9 * sizeof( float ), &vertices_[ 0 ], GL_STATIC_DRAW );
+        glBindBuffer( GL_ARRAY_BUFFER, 0 );       
     }
     void init( const QVariantMap& ) {
         vertices_[ 0     ] = -1;
@@ -45,6 +47,7 @@ public slots:
         glBindBuffer( GL_ARRAY_BUFFER, vbo_ );
         glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 0, 0);
         glDrawArrays( GL_TRIANGLES, 0, 3 );
+        glBindBuffer( GL_ARRAY_BUFFER, 0 );
         glDisableVertexAttribArray( 0 );
     }
     void resize( int width, int height ) {

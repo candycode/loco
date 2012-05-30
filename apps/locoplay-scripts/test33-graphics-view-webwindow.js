@@ -1,63 +1,41 @@
 try {
 var print = Loco.console.println;
 var perror = Loco.console.printerrln;
+if( Loco.ctx.args.length < 3 ) {
+  print( "Usage: locoplay " + Loco.ctx.args[ 1 ] + " <plugin path>" );
+  Loco.ctx.exit( 1 );
+}
+var glapp = Loco.ctx.loadQtPlugin( Loco.ctx.args[ 2 ] );
+if( !glapp ) throw "Couldn't load plugin " + Loco.ctx.args[ 2 ];
+var glformat = glapp.glFormat ? glapp.glFormat : { alpha: true, depth: true };
+if( glapp.description ) Loco.gui.infoDialog( "Info", glapp.description ); 
+if( glapp.init ) glapp.init({});
 var view = Loco.gui.create( "GraphicsView" );
 //remove border
 view.setStyleSheet( "QGraphicsView { border-style: none; }" );
+if( glapp.name ) view.setWindowTitle( glapp.name );
 Loco.ctx.suppressQtMessages( true );
 Loco.ctx.onError.connect( function( msg ) { throw msg; } );
-print( "Created graphics scene proxy to forward events" );
-var openGLApp = Loco.ctx.loadQtPlugin( Loco.ctx.args[ 2 ] );
-if( openGLApp.error ) openGLApp.error.connect( function( msg ) { throw msg; } );
-else if( openGLApp.onError ) openGLApp.onError.connect( function( msg ) { throw msg; } ); 
-if( !openGLApp ) throw "Cannot load plugin";
-var glformat = openGLApp.glFormat ? openGLApp.glFormat : { alpha: true, depth: true };
-if( openGLApp.description ) Loco.gui.infoDialog( "Info", openGLApp.description ); 
+var glformat =  { alpha: true, depth: true };
+if( glapp.initGL ) view.initGL.connect( glapp.initGL );
 view.createOpenGLViewport( glformat );
 view.setViewportUpdateMode( "full" );
-print( "Configured OpenGL viewport" );
-print( "Created graphics view" );
-print( "Loaded OpenGL app" );
-print( "Checking if init() slot exists..." );
-if( openGLApp.init ) {
-  openGLApp.init( Loco.ctx.args.slice( 2, Loco.ctx.args.length - 1 ) );
-  print( "...init() found and invoked" );
-}
 view.createGraphicsSceneProxy();
-print( "Checking for suitable render slot..." );
-if( openGLApp.render ) {
-  view.scene.backDraw.connect( openGLApp.render );
-  print( "...'render()' found and connected to GraphicsScene.backDraw signal" );
-} else if( openGLApp.draw ) {
-  view.scene.backDraw.connect( openGLApp.draw );
-  print( "...'draw()' found and connected to GraphicsScene.backDraw signal" );
-} else if( openGLApp.paint ) {
-  view.scene.backDraw.connect( openGLApp.paint );
-  print( "...'paint()' found and connected to GraphicsScene.backDraw signal" );
-} else throw "Could not find a suitable paint slot; tried 'render', 'draw' and 'paint'";
-print( "Checking for OpenGL init slot..." );
-if( openGLApp.initGL ) {
-  openGLApp.initGL();
-  print( "...'initGL' found and invoked" );
-} else if( openGLApp.initgl ) {
-  openGLApp.initgl();  
-  print( "...'initgl' found and invoked" );
-} else print( "...no slot found" );
-print( "Checking if 'resize' or 'resized' slots exist..." );
-if( openGLApp.resize ) {
-  view.resized.connect( openGLApp.resize );
-  print( "...'resize' found and connected to GraphicsView.resized signal" ); 
-} else if( openGLApp.resized ) {
-  view.resized.connect( openGLApp.resized );
-  print( "...'resized' found and connected to GraphicsView.resized signal" );
-} else print( "...no slot found" ); 
-if( openGLApp.name ) view.setWindowTitle( openGLApp.name );
-
 var ww = Loco.gui.create( "GraphicsWebWindow" );
-view.resized.connect( ww.resize );
 view.scene.add( ww );
-ww.load( "http://www.google.com" );
-view.show( 50, 50, 800,600 );
+view.scene.backDraw.connect( glapp.render );
+view.resized.connect( ww.resize );
+if( glapp.resize ) view.resized.connect( glapp.resize );
+else if( glapp.resized ) view.resized.connect( glapp.resized ); 
+ww.setTransparent();
+// sync load is currently only available in WebWindow,
+// will be implemented in GraphicsWebWindow as well - issue #26
+ww.loadFinished.connect( function( ok ) { 
+                           if( !ok ) throw "Cannot load page";
+                           view.show( 50, 50, 800,600 );
+                         } );
+if( glapp.guiURL ) ww.load( glapp.guiURL );
+else ww.load( "./test33-overlay.html" );
 } catch( e ) {
 if( e.message ) perror( p.message )
 else perror( e );

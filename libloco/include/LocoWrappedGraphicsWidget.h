@@ -36,7 +36,7 @@
 #include "LocoLayout.h"
 #include "LocoWindowAttributes.h"
 #include "LocoWindowFlags.h"
-
+#include <iostream>
 namespace loco {
 
 ///@todo
@@ -81,6 +81,7 @@ public:
     virtual ~WrappedGraphicsWidget() {}
 public slots:
     void setWindowAttribute( const QString& attr ) {
+        std::cout << attr.toStdString() << std::endl;
         Widget()->setAttribute( WindowAttribute( attr ) );
     }
     void resize( qreal w, qreal h ) { Widget()->resize( w, h ); }

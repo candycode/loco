@@ -41,7 +41,6 @@
 #include <GL/glu.h>
 #include <QtGui>
 #include <QtOpenGL>
-
 #ifndef GL_MULTISAMPLE
 #define GL_MULTISAMPLE  0x809D
 #endif
@@ -131,6 +130,7 @@ OpenGLScene::OpenGLScene()
     addItem(m_lightItem);
 
     loadModel(QLatin1String("qt.obj"));
+
     m_time.start();
 }
 
@@ -141,7 +141,7 @@ void OpenGLScene::drawBackground(QPainter *painter, const QRectF &)
         qWarning("OpenGLScene: drawBackground needs a QGLWidget to be set as viewport on the graphics view");
         return;
     }
-
+//painter->beginNativePainting();
     glClearColor(m_backgroundColor.redF(), m_backgroundColor.greenF(), m_backgroundColor.blueF(), 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -178,7 +178,7 @@ void OpenGLScene::drawBackground(QPainter *painter, const QRectF &)
 
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();
-
+//painter->endNativePainting();
     QTimer::singleShot(20, this, SLOT(update()));
 }
 
