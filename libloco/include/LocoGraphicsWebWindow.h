@@ -25,8 +25,6 @@
 //(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 //SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ////////////////////////////////////////////////////////////////////////////////
-
-
 #include <QString>
 #include <QVariantMap>
 #include <QMap>
@@ -128,6 +126,7 @@ private:
             obj_( obj ), jsName_( jsName ), own_( own ) {}
     };
     typedef QList< ObjectEntry > ContextObjects;
+    bool SyncLoad( const QUrl&, int /*ms*/ );
 public:
     GraphicsWebWindow() : WrappedGraphicsWidget( 0, "LocoGraphicsWebWindow", "Loco/GUI/GraphicsWindow" ),
         webView_( new TransparentGraphicsWebView() ), jsInterpreter_( new WebKitJSCoreWrapper )  {
@@ -181,8 +180,11 @@ private slots:
         }   
     }
     void PreLoadCBack() { ctx_.Eval( preLoadCBack_ ); }
-
+    void OnLoadFinished( bool ok ) { syncLoadOK_ = ok; }
 public slots:
+    bool syncLoad( const QString& url, int timeout /*seconds*/ = -1 ) {
+        return SyncLoad( url, 1000 * timeout );
+    }
     void setTransparent() {
         QPalette palette = webView_->palette();
         palette.setBrush(QPalette::Base, Qt::transparent);
@@ -353,7 +355,6 @@ public slots:
         return sc;
     }
     void scrollToAnchor( const QString& a ) { wf_->scrollToAnchor( a ); }
-
 signals:
     void linkClicked( const QUrl& );
     void linkHovered( const QString&, const QString&, const QString& );
@@ -371,6 +372,7 @@ private:
     WebKitJSCoreWrapper* jsInterpreter_;
     QString preLoadCBack_;
     ContextObjects ctxObjects_;
+    bool syncLoadOK_; 
 };
 
 }

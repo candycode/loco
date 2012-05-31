@@ -27,15 +27,19 @@ view.scene.backDraw.connect( glapp.render );
 view.resized.connect( ww.resize );
 if( glapp.resize ) view.resized.connect( glapp.resize );
 else if( glapp.resized ) view.resized.connect( glapp.resized ); 
+// make application accessible from html page
+ww.addObjectToContext( glapp, "app" );
 ww.setTransparent();
-// sync load is currently only available in WebWindow,
-// will be implemented in GraphicsWebWindow as well - issue #26
-ww.loadFinished.connect( function( ok ) { 
-                           if( !ok ) throw "Cannot load page";
-                           view.show( 50, 50, 800,600 );
-                         } );
-if( glapp.guiURL ) ww.load( glapp.guiURL );
-else ww.load( "./test33-overlay.html" );
+//async version
+//ww.loadFinished.connect( function( ok ) { 
+//                           if( !ok ) throw "Cannot load page";
+//                           view.show( 50, 50, 800,600 );
+//                         } );
+//if( glapp.guiURL ) ww.load( glapp.guiURL );
+//else ww.load( "./test33-overlay.html" );
+if( glapp.guiURL ) ww.syncLoad( glapp.guiURL );
+else ww.syncLoad( "./test33-overlay.html" );
+view.show( 2000, 50, 800, 600 );
 } catch( e ) {
 if( e.message ) perror( p.message )
 else perror( e );

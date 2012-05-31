@@ -121,7 +121,7 @@ if( LOCO_WKIT )
        ${LINC}/LocoDynamicWebPluginFactory.h ${LINC}/LocoWebElement.h ${LINC}/LocoWebPage.h
        ${LINC}/LocoGraphicsWebWindow.h )
   set( LOCO_WKIT_HEADERS ${LINC}/LocoWebKitAttributeMap.h ${LINC}/LocoStaticWebPluginFactory.h )
-  set( LOCO_WKIT_SRCS ${LSRC}/LocoWebKitAttributeMap.cpp ${LSRC}/LocoWebView.cpp )
+  set( LOCO_WKIT_SRCS ${LSRC}/LocoWebKitAttributeMap.cpp ${LSRC}/LocoWebView.cpp ${LSRC}/LocoGraphicsWebWindow.cpp )
 endif()
 if( LOCO_GUI )
   set( LOCO_GUI_MOC_HEADERS ${LINC}/LocoGUI.h ${LINC}/LocoMainWindow.h ${LINC}/LocoWidgetWrapper.h ${LINC}/LocoWrappedWidget.h
