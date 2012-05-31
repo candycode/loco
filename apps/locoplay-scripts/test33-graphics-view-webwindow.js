@@ -29,6 +29,8 @@ if( glapp.resize ) view.resized.connect( glapp.resize );
 else if( glapp.resized ) view.resized.connect( glapp.resized ); 
 // make application accessible from html page
 ww.addObjectToContext( glapp, "app" );
+// add GUI object to access e.g. native dialogs
+ww.addObjectToContext( Loco.gui, "gui" );
 ww.setTransparent();
 //async version
 //ww.loadFinished.connect( function( ok ) { 

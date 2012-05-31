@@ -116,7 +116,7 @@ if( LOCO_SYSTEM )
   set( LOCO_SYSTEM_SRCS ${LSRC}/LocoSystem.cpp ${LSRC}/LocoProcess.cpp )
 endif()
 if( LOCO_WKIT )
-  set( LOCO_WKIT_MOC_HEADERS ${LINC}/LocoWebWindow.h ${LINC}/LocoGraphicsWebView.h
+  set( LOCO_WKIT_MOC_HEADERS ${LINC}/LocoWebWindow.h 
        ${LINC}/LocoWebKitJSCore.h ${LINC}/LocoWebKitJSCoreWrapper.h ${LINC}/LocoWebView.h
        ${LINC}/LocoDynamicWebPluginFactory.h ${LINC}/LocoWebElement.h ${LINC}/LocoWebPage.h
        ${LINC}/LocoGraphicsWebWindow.h )
