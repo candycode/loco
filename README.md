@@ -71,7 +71,7 @@ new project are:
  
 but I might make also available other pieces as brand new projects,
 as I did with [QLua](/candycode/qlua) or code snippets as in the case of one
-of my many _[Any type](/candycode/typeless)_ implementation.
+of my many _[Any type](/candycode/typeless)_ implementations.
 
 _libloco_ will maintain its current interface, only additions,
 additional documentation and fixes are planned.
