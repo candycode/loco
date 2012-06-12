@@ -86,8 +86,8 @@ textarea:focus { outline: none; }
   function setAppearance( appearance ) {
     osgViewModel.appearance( appearance );
   }
-  function load( file ) {
-    osgviewer.loadScene( file );
+  function load( file, options ) {
+    osgviewer.loadScene( file, options );
   }
   function setbkcolor( rgb ) {
     osgviewer.setBkColor( rgb );
@@ -131,7 +131,7 @@ textarea:focus { outline: none; }
     </span>
    </div>
    <div id="dragdiv">
-     <textarea rows="3" id="console" onkeypress="handleKey()" onfocus="this.value=''"></textarea> 
+     <textarea rows="3" id="console" onkeypress="handleKey()"></textarea> 
    </div>
 </body>
 </html>

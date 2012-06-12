@@ -174,8 +174,8 @@ public slots:
     void setHUDGeometry( qreal x, qreal y, int w, int h ) {
         webView_->setGeometry( QRectF( x, y, w, h ) );
     }
-    void loadScene( const QString& path ) {
-        osgscene_->LoadScene( path );
+    void loadScene( const QString& path, const QString& options = QString() ) {
+        osgscene_->LoadScene( path, options );
     }
     void addJSObject( const QString& name, QObject* obj ) {
         jsObjects_.push_back( JSObject( name, obj ) );

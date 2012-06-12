@@ -69,8 +69,10 @@ namespace osg
                 _timer.start( ms );
             }
         }
-        bool LoadScene( const QString& path ) {
-            osg::Node* scene = osgDB::readNodeFile( path.toStdString() );
+        bool LoadScene( const QString& path, const QString& options = QString() ) {
+            osg::ref_ptr< osgDB::ReaderWriter::Options > opt = new osgDB::ReaderWriter::Options;
+            opt->setOptionString( options.toStdString() );
+            osg::Node* scene = osgDB::readNodeFile( path.toStdString(), opt );
             if( !scene ) return false;
             setSceneData( scene );
             ssetManip_->setStateSet( scene->getOrCreateStateSet() );
