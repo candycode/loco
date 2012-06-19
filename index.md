@@ -9,7 +9,7 @@ _LoCO_ is a set of _Qt_ _C++_ classes that make it easy to create command-line a
  with any language that compiles to _JavaScript_.
 
 _JavaScript_ is used to glue together binary components, optionally loaded at run-time,
-developed in C++. 
+developed in _C++_. 
 
 Objects are connected through signals/slots or by direct reference through a _QObject_ pointer,
 giving to the objects the responsibility to check the interface semantics or the object type.
