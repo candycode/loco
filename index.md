@@ -1,5 +1,6 @@
 ---
 layout: default
+bold: true
 ---
 
 ##LoCO - Loosely Coupled Objects
