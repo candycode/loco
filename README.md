@@ -51,7 +51,8 @@ of pre-existing modules.
 
 Additional information is available on the official [LoCO website](http://locojs.net).
 
-A partial list of the original locked-down specifications is available as well.
+To get an idea of the requirements I looked at when I designed LoCO have a look at the 
+[Specification](https://github.com/candycode/loco/wiki/Specification) page.
 
 Developer's guide is in the making. Some design documents and accompanying UML diagrams created 
 with the great [yUML](http://yuml.me/) tool will be made available as well.
