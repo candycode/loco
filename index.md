@@ -1,5 +1,6 @@
 ---
 layout: default
+nav: [{name: name1, url: url1}, {name: name2, url: url2}]
 ---
 
 ##LoCO - Loosely Coupled Objects

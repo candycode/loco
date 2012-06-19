@@ -1,0 +1,56 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" 
+     content="JavaScript - C++ application framework - develop desktop applications in JavaScript - support for http, sockets, ssl, opengl and run-time plugins included"> 
+    <title>LoCO.js by candycode</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="javascripts/main.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  </head>
+  <body>
+
+      <header>
+        <h1>LoCO.js</h1>
+        <p>JavaScript/C++ application framework</p>
+      </header>
+<!-- per-page navigation, add a 'nav' array in page:
+     
+     nav: [{name: name1, url: url1}, {name: name2, url: url2}]
+     
+  -->
+      <div id="banner">
+        <div class="downloads">
+          <span>Navigation:</span>
+            <ul>
+              {% for item in page.nav %}
+                <li><a href="{{item.url}}" class="button"><strong>{{item.name}}</strong></a></li>
+              {% endfor %}
+            </ul>
+          </span>
+        </div>
+      </div><!-- end banner -->
+    <div class="wrapper">
+      <nav>
+        <ul></ul>
+      </nav>
+      <section>
+        {{ content }}
+      </section>
+      <footer>
+        <p>Project maintained by <a href="https://github.com/candycode">candycode</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="http://twitter.com/#!/michigangraham">mattgraham</a></small></p>
+         <p><small>Generated on <em>{{ site.time | date_to_string }}</em></small></p>
+      </footer>
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><!--<![endif]-->
+  </body>
+</html>
