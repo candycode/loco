@@ -35,7 +35,6 @@ _QObject_ slots or _Q_INVOKABLE_ methods.
 var glapp = Loco.ctx.loadQtPlugin( Loco.ctx.args[ 2 ] );
 var glformat = glapp.glFormat ? glapp.glFormat : { alpha: true, depth: true };
 var view = Loco.gui.create( "GraphicsView" );
-var glformat = { alpha: true, depth: true };
 view.initGL.connect( glapp.initGL );
 view.createOpenGLViewport( glformat );
 view.createGraphicsSceneProxy();
