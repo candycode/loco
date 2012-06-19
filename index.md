@@ -1,14 +1,13 @@
 ---
 layout: default
-nav: [{name: name1, url: url1}, {name: name2, url: url2}]
 ---
 
 ##LoCO - Loosely Coupled Objects
 
-_LoCO_ is a set of _Qt_ C++ classes that make it easy to create command-line and _GUI_ applications
+_LoCO_ is a set of _Qt_ _C++_ classes that make it easy to create command-line and _GUI_ applications
  with any language that compiles to _JavaScript_.
 
-JavaScript is used to glue together binary components, optionally loaded at run-time,
+_JavaScript_ is used to glue together binary components, optionally loaded at run-time,
 developed in C++. 
 
 Objects are connected through signals/slots or by direct reference through a _QObject_ pointer,
@@ -131,8 +130,8 @@ _Qt_ for desktop applications simply because it has been and still is the fastes
 to building cross-platform applications scriptable in a widespread scripting 
 language such as _ECMAScript/JavaScript_.
 
-If I had the bandwidth I would take _V8_ and build wrappers around native _GUI_s(with
-declarative support through **standard** _JSON_), _WebKit_, filesystem, network and multimedia
+If I had the bandwidth I would take _V8_ and build wrappers around native *GUI*s(with
+declarative support through **standard** _JSON_ ), _WebKit_, filesystem, network and multimedia
 libraries with the addition of a resource management system and _i18n_ support.
 Since however I cannot afford to do that I am using _Qt_.
 

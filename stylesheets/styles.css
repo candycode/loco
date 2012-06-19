@@ -695,8 +695,8 @@ header p {
   margin-right: -382px;
   position: fixed;
   top: 115px;
-  background: #ffcc00;
-  border: 1px solid #f0b500;
+  background: #00ccff /*#ffcc00*/;
+  border: 1px solid #00b5f0/*#f0b500*/;
   -moz-box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
   -webkit-box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
   -o-box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
@@ -710,13 +710,13 @@ header p {
   padding-right: 10px;
 }
 #banner .button {
-  border: 1px solid #dba500;
-  background: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #ffe788), color-stop(100%, #ffce38));
-  background: -webkit-linear-gradient(#ffe788, #ffce38);
-  background: -moz-linear-gradient(#ffe788, #ffce38);
-  background: -o-linear-gradient(#ffe788, #ffce38);
-  background: -ms-linear-gradient(#ffe788, #ffce38);
-  background: linear-gradient(#ffe788, #ffce38);
+  border: 1px solid #00a5db/*#dba500*/;
+  background: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #88e7ff/*#ffe788*/), color-stop(100%, #38ceff/*#ffce38*/));
+  background: -webkit-linear-gradient(#88e7ff/*#ffe788*/, #38ceff/*#ffce38*/);
+  background: -moz-linear-gradient(#88e7ff, #38ceff);
+  background: -o-linear-gradient(#88e7ff, #38ceff);
+  background: -ms-linear-gradient(#88e7ff, #38ceff);
+  background: linear-gradient(#88e7ff, #38ceff);
   -moz-border-radius: 2px;
   -webkit-border-radius: 2px;
   -o-border-radius: 2px;
@@ -727,7 +727,7 @@ header p {
   -webkit-box-shadow: inset 0px 1px 0px rgba(255, 255, 255, 0.4), 0px 1px 1px rgba(0, 0, 0, 0.1);
   -o-box-shadow: inset 0px 1px 0px rgba(255, 255, 255, 0.4), 0px 1px 1px rgba(0, 0, 0, 0.1);
   box-shadow: inset 0px 1px 0px rgba(255, 255, 255, 0.4), 0px 1px 1px rgba(0, 0, 0, 0.1);
-  background-color: #FFE788;
+  background-color: #88e7ff /*#FFE788*/;
   margin-left: 5px;
   padding: 10px 12px;
   margin-top: 6px;
