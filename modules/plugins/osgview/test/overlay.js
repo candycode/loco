@@ -1,7 +1,7 @@
 try {
 var ppath = "";
 if( Loco.ctx.os() === "WINDOWS" ) 
-  ppath = "/cmakebuilds/project-loco/modules/plugins/osgview/Release/osgview.dll";
+  ppath = "/cmakebuilds/p/loco/modules/plugins/osgview/Release/osgview.dll";
 else
   ppath = Loco.ctx.homeDir() + "/build/loco/modules/plugins/osgview/libosgview.so";
 var osgview = Loco.ctx.loadQtPlugin( ppath );
@@ -14,6 +14,7 @@ mw.setLayout( l );
 osgview.loadPage( "./overlay.html", true );
 osgview.setContinuousUpdate( 20 );
 osgview.loadScene( "cow.osg" );
+mw.move( 2000, 50 );
 mw.show(800, 600);
 } catch(e) {
 Loco.console.println(e);

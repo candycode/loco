@@ -133,8 +133,10 @@ NetworkAccessManager::NetworkAccessManager( QObject* p,
     }
     connect( this, SIGNAL( authenticationRequired( QNetworkReply*, QAuthenticator* ) ),
              SLOT( OnAuthenticateRequest( QNetworkReply*,QAuthenticator* ) ) );
+#ifdef LOCO_SSL
     connect( this, SIGNAL( sslErrors( QNetworkReply*, const QList< QSslError >& ) ),
              this, SLOT( OnSSLErrors( QNetworkReply*, const QList< QSslError >& ) ) );
+#endif
     LoadSettings();
         
 }
