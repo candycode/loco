@@ -46,6 +46,7 @@ option( LOCO_NETWORK "Access to network" ON  )
 option( LOCO_DYNAMIC "Dynamic library" OFF )
 option( LOCO_SCRIPT "Enable QScript; not needed if WebKit enabled" OFF )
 option( LOCO_JS_SYNTAX_CHECKER "Add SyntaxChecker module - enables QScript" ON )
+option( LOCO_SSL "SSL support" OFF )
 
 if( LOCO_WKIT )
   set( LOCO_LIB_NAME "loco-wkit" CACHE STRING "LoCO library name" )
@@ -92,7 +93,9 @@ endif()
 if( LOCO_JS_SYNTAX_CHECKER )
   set( QT_USE_QTSCRIPT ON )
 endif()  
-
+if( LOCO_SSL )
+  add_definitions( -DLOCO_SSL ) 
+endif()
 ####Qt
 find_package(Qt4)
 include(${QT_USE_FILE})
