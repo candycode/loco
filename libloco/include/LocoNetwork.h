@@ -264,6 +264,7 @@ private:
     QUdpSocket* socket_;
 };
 
+#ifdef LOCO_SSL
 class SslSocket : public Socket {
     Q_OBJECT
     Q_PROPERTY( QStringList sslErrors READ SSLErrors )
@@ -370,7 +371,7 @@ signals:
 private:
     QSslSocket* socket_;
 };
-
+#endif
 
 class Network : public Object {
     Q_OBJECT
@@ -381,7 +382,13 @@ public:
 public slots:
     QVariant create( const QString& );
     bool cloneable() const { return true; }
-    bool ssl() const { return QSslSocket::supportsSsl(); }
+    bool ssl() const { 
+#ifdef LOCO_SSL        
+    return QSslSocket::supportsSsl();
+#else
+    return false;
+#endif
+ }
 };
 
 }

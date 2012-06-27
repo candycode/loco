@@ -26,6 +26,10 @@
 //SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ////////////////////////////////////////////////////////////////////////////////
 
+#ifdef max
+#undef max
+#endif
+
 
 #include <limits>
 

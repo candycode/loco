@@ -144,7 +144,7 @@ public:
         ctx_.SetJSContextName( "wctx" ); //web window context
         ctx_.AddContextToJS();
     }
-    bool GetResizesToContents() const { webView_->resizesToContents(); }
+    bool GetResizesToContents() const { return webView_->resizesToContents(); }
     void SetResizesToContents( bool on ) { webView_->setResizesToContents( on ); }
     QGraphicsWidget* Widget() { return webView_; }
     virtual const QGraphicsWidget* Widget() const { return webView_; }
