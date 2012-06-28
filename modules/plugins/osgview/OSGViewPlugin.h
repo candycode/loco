@@ -25,6 +25,15 @@
 //(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 //SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ////////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+//WARNING!!!!
+// IN ORDER FOR THE EVENT EXTENT TO BE CORRECT osgViewer::Viewer needs to have
+// the following line added in the eventTraversal method with OSG > 3.1(if they
+// do not change the code again)
+// eventState->setInputRange( viewport->x(), viewport->y(),
+//      viewport->x() + viewport->width(), viewport->y() + viewport->height());
+// Gist: https://gist.github.com/9e9e1c8e3d9b08c4e2ef
+//==============================================================================
 #include <QObject>
 #include <QtPlugin>
 #include <QGraphicsView>

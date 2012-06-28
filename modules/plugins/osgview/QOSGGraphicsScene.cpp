@@ -6,6 +6,16 @@
 #include <osgGA/StateSetManipulator>
 
 //==============================================================================
+//WARNING!!!!
+// IN ORDER FOR THE EVENT EXTENT TO BE CORRECT osgViewer::Viewer needs to have
+// the following line added in the eventTraversal method with OSG > 3.1(if they
+// do not change the code again)
+// eventState->setInputRange( viewport->x(), viewport->y(),
+//      viewport->x() + viewport->width(), viewport->y() + viewport->height());
+// Gist: https://gist.github.com/9e9e1c8e3d9b08c4e2ef
+//==============================================================================
+
+//==============================================================================
 osg::QAdapterScene::QAdapterScene(QObject* parent)
 :   QGraphicsScene( 0, 0, 100, 100, parent), update_( true )
 {
