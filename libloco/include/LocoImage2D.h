@@ -26,8 +26,7 @@
 //SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ////////////////////////////////////////////////////////////////////////////////
 
-#include <map>
-
+#include <QMap>
 #include <QImage>
 #include <QPixmap>
 #include <QVariantMap>
@@ -46,7 +45,8 @@ class Image2D : public Object {
     Q_PROPERTY( int height READ GetHeight )
     Q_PROPERTY( QString format READ GetFormat WRITE SetFormat )
     Q_PROPERTY( int depth READ GetDepth )
-    Q_PROPERTY( QPixmap pixmap READ GetPixmap )
+    Q_PROPERTY( QPixmap pixmap READ GetPixmap WRITE SetPixmap )
+    Q_PROPERTY( QImage image READ GetImage WRITE SetImage )
     Q_PROPERTY( QStringList keys READ GetKeys )
 public:
    Image2D( Context* c = 0 ) : Object( c, "LocoImage2D", "Loco/Graphics/Image" ) {}
@@ -62,6 +62,8 @@ public:
    const QImage& GetImage() const { return image_; }
    void Swap( QImage& i ) { image_.swap( i ); }
    QStringList GetKeys() const { return image_.textKeys(); }
+   void SetPixmap( const QPixmap& p ) {  image_ = p.toImage(); }
+   void SetImage( const QImage& i ) { image_ = i; }
 public slots:
     void create( quint64 address, int width, int height, const QString& format ) {
         image_ = QImage( reinterpret_cast< unsigned char* >( address ), width, height, MapFormat( format ) );
@@ -112,8 +114,8 @@ public slots:
     QString text( const QString& key ) const { return image_.text( key ); }
 private:
     QImage::Format MapFormat( const QString& f ) const {
-        static std::map< QString, QImage::Format > fmap;
-        if( fmap.empty() ) {
+        static QMap< QString, QImage::Format > fmap;
+        if( fmap.isEmpty() ) {
           fmap[ "invalid" ] = QImage::Format_Invalid;
           fmap[ "mono"    ] = QImage::Format_Mono;	
           fmap[ "monoLSB" ] = QImage::Format_MonoLSB;
@@ -134,8 +136,8 @@ private:
         return fmap[ f ];
     }
     const QString& MapFormat( QImage::Format f ) const {
-        static std::map< QImage::Format, QString > fmap;
-        if( fmap.empty() ) {
+        static QMap< QImage::Format, QString > fmap;
+        if( fmap.isEmpty() ) {
           fmap[ QImage::Format_Invalid ] = "invalid";
           fmap[ QImage::Format_Mono    ] = "mono"; 
           fmap[ QImage::Format_MonoLSB ] = "monoLSB";
