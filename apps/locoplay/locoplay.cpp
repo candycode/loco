@@ -47,6 +47,7 @@
 #endif
 #ifdef LOCOPLAY_GUI
 #include <LocoGUI.h>
+#include <LocoGraphics.h>
 #endif
 #include <LocoQtApp.h>
 #ifdef LOCOPLAY_JS_SYNTAX_CHECKER
@@ -113,6 +114,7 @@ int main(int argc, char *argv[])
 #endif
 #ifdef LOCOPLAY_GUI
         app.AddModuleToJS( new GUI );
+        app.AddModuleToJS( new Graphics );
         QObject::connect( &qtApp, SIGNAL( lastWindowClosed() ), &qtApp, SLOT( quit() ) ); 
 #endif
 #ifdef LOCOPLAY_CONTEXT

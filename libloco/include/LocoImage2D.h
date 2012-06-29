@@ -83,13 +83,8 @@ public slots:
         else return image_.save( filename, format.toAscii().constData(), quality );  
     }
     void resize( int width, int height ) {
-        if( Empty() ) {
-            error( "Empty image" );
-            return;
-        } else {
-            if( width == GetWidth() && height == GetHeight() ) return;
-            image_ = QImage( width, height, image_.format() );
-        }
+        if( width == GetWidth() && height == GetHeight() ) return;
+        image_ = image_.scaled( width, height );
     }
     QObject* copy( int x = 0, int y = 0, int w = -1, int h = -1 ) {
         if( w = -1 ) w = GetWidth();
