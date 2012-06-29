@@ -39,7 +39,7 @@ Loco.ctx.javaScriptConsoleMessage.connect(
 } catch( e ) {
   if( e.message ) Loco.console.printerrln( e.message );
   else Loco.console.printerrln( e );
-  exit( -1 ); // will generate WaitCondition error message if messag loop active
+  exit( -1 ); // will generate WaitCondition error message if message loop active
 }
 
 
