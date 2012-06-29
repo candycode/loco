@@ -44,7 +44,7 @@
 #include "Arrays/LocoShortArray.h"
 #include "Arrays/LocoUShortArray.h"
 #include "Arrays/LocoByteArray.h"
-
+#include "LocoQObjectArray.h"
 #ifdef LOCO_WKIT
 #include "LocoWebKitJSCore.h"
 #endif
@@ -506,6 +506,9 @@ QVariant Context::Create( const QString& className, const QVariantMap& init ) {
         return CreateArray< UShortArray >( *this, init );
     } else if( className == "ByteArray" ) {
         return CreateArray< ByteArray >( *this, init );
+    } else if( className == "ObjectArray" ) {
+        QObjectArray* oa = new QObjectArray;
+        return AddObjToJSContext( oa );          
     } else {
         error( "Cannot create object of type " + className );
         return QVariant();

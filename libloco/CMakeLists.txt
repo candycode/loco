@@ -129,7 +129,7 @@ endif()
 if( LOCO_GUI )
   set( LOCO_GUI_MOC_HEADERS ${LINC}/LocoGUI.h ${LINC}/LocoMainWindow.h ${LINC}/LocoWidgetWrapper.h ${LINC}/LocoWrappedWidget.h
        ${LINC}/LocoLayout.h ${LINC}/LocoWidget.h ${LINC}/LocoGraphicsScene.h ${LINC}/LocoGraphicsView.h
-       ${LINC}/LocoWrappedGraphicsWidget.h ${LINC}/LocoGraphics.h ${LINC}/LocoImage2D.h )
+       ${LINC}/LocoWrappedGraphicsWidget.h ${LINC}/LocoGraphics.h ${LINC}/LocoImage2D.h ${LINC}/LocoGraphicsView.h )
   set( LOCO_GUI_SRCS ${LSRC}/LocoGUI.cpp ${LSRC}/LocoWrappedWidget.cpp ${LSRC}/LocoLayout.cpp ${LSRC}/LocoWindowAttributes.cpp
        ${LSRC}/LocoWindowFlags.cpp ${LSRC}/LocoGraphics.cpp )
 endif()
@@ -153,7 +153,7 @@ set( MOC_HEADERS
   ${LINC}/Arrays/LocoFloat32Array.h ${LINC}/Arrays/LocoIntArray.h
   ${LINC}/Arrays/LocoUIntArray.h ${LINC}/Arrays/LocoShortArray.h
   ${LINC}/Arrays/LocoUShortArray.h ${LINC}/Arrays/LocoByteArray.h
-  ${LINC}/LocoGraphicsView.h ) 
+  ${LINC}/LocoQObjectArray.h  ) 
 
 QT4_WRAP_CPP( MOC_SRCS ${MOC_HEADERS} ) 
 
