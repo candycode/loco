@@ -348,6 +348,25 @@ newCtx.eval( CODE ); //prints out code passed to newCtx itself!
 
 {% endhighlight %}
 
+Data are marshalled between contexts by 
+
+expicitly adding a _QObject_ derived instance to the context 
+
+{% highlight javascript %}
+newCtx.addObject( newCtx, "ctx" );
+{% endhighlight %}
+ 
+or wrapping a JavaScript object with a new instance of the _loco::DataType_ which
+contains a _data_ member used to access the JavaScript data
+
+{% highlight javascript %}
+
+var json = { key: "value" };
+newCtx.data( json, "parentData" );  
+newCtx.eval( "io.println( parentData.data.key )" );
+
+{% endhighlight %}
+
 ###Custom resource access manager
 
 Network and filesystem access is controlled by resource access managers which can be configured through a regex engine or entirely replaced to:
