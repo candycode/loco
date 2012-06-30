@@ -78,7 +78,7 @@ public slots:
         #if defined( Q_OS_LINUX )
             return "LINUX";
         #elif defined( Q_OS_MAC )
-            return "MAC"
+            return "MAC";
         #elif defined( Q_OS_AIX ) || defined( Q_OS_BSD4 ) || defined( Q_OS_FREEBSD ) || \
             defined( Q_OS_SOLARIS ) || defined( Q_OS_UNIX )
             return "UNIX";
