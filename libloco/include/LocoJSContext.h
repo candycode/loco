@@ -68,7 +68,9 @@ public slots: // js interface
     QString uri() const { return ctx_->LastReadURI().isEmpty() ? appDir() :  ctx_->LastReadURI(); }
     bool setAllowInterrupt( bool yes ) { return ctx_->SetAllowInterrupt( yes ); }
     bool getAllowInterrupt() const { return ctx_->GetAllowInterrupt(); }
-    QVariant data( const QVariant& d = QVariant() ) const { return ctx_->Data( d ); }
+    QVariant data( const QVariant& d = QVariant(), const QString& instanceName = QString() ) const  { 
+        return ctx_->Data( d, instanceName ); 
+    }
     void kill() {
         ctx_->Eval( this->jsInstanceName() + "= undefined"  );
         ctx_->deleteLater();

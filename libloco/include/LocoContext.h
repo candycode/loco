@@ -138,7 +138,7 @@ public:
     const QString& LastReadURI() const { return lastReadURI_; }
     bool SetAllowInterrupt( bool yes ) { return jsInterpreter_->SetAllowInterrupt( yes ); }
     bool GetAllowInterrupt() const { return jsInterpreter_->GetAllowInterrupt(); }
-    QVariant Data( const QVariant& data );
+    QVariant Data( const QVariant& data, const QString& instanceName = QString() );
     const QString& Code() const { return code_; }
     void SetStoreCode( bool on ) { storeCode_ = on; }
     bool GetStoreCode() const { return storeCode_; }

@@ -1,0 +1,9 @@
+README.md:## LoCO - Loosely Coupled Objects
+README.md:_LoCO_ is a set of C++ classes that make it easy to create command-line and GUI
+README.md:at run-time, developed in C++.
+README.md:Note that with Qt it is possible to perform duck-typing with C++: only
+README.md:dialogs and some non-standard(across operating systems) controls such as
+README.md:takes to create a basic _LoCO_-based application which executes scripts
+README.md:[Scripts that work with locoplay](/candycode/loco/tree/master/apps/locoplay-scripts)
+README.md:of pre-existing modules.  
+README.md:Once things such as documentation and tutorials become stable they are moved to the official user-facing

@@ -542,8 +542,13 @@ void Context::LoadScriptFilter( const QString& id,
     filters_[ id ] = lf;
 }
 
-QVariant Context::Data( const QVariant& data ) {
-    return AddObjToJSContext( new DataType( data ) );
+QVariant Context::Data( const QVariant& data, const QString& name ) {
+    if( name.isEmpty() ) return AddObjToJSContext( new DataType( data ) );
+    else {
+        DataType* d = new DataType( data );
+        d->SetJSInstanceName( name );
+        return AddObjToJSContext( d );
+    }
 }
 
 

@@ -37,6 +37,13 @@ var CODE = "io.println(ctx.code)";
 print( "Evaluating code '" + CODE + "' in new context" );
 newCtx.eval( CODE ); //prints out code passed to newCtx itself!
                      //i.e. 'io.println...'
+var json = { key: "value" };
+newCtx.data( json, "parentData" );  
+print( "Added JSON object {key: 'value'} to new context wrapped into DataType object \
+ with instance name 'parentData';\n stored data is accessible \
+ through 'parentData.data' member" );
+print( "Printing 'parentData.data.key' from child context" );
+newCtx.eval( "io.println( parentData.data.key )" );
 //==============================================================================
 exit(0); //FOR NON-GUI APPS ONLY
 
