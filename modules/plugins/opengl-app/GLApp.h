@@ -3,8 +3,13 @@
 #include <QObject>
 #include <QtPlugin>
 #include <QVariantMap>
+#ifdef Q_OS_MAC
+#include <OpenGL/gl.h>
+#include <OpenGL/glu.h>
+#else
 #include <GL/gl.h>
 #include <GL/glu.h>
+#endif
 #include <QString>
 #include <vector>
 

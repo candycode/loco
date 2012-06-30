@@ -7,6 +7,8 @@ set( PLUGIN_NAME "opengl-app" )
 
 project( ${PROJECTNAME} )
 
+find_package(OpenGL)
+
 #ENABLE/DISABLE Qt components
 set( QT_USE_QTOPENGL ON )
 #set( QT_USE_QTWEBKIT ON )
@@ -26,7 +28,7 @@ set( SRCS ${MOC_SRCS} )
 
 add_library( ${PLUGIN_NAME} SHARED ${SRCS} )
 
-target_link_libraries( ${PLUGIN_NAME} ${QT_LIBRARIES} GLU GLEW )
+target_link_libraries( ${PLUGIN_NAME} ${QT_LIBRARIES} ${OPENGL_LIBRARIES} GLEW )
 
 set_target_properties( ${PLUGIN_NAME} 
                        PROPERTIES PREFIX "" SUFFIX ".qtplugin" )
