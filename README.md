@@ -57,8 +57,8 @@ To get an idea of the requirements I looked at when I designed LoCO have a look 
 Developer's guide is in the making. Some design documents and accompanying UML diagrams created 
 with the great [yUML](http://yuml.me/) tool will be made available as well.
 
-This GitHub project is used for design and development and is subject to frequent changes and
-also acts as a scratchpad.
+This GitHub project is used to support research, design and development and it is subject to frequent changes, also
+acting as a scratchpad.
 
 Once things such as documentation and tutorials become stable they are moved to the official user-facing
 [LoCO](http://locojs.net) website.
