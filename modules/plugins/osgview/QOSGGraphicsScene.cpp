@@ -284,7 +284,7 @@ void  osg::QOSGScene::drawBackground ( QPainter * painter, const QRectF & rect )
     painter->beginNativePainting();
 // Push initialized state onto the stack so that we can 
 // Recover it later for further Qt Drawing. 
- /*   glPushAttrib(GL_ALL_ATTRIB_BITS); 
+    glPushAttrib(GL_ALL_ATTRIB_BITS); 
     glPushClientAttrib(GL_CLIENT_ALL_ATTRIB_BITS); 
 
 // Fixup stuff that Qt Modifies from default state that 
@@ -307,10 +307,10 @@ void  osg::QOSGScene::drawBackground ( QPainter * painter, const QRectF & rect )
         state->reset(); 
         state->apply( m_lastStateSet.get() ); 
     }
-*/
+
     // Run a frame: this is where the action happens. 
     frame(); 
-/*
+
     // Store the OSG state for restoration in the next frame. 
     getCamera()->getGraphicsContext()->getState()->captureCurrentState(*m_lastStateSet); 
 
@@ -333,7 +333,7 @@ void  osg::QOSGScene::drawBackground ( QPainter * painter, const QRectF & rect )
     { 
         std::clog <<"Post-Frame: Detected OpenGL error: " << gluErrorString(errorNo) << std::endl; 
     }
-*/
+
     painter->endNativePainting();
     firstFrame = false;
 }

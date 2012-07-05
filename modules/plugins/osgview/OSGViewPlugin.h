@@ -156,6 +156,11 @@ protected:
                         QRect( QPoint( 0, 0 ), event->size() ) );
             
         }
+        static bool first = true;
+        if( first ) {
+            osgscene_->realize();
+            first = false;
+        }
         webView_->resize( event->size().width(), event->size().height() );
         osgscene_->Resize( event->size().width(), event->size().height() );
         QGraphicsView::resizeEvent( event );
