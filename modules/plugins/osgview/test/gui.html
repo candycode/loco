@@ -40,7 +40,10 @@
 textarea:focus { outline: none; }
 </style>
 
+<script src="http://coffeescript.org/extras/coffee-script.js"></script>
+
 <script type="text/javascript">
+  COFFEE = false;
   var osgViewModel = {
     modelName: ko.observable(''),
     appearance: ko.observable('solid')
@@ -75,7 +78,7 @@ textarea:focus { outline: none; }
     if( key === 13 ) { //enter
       try {
         line = lines[ lines.length - 1 ];
-        ret = osgviewer.eval( line );
+        ret = osgviewer.eval( compile( line ) );
       } catch( e ) {
         if( e.message ) ret = "ERROR: " + e.message;
         else ret = "ERROR: " + e;
@@ -117,6 +120,10 @@ textarea:focus { outline: none; }
     var x = $("#dragdiv").position().left + 8;
     $("#dragdiv").css('left', x + 'px'); 
     $("#dragdiv").draggable('destroy');
+  }
+  function compile( code ) {
+    if( COFFEE ) return CoffeeScript.compile( code, {bare: true} );
+    else return code;
   }
 </script>   
 </head>
