@@ -153,6 +153,14 @@ public:
                               const QString& codePlaceHolder = "" ) {
         ctx_.LoadScriptFilter( id, uri, jfun, jcode, jerrfun, codePlaceHolder );
     }
+    void PreloadScriptFilter( const QString& id,
+                              const QStringList& uriList,
+                              const QString& jfun,
+                              const QString& jcode = "",
+                              const QString& jerrfun = "",
+                              const QString& codePlaceHolder = "" ) {
+        ctx_.LoadScriptFilter( id, uriList, jfun, jcode, jerrfun, codePlaceHolder );
+    }
     void PreloadObject( const QString& uri ) {
         const bool PERSISTENT = true;
         ctx_.LoadObject( uri, PERSISTENT );

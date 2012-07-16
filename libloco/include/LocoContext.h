@@ -34,6 +34,7 @@
 
 #include <QString>
 #include <QList>
+#include <QStringList>
 #include <QVariant>
 #include <QVariantMap>
 #include <QPluginLoader>
@@ -316,6 +317,12 @@ private:
     }
     void LoadScriptFilter( const QString& id,
                            const QString& uri,
+                           const QString& jfun,
+                           const QString& jcode = "",
+                           const QString& jerrfun = "",
+                           const QString& codePlaceHolder = "" );
+    void LoadScriptFilter( const QString& id,
+                           const QStringList& uriList,
                            const QString& jfun,
                            const QString& jcode = "",
                            const QString& jerrfun = "",

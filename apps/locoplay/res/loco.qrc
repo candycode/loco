@@ -10,6 +10,9 @@
   <file>rccexec.js</file>
   <file>json2.js</file>
   <file>JsonXml.js</file>
+  <file>livescript/livescript.js</file>
+  <file>livescript/prelude.js</file>
+  <file>livescript/exports.js</file>
 </qresource>
 <qresource prefix="/loco">
   <file alias="main">main.js</file>

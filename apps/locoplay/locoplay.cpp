@@ -28,6 +28,8 @@
 #include <iostream>
 #include <stdexcept>
 
+#include <QStringList>
+
 #include <LocoApp.h>
 
 #ifdef LOCOPLAY_CONSOLE
@@ -128,13 +130,12 @@ int main(int argc, char *argv[])
         app.SetFilterNetRequests( false );
         app.AddModuleToJS( new Network );
 #endif
-        const QString& CS = ":/coffee-script-1.2.js";
         app.InitContext();
         
         SystemScriptFilter f;
         app.PreloadFilter( "script", &f );
 
-        app.PreloadScriptFilter( "coffee", CS,
+        app.PreloadScriptFilter( "coffee", ":/coffee-script-1.2.js",
                                  "loco_coffeeCompile_",
                                  "function loco_coffeeCompile_( coffeeCode ) {"
                                  "  return CoffeeScript.compile( coffeeCode, {bare: true} );"
@@ -145,7 +146,16 @@ int main(int argc, char *argv[])
                                  "  var s = Sk.compile( code, '', 'single' );"
                                  "  return s.code + s.funcname + '()';"
                                  "}" );
-#ifdef LOCO_WKIT //issues in making BiwaSchem work properly with QtScript
+        app.PreloadScriptFilter( "livescript", 
+                                 QStringList() << ":/livescript/exports.js" 
+                                               << ":/livescript/prelude.js"
+                                               << ":/livescript/livescript.js", 
+                                 "loco_livescriptCompile_",
+                                 "function loco_livescriptCompile_( code ) {"
+                                 "  return LiveScript.compile( code );"
+                                 "}" );
+
+#ifdef LOCO_WKIT //issues in making BiwaScheme work properly with QtScript
         app.PreloadScriptFilter( "biwascheme", ":/biwascheme/biwascheme-filter.js",
                                  "loco_schemeCompile_",
                                  "function loco_schemeCompile_( code ) {"
@@ -156,11 +166,12 @@ int main(int argc, char *argv[])
         app.MapToFilters( QRegExp( ".+\\.+coffee$" ), QStringList() << "script" << "coffee" );
         app.MapToFilters( QRegExp( ".+\\.+py$" ), QStringList() << "script" << "skulpt" );
         app.MapToFilters( QRegExp( ".+\\.js$|.+\\.ljs$" ), QStringList() << "script" ); 
+        app.MapToFilters( QRegExp( ".+\\.ls$|.+\\.ls$" ), QStringList() << "livescript" ); 
 
         app.SetMapFiltersToFileNames( true );
         // tell the application what is considered a valid file name for a script
         // to execute
-        app.SetScriptFileNameMatchingExpression( QRegExp( ".+\\.ljs$|.+\\.js$|.+\\.coffee$|.+\\.py$|.+\\.scm$" ) );
+        app.SetScriptFileNameMatchingExpression( QRegExp( ".+\\.ljs$|.+\\.js$|.+\\.coffee$|.+\\.py$|.+\\.scm$|.+\\.ls$" ) );
         app.SetDocHandler( QRegExp( ".+\\.html$|.+\\.htm$|^http(s)?://.+" ), ":/browser.js" );
         app.SetDocHandler( QRegExp( ".+\\.rcc$|.+\\.lrcc$" ), ":/rccexec.js" );
         app.ParseCommandLine();
