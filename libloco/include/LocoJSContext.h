@@ -52,6 +52,10 @@ public:
     bool storeCode() const { return ctx_->GetStoreCode(); }
 // invokable from javascript
 public slots: // js interface
+#ifdef LOCO_GUI
+    void setAppStyleSheet( const QString& ss ) { ctx_->SetAppStyleSheet( ss ); }
+    QString appStyleSheet() const { return ctx_->GetAppStyleSheet(); }
+#endif
     void suppressQtMessages( bool on ) { ctx_->SuppressQtMessages( on ); }
     void connectSigToSlot( QObject* srcObj,
                            const QString& sigSignature,

@@ -103,6 +103,11 @@ public:
                const QStringList& cmdLine = QStringList(), Context* parent = 0 );
 // called from C++
 public:
+#ifdef LOCO_GUI    
+    QString GetAppStyleSheet() const { return app_->styleSheet(); }   
+
+    void SetAppStyleSheet( const QString& ss ) { app_->setStyleSheet( ss ); }
+#endif   
     void LoadFilter( const QString& id, Filter* f ) {
         filters_[ id ] = f;
     }

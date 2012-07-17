@@ -61,6 +61,12 @@ private:
 public:
     App( LocoQtApp& app, int argc, char** argv, ObjectInfo* oi ); 
 
+#ifdef LOCO_GUI
+    void SetStyleSheet( const QString& ss ) { app_.setStyleSheet( ss ); }
+
+    QString GetStyleSheet() const { return app_.styleSheet(); }  
+#endif
+
     void AddResources( const QString& path ) {
         QResource::registerResource( path );
     }
