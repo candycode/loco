@@ -35,12 +35,13 @@ set( OSG_LIB_DIR "/usr/local/lib64" CACHE PATH "OpenSceneGraph lib directory" )
 set( QT_USE_QTOPENGL ON )
 set( QT_USE_QTWEBKIT ON )
 
-find_package(Qt4)
+find_package(Qt4 REQUIRED)
 include( ${QT_USE_FILE} )
+find_package(OpenGL REQUIRED)
 
               
-include_directories( ${OSG_INCLUDE_DIR} ) 
-link_directories( ${QT_LIBRARY_DIR} ${OSG_LIB_DIR} )
+include_directories( ${OSG_INCLUDE_DIR} ${OPENGL_INCLUDE_DIRS}) 
+link_directories( ${QT_LIBRARY_DIR} ${OSG_LIB_DIR})
 
 set( OSG_LIBRARIES OpenThreads osgDB osgGA osgManipulator osg osgViewer )
 
@@ -55,11 +56,11 @@ else()
   add_library( osgview SHARED ${SRCS} )
 endif()
 
-if( MSVC )
-  set( GL_LIBRARIES opengl32 glu32 )
-else()
-  set( GL_LIBRARIES GL GLU )
-endif()    
-target_link_libraries( osgview ${OSG_LIBRARIES} ${QT_LIBRARIES} ${GL_LIBRARIES} )
+#if( MSVC )
+#  set( GL_LIBRARIES opengl32 glu32 )
+#else()
+#  set( GL_LIBRARIES OpenGL GLU )
+#endif()    
+target_link_libraries( osgview ${OSG_LIBRARIES} ${QT_LIBRARIES} ${OPENGL_LIBRARIES} )
 
 

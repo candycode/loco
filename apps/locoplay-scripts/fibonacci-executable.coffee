@@ -5,3 +5,4 @@ fibonacci = (x)->
   return fibonacci(x-1) + fibonacci(x-2)
 
 Loco.console.println fibonacci 12
+Loco.ctx.exit(0)

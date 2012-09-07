@@ -37,8 +37,12 @@
 ****************************************************************************/
 
 #include "openglscene.h"
-#include "model.h"
+#ifdef __APPLE__
+#include <OpenGL/glu.h>
+#else
 #include <GL/glu.h>
+#endif
+#include "model.h"
 #include <QtGui>
 #include <QtOpenGL>
 #ifndef GL_MULTISAMPLE

@@ -4,3 +4,4 @@ apps/locoplay-scripts/test11-snapshot
 apps/locoplay-scripts/*.txt
 tmp/
 *.swp
+.DS_Store

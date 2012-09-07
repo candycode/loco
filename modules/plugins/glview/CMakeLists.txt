@@ -31,9 +31,10 @@ project( "glview" )
 set( QT_USE_QTOPENGL ON )
 set( QT_USE_QTWEBKIT ON )
 
-find_package(Qt4)
+find_package(Qt4 REQUIRED)
 include( ${QT_USE_FILE} )
-
+find_package(OpenGL)
+include_directories( ${OPENGL_INCLUDE_DIRS} )
 link_directories( ${QT_LIBRARY_DIR} )
 
 set( MOC_HEADERS GLViewPlugin.h openglscene.h )
@@ -43,11 +44,11 @@ set( SRCS ${MOC_SRCS} GLViewPlugin.h model.cpp openglscene.cpp)
 
 add_library( glview SHARED ${SRCS} )
 
-if( MSVC )
-  set( GL_LIBRARIES opengl32 glu32 )
-else()
-  set( GL_LIBRARIES GL GLU )
-endif()    
-target_link_libraries( glview ${QT_LIBRARIES} ${GL_LIBRARIES} )
+#if( MSVC )
+#  set( GL_LIBRARIES opengl32 glu32 )
+#else()
+#  set( GL_LIBRARIES GL GLU )
+#endif()    
+target_link_libraries( glview ${QT_LIBRARIES} ${OPENGL_LIBRARIES} )
 
 
