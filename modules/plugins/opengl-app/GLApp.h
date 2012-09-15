@@ -1,4 +1,4 @@
-#include <GL/glew.h>
+#include <glew.h>
 //#define GL_GLEXT_PROTOTYPES 1
 #include <QObject>
 #include <QtPlugin>

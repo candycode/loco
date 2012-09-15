@@ -9,6 +9,10 @@ project( ${PROJECTNAME} )
 
 find_package(OpenGL)
 
+
+set(GLEW_INCLUDE_DIR "/usr/local/include/GL" CACHE PATH "GLEW include dir")
+set(GLEW_LINK_DIR "/usr/local/lib" CACHE PATH "GLEW lib dir")
+
 #ENABLE/DISABLE Qt components
 set( QT_USE_QTOPENGL ON )
 #set( QT_USE_QTWEBKIT ON )
@@ -17,14 +21,13 @@ set( QT_USE_QTOPENGL ON )
 find_package(Qt4)
 include( ${QT_USE_FILE} )
               
-include_directories( ${QT_LIBRARY_DIR} ) 
-link_directories( ${QT_LIBRARY_DIR}  )
+include_directories( ${QT_LIBRARY_DIR} ${GLEW_INCLUDE_DIR} )
+link_directories( ${QT_LIBRARY_DIR}  ${GLEW_LINK_DIR})
 
 set( MOC_HEADERS ${PLUGIN_MOC_HEADERS} )
 QT4_WRAP_CPP( MOC_SRCS ${MOC_HEADERS} ) 
 
 set( SRCS ${MOC_SRCS} )
-
 
 add_library( ${PLUGIN_NAME} SHARED ${SRCS} )
 
