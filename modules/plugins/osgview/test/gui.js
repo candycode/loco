@@ -18,9 +18,6 @@ osgview.jsinit = "eval(ctx.read('jquery.js')); \
                   eval(ctx.read('jquery-ui.js')); \
                   eval(ctx.read('knockout.js'));";
 osgview.loadPage( "./gui.html", true );
-if( Loco.ctx.args.length > 2 ) {
-  osgview.loadScene( Loco.ctx.args[ 2 ] );
-} else osgview.loadScene( "dumptruck.osg" );
 mw.show(800, 600);
 } catch(e) {
 Loco.console.println(e);

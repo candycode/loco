@@ -41,7 +41,7 @@ ww.setTransparent();
 //else ww.load( "./test33-overlay.html" );
 if( glapp.guiURL ) ww.syncLoad( glapp.guiURL );
 else ww.syncLoad( "./test33-overlay.html" );
-view.show( 2000, 50, 800, 600 );
+view.show();// 2000, 50, 800, 600 );
 } catch( e ) {
 if( e.message ) perror( p.message )
 else perror( e );
