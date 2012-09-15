@@ -45,4 +45,6 @@ set( SRCS ${MOC_SRCS} )
 
 ####CONFIGURE EXECUTABLE
 add_library( loco_SamplePlugin SHARED ${SRCS} )
-target_link_libraries( loco_SamplePlugin ${QT_LIBRARIES} ${LOCO_LIB_NAME} ) 
+target_link_libraries( loco_SamplePlugin ${QT_LIBRARIES} ${LOCO_LIB_NAME} )
+set_target_properties( loco_SamplePlugin
+                       PROPERTIES PREFIX "" SUFFIX ".qtplugin" ) 

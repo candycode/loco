@@ -1,10 +1,7 @@
 try {
 var ppath = "";
-if( Loco.ctx.os() === "WINDOWS" ) 
-  ppath = "/cmakebuilds/project-loco/modules/plugins/osgview/Release/osgview.dll";
-else
-  ppath = Loco.ctx.homeDir() + "/build/loco/modules/plugins/osgview/libosgview.so";
-var osgview = Loco.ctx.loadQtPlugin( ppath );
+Loco.console.println(Loco.ctx.args[2])
+var osgview = Loco.ctx.loadQtPlugin( Loco.ctx.args[2] );
 if( !osgview ) throw "Cannot create OSG view";
 Loco.ctx.suppressQtMessages( true );
 var mw = Loco.gui.create( "Widget");

@@ -87,8 +87,8 @@ public slots:
         image_ = image_.scaled( width, height );
     }
     QObject* copy( int x = 0, int y = 0, int w = -1, int h = -1 ) {
-        if( w = -1 ) w = GetWidth();
-        if( h = -1 ) h = GetHeight();
+        if( w == -1 ) w = GetWidth();
+        if( h == -1 ) h = GetHeight();
         QImage i = image_.copy( x, y, w, h );
         return new Image2D( i, GetContext() );
     }
