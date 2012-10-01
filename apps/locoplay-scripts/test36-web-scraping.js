@@ -9,6 +9,7 @@ try {
             + '&region=USA&culture=en-US'; 
   // create main window  
   var ww = Loco.gui.create( "WebWindow" );
+
   // setup main window 
   if( !ww.syncLoad( url, 10000 ) ) throw "Cannot load url " + url;
 
@@ -17,7 +18,7 @@ try {
   if( !element ) Loco.console.println( 'Not found' );
   else Loco.console.println(element.toPlainText());
 
-  // 2) more robust: search for row with first cell containing 'book value'
+  // 2) more robust: search for row with header cell containing 'book value'
   element = ww.findFirstElement( "#financials table tbody" );
   // get non-empty rows
   var rows = element.findElements( 'tr' );
@@ -30,8 +31,19 @@ try {
       break;
     }  
   }
-  Loco.ctx.exit(0);
-  //ww.show();
+ 
+  //ww.setEnableContextMenu( true );
+  // page navigation
+  ww.show();
+  Loco.sys.sleep(5000); 
+  var link = ww.findFirstElement( 'div .h_MainNav_row1 #MH_tab8' );
+  //simulate mouse event
+  link.eval("var evObj = document.createEvent('MouseEvents'); \
+             evObj.initEvent( 'click', true, true );this.dispatchEvent(evObj);");
+ 
+  // back!
+  ww.back(); //doesn't work
+    
 } catch(e) {
   Loco.console.printerrln(e);
   Loco.ctx.exit( -1 );

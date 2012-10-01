@@ -106,6 +106,7 @@ public:
     }
     bool SaveUrl( const QString& url, const QString& filename, int timeout );
     bool TriggerAction( const QString&, bool );
+    bool EnableAction( const QString&, bool );
     void SetEmitWebActionSignal( bool yes ) {
         WebPage* wp = qobject_cast< WebPage* >( page() );
         if( !wp ) return;

@@ -150,6 +150,15 @@ private slots:
     void PreLoadCBack() { ctx_.Eval( preLoadCBack_ ); }
 
 public slots:
+    void back() {
+        webView_->back();
+    }
+    void forward() {
+        webView_->forward();
+    }
+    void stop() {
+        webView_->stop();
+    }
     void setTransparent() {
         QPalette palette = webView_->palette();
         palette.setBrush(QPalette::Base, Qt::transparent);
@@ -187,6 +196,9 @@ public slots:
     void setEmitWebActionSignal( bool yes ) { webView_->SetEmitWebActionSignal( yes ); }
     void triggerAction( const QString& action, bool checked = false ) {
         if( !webView_->TriggerAction( action, checked ) ) error( "Cannot trigger action " + action );
+    }
+    void enableAction( const QString& action, bool enabled) {
+        if( !webView_->EnableAction( action, enabled ) ) error( "Cannot enable action " + action );
     }
     void syncLoad( const QUrl& url, int timeout ) { webView_->SyncLoad( url, timeout ); }
     void load( const QUrl& url ) { webView_->load( url ); }

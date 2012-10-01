@@ -29,6 +29,7 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QFile>
+#include <QAction>
 
 #include "LocoWebView.h"
 
@@ -229,6 +230,14 @@ bool WebView::TriggerAction( const QString& action, bool checked ) {
         return false;
     }
     wp->TriggerAction( stringToWebActionG[ action ], checked );
+    return true;
+}
+
+bool WebView::EnableAction( const QString& action, bool enabled ) {
+    if( stringToWebActionG.find( action ) == stringToWebActionG.end() ) {
+        return false; 
+    }
+    pageAction( stringToWebActionG[ action ] )->setEnabled( enabled );
     return true;
 }
 
