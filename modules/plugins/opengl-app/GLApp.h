@@ -1,12 +1,13 @@
-#include <glew.h>
 //#define GL_GLEXT_PROTOTYPES 1
 #include <QObject>
 #include <QtPlugin>
 #include <QVariantMap>
 #ifdef Q_OS_MAC
+#include <glew.h>
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
 #else
+#include <GL/glew.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
 #endif
