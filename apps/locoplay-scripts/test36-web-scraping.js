@@ -32,7 +32,6 @@ try {
     }  
   }
  
-  //ww.setEnableContextMenu( true );
   // page navigation
   ww.show();
   ww.loadFinished.connect( function(ok) { if(ok) ww.back() } );

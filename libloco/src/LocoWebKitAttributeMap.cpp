@@ -69,7 +69,7 @@ namespace loco {
         LOCO_MAPATTR( TiledBackingStoreEnabled );
         LOCO_MAPATTR( FrameFlatteningEnabled );
         LOCO_MAPATTR( SiteSpecificQuirksEnabled );
-           LOCO_MAPATTR( WebGLEnabled );
+        LOCO_MAPATTR( WebGLEnabled );
     }
 #undef LOCO_MAPATTR
 }
