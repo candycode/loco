@@ -35,15 +35,13 @@ try {
   //ww.setEnableContextMenu( true );
   // page navigation
   ww.show();
-  Loco.sys.sleep(5000); 
+  ww.loadFinished.connect( function(ok) { if(ok) ww.back() } );
+  //Loco.sys.sleep(5000); 
   var link = ww.findFirstElement( 'div .h_MainNav_row1 #MH_tab8' );
   //simulate mouse event
   link.eval("var evObj = document.createEvent('MouseEvents'); \
              evObj.initEvent( 'click', true, true );this.dispatchEvent(evObj);");
- 
-  // back!
-  ww.back(); //doesn't work
-    
+  
 } catch(e) {
   Loco.console.printerrln(e);
   Loco.ctx.exit( -1 );
