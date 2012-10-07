@@ -14,7 +14,7 @@ developed in _C++_.
 Objects are connected through signals/slots or by direct reference through a _QObject_ pointer,
 giving to the objects the responsibility to check the interface semantics or the object type.
 
-##How does it look like ?
+##What does it look like ?
 
 Say you want to create an _OpenGL_-based application with a _HUD_-like _GUI_, here
 is how you do it.
