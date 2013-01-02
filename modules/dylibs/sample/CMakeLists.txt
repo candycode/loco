@@ -44,5 +44,5 @@ set( LIB_SRCS ${MOC_SRCS} SampleDyLib.cpp )
 ####CONFIGURE LIBRARY
 add_library( SampleDyLib SHARED ${LIB_SRCS} )
 target_link_libraries( SampleDyLib ${QT_LIBRARIES} )
-set_target_properties( loco_SampleDyLib
+set_target_properties( SampleDyLib
                        PROPERTIES PREFIX "" SUFFIX ".qtdylib" )  

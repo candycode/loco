@@ -34,7 +34,7 @@
 class MyQObject : public QObject {
     Q_OBJECT
 public:
-    MyObject( const QString& msg = QString() ) : message_( msg ), QObject( 0 ) {}    
+    MyQObject( const QString& msg = QString() ) : message_( msg ), QObject( 0 ) {}    
 public slots:
     void hello() const { std::cout << qPrintable( message_ ) << std::endl; }
 private:

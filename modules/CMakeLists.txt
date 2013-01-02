@@ -30,3 +30,4 @@ project("loco")
 
 add_subdirectory( plugins )
 add_subdirectory( webplugins )
+add_subdirectory( dylibs )
