@@ -56,6 +56,11 @@ public slots: // js interface
     void setAppStyleSheet( const QString& ss ) { ctx_->SetAppStyleSheet( ss ); }
     QString appStyleSheet() const { return ctx_->GetAppStyleSheet(); }
 #endif
+    QVariant loadQObjectFromDyLib( const QString& fullPathOrFileName,
+                                   const QString& creatorFunName = "Create",
+                                   const QVariantMap& creationParams = QVariantMap() ) {
+        return ctx_->LoadQObjectFromDyLib( fullPathOrFileName, creatorFunName, creationParams );
+    }
     void suppressQtMessages( bool on ) { ctx_->SuppressQtMessages( on ); }
     void connectSigToSlot( QObject* srcObj,
                            const QString& sigSignature,

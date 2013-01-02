@@ -30,6 +30,7 @@
 #include <QtNetwork/QNetworkReply>
 #include <QUrl>
 #include <QMetaMethod>
+#include <QLibrary>
 
 #include "LocoContext.h"
 #include "LocoJSContext.h"
@@ -451,6 +452,29 @@ QVariant Context::LoadQtPlugin( QString filePath,
     }
     AddQObjectToJSContext( pluginLoader, jsInstanceName + "__QPluginLoader", true );
     AddQObjectToJSContext( obj, jsInstanceName, false );
+    return jsInterpreter_->EvaluateJavaScript( jsInstanceName );
+}
+
+QVariant Context::LoadQObjectFromDyLib( const QString& fullPathOrFileName,
+                                        const QString& creatorFunName,
+                                        const QVariantMap& creationParams ) {
+    typedef QObject* ( * Creator )( const QVariantMap& );
+    Creator creator = reinterpret_cast< Creator >(
+        QLibrary::resolve( qPrintable( fullPathOrFileName ), qPrintable( creatorFunName ) ) );
+    if( creator == 0 ) {
+        error( "Cannot resolve factory function '" + 
+               creatorFunName + "' in dynamic library " + fullPathOrFileName );
+        return QVariant();
+    }
+    QObject* obj = creator( creationParams );
+    if( obj == 0 ) {
+        error( "Cannot create object from dynamic library " + fullPathOrFileName );
+        return QVariant();
+    }
+    Object dummyObj;
+    const QString jsInstanceName = dummyObj.jsInstanceName();
+    const bool JAVASCRIPT_OWNED_OPTION = true;
+    AddQObjectToJSContext( obj, jsInstanceName, JAVASCRIPT_OWNED_OPTION );
     return jsInterpreter_->EvaluateJavaScript( jsInstanceName );
 }
 
