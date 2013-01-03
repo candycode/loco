@@ -455,20 +455,21 @@ QVariant Context::LoadQtPlugin( QString filePath,
     return jsInterpreter_->EvaluateJavaScript( jsInstanceName );
 }
 
-QVariant Context::LoadQObjectFromDyLib( const QString& fullPathOrFileName,
+QVariant Context::LoadQObjectFromDyLib( QString filePathOrName,
                                         const QString& creatorFunName,
                                         const QVariantMap& creationParams ) {
+    if( filePathOrName.startsWith( "~/" ) ) filePathOrName = QDir::homePath() + filePathOrName.remove( 0, 1 );
     typedef QObject* ( * Creator )( const QVariantMap& );
     Creator creator = reinterpret_cast< Creator >(
-        QLibrary::resolve( qPrintable( fullPathOrFileName ), qPrintable( creatorFunName ) ) );
+        QLibrary::resolve( qPrintable( filePathOrName ), qPrintable( creatorFunName ) ) );
     if( creator == 0 ) {
         error( "Cannot resolve factory function '" + 
-               creatorFunName + "' in dynamic library " + fullPathOrFileName );
+               creatorFunName + "' in dynamic library " + filePathOrName );
         return QVariant();
     }
     QObject* obj = creator( creationParams );
     if( obj == 0 ) {
-        error( "Cannot create object from dynamic library " + fullPathOrFileName );
+        error( "Cannot create object from dynamic library " + filePathOrName );
         return QVariant();
     }
     Object dummyObj;
