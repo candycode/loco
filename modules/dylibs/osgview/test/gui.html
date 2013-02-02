@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<style>
+* { margin: 0;
+    padding: 0 }
+#console {
+  /*border: 4px solid blue;*/
+  border-radius: 8px;
+  opacity: 0.7;
+  /*resize: none;*/
+  font-family: "Courier New";
+  font-weight: bold;
+  overflow: hidden;
+  background: -webkit-linear-gradient(top, #2F2727, #1a82f7);
+  color: #f0ffdd;
+  width: 100%;
+  margin: 0;
+}
+#dragdiv {
+  bottom: 0; 
+  left: 20%;  
+  width: 60%; 
+  position: absolute;
+  margin: 0; 
+}
+
+.ui-draggable {
+  border-left: 8px dotted;
+  border-color: rgba(200,100,100,0.3);
+}
+
+#menu {
+  width: 100%; 
+  opacity: 0.5;
+  color: white;
+  background: -webkit-linear-gradient(top, #1a82f7, #2F2727);
+}
+textarea:focus { outline: none; }
+</style>
+
+<script src="http://coffeescript.org/extras/coffee-script.js"></script>
+
+<script type="text/javascript">
+  COFFEE = false;
+  var osgViewModel = {
+    modelName: ko.observable(''),
+    appearance: ko.observable('solid')
+  };
+  osgViewModel.appearance.subscribe( function( appearance ) {
+      switch( appearance ) {
+      case "solid": osgviewer.setSolid();
+		    break;
+      case "wireframe": osgviewer.setWireframe();
+			break;
+      case "points": osgviewer.setPoint();
+		     break
+      default: break;
+      } 
+    } );
+  $(function(){ko.applyBindings(osgViewModel);});
+  function loadscene() {
+    var file = gui.openFileDialog( "Select scene file" );
+    if( file ) osgviewer.loadScene( file );
+  }
+  function toggleFullScreen() {
+    if( win.fullScreen ) win.showNormal();
+    else win.showFullScreen();
+  }
+  function handleKey() {
+    var key = window.event.keyCode,
+        ret,
+        lines = document.getElementById( "console" ).value.split('\n'),
+        line = "",
+        ret = "",
+        console = document.getElementById( "console" );
+    if( key === 13 ) { //enter
+      try {
+        line = lines[ lines.length - 1 ];
+        ret = osgviewer.eval( compile( line ) );
+      } catch( e ) {
+        if( e.message ) ret = "ERROR: " + e.message;
+        else ret = "ERROR: " + e;
+      }
+      if(ret) console.value += '\n>' + ret;
+    }
+  }
+  function setAppearance( appearance ) {
+    osgViewModel.appearance( appearance );
+  }
+  function load( file, options ) {
+    osgviewer.loadScene( file, options );
+  }
+  function setbkcolor( rgb ) {
+    osgviewer.setBkColor( rgb );
+  }
+  function pickcolor() {
+    var c = gui.colorDialog();
+    return c;
+  }
+  function quit() {
+    win.close();
+  }
+  function clear() {
+    var c = document.getElementById('console');
+    c.value="";
+  }
+  function dragon() {
+    var draghandleWidth = 8;
+    var x = $("#dragdiv").position().left - 8; 
+    var y = $("#dragdiv").position().top - $("#menu").height(); 
+    $("#dragdiv").css('position','relative');
+    $("#dragdiv").css('left', x +'px');
+    $("#dragdiv").css('top',  y +'px');
+    $("#dragdiv").draggable();
+  }
+  function dragoff() {
+    var draghandleWidth = 8;
+    var x = $("#dragdiv").position().left + 8;
+    $("#dragdiv").css('left', x + 'px'); 
+    $("#dragdiv").draggable('destroy');
+  }
+  function compile( code ) {
+    if( COFFEE ) return CoffeeScript.compile( code, {bare: true} );
+    else return code;
+  }
+</script>   
+</head>
+<body>
+   <div id="menu" > 
+    <button style="opacity: 1;" onclick="loadscene();">Load scene</button>
+    <button style="opacity: 1;" onclick="toggleFullScreen();">Toggle fullscreen</button>
+    <span style="font-family: sans serif; padding: 10px" >
+      <input type="radio" name="appearance-radio" value="solid" data-bind="checked: appearance">&nbsp;solid</input>
+      <input type="radio" name="appearance-radio" value="wireframe" data-bind="checked: appearance">&nbsp;wireframe</input>
+      <input type="radio" name="appearance-radio" value="points" data-bind="checked: appearance">&nbsp;points</input>
+    </span>
+   </div>
+   <div id="dragdiv">
+     <textarea rows="3" id="console" onkeypress="handleKey()"></textarea> 
+   </div>
+</body>
+</html>

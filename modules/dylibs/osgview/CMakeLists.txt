@@ -26,14 +26,38 @@
 
 cmake_minimum_required(VERSION 2.8)
 
-project("loco")
+project( "osgview" )
 
-option( LOCODYLIBS_SAMPLE "Sample dynamic library" ON )
-option( LOCODYLIBS_OSGVIEW "Sample OSG app" OFF )
 
-if( LOCODYLIBS_SAMPLE )
-  add_subdirectory( sample )
-endif()
-if( LOCODYLIBS_OSGVIEW )
-  add_subdirectory( osgview )
-endif()
+set( OSG_INCLUDE_DIR "/usr/local/include" CACHE PATH "OpenSceneGraph include directory" )
+set( OSG_LIB_DIR "/usr/local/lib64" CACHE PATH "OpenSceneGraph lib directory" )
+
+set( QT_USE_QTOPENGL ON )
+set( QT_USE_QTWEBKIT ON )
+
+find_package(Qt4 REQUIRED)
+include( ${QT_USE_FILE} )
+find_package(OpenGL REQUIRED)
+
+              
+include_directories( ${OSG_INCLUDE_DIR} ${OPENGL_INCLUDE_DIRS}) 
+link_directories( ${QT_LIBRARY_DIR} ${OSG_LIB_DIR})
+
+set( OSG_LIBRARIES OpenThreads osgDB osgGA osgManipulator osg osgViewer )
+
+set( MOC_HEADERS OSGViewPlugin.h )
+QT4_WRAP_CPP( MOC_SRCS ${MOC_HEADERS} ) 
+
+set( SRCS ${MOC_SRCS} factory.cpp QOSGGraphicsScene.h QOSGGraphicsScene.cpp OSGViewPlugin.h )
+
+add_library( osgview SHARED ${SRCS} )
+
+if( MSVC )
+  set( GL_LIBRARIES opengl32 glu32 )
+else()
+  set( GL_LIBRARIES OpenGL GLU )
+endif()    
+target_link_libraries( osgview ${OSG_LIBRARIES} ${QT_LIBRARIES} ${OPENGL_LIBRARIES} )
+set_target_properties( osgview
+                       PROPERTIES PREFIX "" SUFFIX ".qtdylib" )
+

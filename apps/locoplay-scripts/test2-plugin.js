@@ -2,7 +2,7 @@ try {
   var PLUGIN_PATH = ""
   var PLUGIN_NAME = "loco_SamplePlugin.qtplugin"; 
   if( Loco.ctx.args.length < 3 ) {
-    var BUILD_DIR = Loco.fs.home() + '/build/loco';
+    var BUILD_DIR = Loco.fs.home() + '/cmakebuild/loco';
     PLUGIN_PATH = BUILD_DIR + '/modules/plugins/sample';
   } else {
     PLUGIN_PATH = Loco.ctx.args[ 2 ];
