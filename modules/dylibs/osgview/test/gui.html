@@ -43,7 +43,7 @@ textarea:focus { outline: none; }
 <script src="http://coffeescript.org/extras/coffee-script.js"></script>
 
 <script type="text/javascript">
-  COFFEE = false;
+  compile = compileJS;
   var osgViewModel = {
     modelName: ko.observable(''),
     appearance: ko.observable('solid')
@@ -121,9 +121,16 @@ textarea:focus { outline: none; }
     $("#dragdiv").css('left', x + 'px'); 
     $("#dragdiv").draggable('destroy');
   }
-  function compile( code ) {
-    if( COFFEE ) return CoffeeScript.compile( code, {bare: true} );
-    else return code;
+  function compileJS( code ) {
+    return code;
+  }
+  function compileCoffee( code ) {
+    return CoffeeScript.compile( code, {bare: true} );
+  }
+  function help() {
+    var msg = 'toggleFullScreen, loadscene, setAppearance, setbkcolor,  \
+               pickcolor, clear, dragon, dragoff';
+    return msg;           
   }
 </script>   
 </head>
