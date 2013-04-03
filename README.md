@@ -27,6 +27,7 @@ takes to create a basic _LoCO_-based application which executes scripts
 within a custom taylored JavaScript environment. Also have a look at
 the cmake configuration file to learn how to bundle all the scripts and
 resources in a single file.
+
 [Scripts that work with locoplay](https://github.com/candycode/loco/tree/master/apps/locoplay-scripts)
 
 Note that there is no plan to support any mobile platform at this time
