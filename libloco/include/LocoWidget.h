@@ -85,6 +85,7 @@ public:
         } 
     }
 public slots:
+    void raise() { widget_->raise(); }
     void setLayout( QObject* l ) { SetLayout( l ); }
     void resize( int w, int h ) { widget_->resize( w, h ); }
     void close() { widget_->close(); }

@@ -41,7 +41,8 @@ textarea:focus { outline: none; }
 </style>
 
 <script src="http://coffeescript.org/extras/coffee-script.js"></script>
-
+<script src="http://livescript.net/livescript-1.1.1.js"></script>
+<script src="http://livescript.net/prelude-browser-min-0.6.0.js"></script>
 <script type="text/javascript">
   compile = compileJS;
   var osgViewModel = {
@@ -50,7 +51,8 @@ textarea:focus { outline: none; }
   };
   osgViewModel.appearance.subscribe( function( appearance ) {
       switch( appearance ) {
-      case "solid": osgviewer.setSolid();
+      case "solid": 
+        osgviewer.setSolid();
 		    break;
       case "wireframe": osgviewer.setWireframe();
 			break;
@@ -126,6 +128,9 @@ textarea:focus { outline: none; }
   }
   function compileCoffee( code ) {
     return CoffeeScript.compile( code, {bare: true} );
+  }
+  function compileLiveScript( code ) {
+    return LiveScript.compile( code + '\n' );
   }
   function help() {
     var msg = 'toggleFullScreen, loadscene, setAppearance, setbkcolor,  \

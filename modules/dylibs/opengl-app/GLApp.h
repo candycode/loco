@@ -59,7 +59,7 @@ public slots:
         vertices_[ 6 + 1 ] =  1; 
     } 
     void render() {
-        glClearColor( r_, g_, b_, 1 );
+        glClearColor( r_, g_, b_, 0 );
         glClear( GL_COLOR_BUFFER_BIT );
         glEnableVertexAttribArray( 0 );
         glBindBuffer( GL_ARRAY_BUFFER, vbo_ );

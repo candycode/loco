@@ -81,6 +81,7 @@ protected:
         connect( Widget(), SIGNAL( closing() ), this, SIGNAL( closing() ) );
     }
 public slots:
+    void raise() { Widget()->raise(); }
     void setStyleSheet( const QString& s ) { 
         Widget()->setStyleSheet( s );
     }
