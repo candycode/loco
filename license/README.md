@@ -5,7 +5,7 @@ _LoCO_ is distributes under the terms of the _New BSD License_
 
 ---
 
-Copyright (c) 2012, Ugo Varetto
+Copyright (c) 2012, 2013 Ugo Varetto
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
