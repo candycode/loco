@@ -5,3 +5,4 @@ apps/locoplay-scripts/*.txt
 tmp/
 *.swp
 .DS_Store
+nbproject*
