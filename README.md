@@ -49,7 +49,10 @@ FYI the use cases I'm looking at are:
 The end goal is in general to create working prototypes of any kind as fast as possible through mashups
 of pre-existing modules.  
 
-Additional information is available on the official [LoCO website](http://locojs.net).
+Additional information is available on the official [LoCO website](http://locojs.net) and on the [wiki](https://github.com/candycode/loco/wiki).
+
+
+
 
 To get an idea of the requirements I looked at when I designed LoCO have a look at the 
 [Specification](https://github.com/candycode/loco/wiki/Specification) page.
