@@ -64,5 +64,12 @@ Once things such as documentation and tutorials become stable they are moved to 
 [LoCO](http://locojs.net) website.
 
 
+###QtWebKit status update
+
+After experimenting with the latest 5.x and 4.8.5 versions I decided to keep on supporting only Qt 4.8.x until the new WebEngine is released and support for the QObject bridge added, which means that the first 5.x version supported by LoCO should be 5.3.x (where x > 0).
+Given the current release schedule and plans it means that support for Qt 5 should start to be available around mid 2014.
+
+
+
 
 
