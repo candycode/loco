@@ -21,7 +21,7 @@ A minimal number of native UI widgets is supported mainly to access system
 dialogs and some non-standard(across operating systems) controls such as
 the MacOS drawer and top menu bar.
 
-Have a look at the provided _[locoplay](/candycode/loco/tree/master/apps/locoplay)_ 
+Have a look at the provided _[locoplay](https://github.com/candycode/loco/tree/master/apps/locoplay)_ 
 application to get a feeling of what it
 takes to create a basic _LoCO_-based application which executes scripts
 within a custom taylored JavaScript environment. Also have a look at
