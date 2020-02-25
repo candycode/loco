@@ -3,7 +3,7 @@ layout: default
 analytics: true
 ---
 
-##LoCO - Loosely Coupled Objects
+## LoCO - Loosely Coupled Objects
 
 _LoCO_ is a set of _Qt_ _C++_ classes that make it easy to create command-line and _GUI_ applications
  with any language that compiles to _JavaScript_.
@@ -121,7 +121,7 @@ There is an ovverridable naming convention to map _loco::Object_ derived C++ obj
 to JavaScript ones; by default all the exposed objects(filesystem, context, console...)
 are accessed from JavaScript through the global _Loco_ object.
 
-##History and status
+## History and status
 
 This project started several years ago when I got tired of spending time writing _C_
 and _C++_ code to build _MVP/MVVM/MVC_ application logic and binding UI events to callbacks with 
@@ -136,7 +136,7 @@ declarative support through **standard** _JSON_ ), _WebKit_, filesystem, network
 libraries with the addition of a resource management system and _i18n_ support.
 Since however I cannot afford to do that I am using _Qt_.
 
-###Status
+### Status
 
 The code you see here was physically extracted from a private project hosted on _GitHub_, 
 so the _GitHub_ project you see is now what it used to be my private development branch and it is 
@@ -153,12 +153,12 @@ but I might make also available other pieces as brand new projects, as I did wit
 [_QLua_](http://github.com/candycode/qlua) or code snippets as in the case of one of 
 my many [_Any type_](http://github.com/candycode/typeless) implementations.
 
-##License
+## License
 
 LoCO is distributes under the terms of the 
 [_New BSD License_](http://github.com/candycode/loco/blob/master/license/README.md)
 
-##Main features
+## Main features
 
 Use _JavaScript_ to invoke methods and access properties in _QObject_-derived objects.
 
@@ -175,7 +175,7 @@ Distribute applications as a standalone executable with all the resources stored
 
 Use standard web tools to develp desktop applications.
 
-###GUI
+### GUI
 
 The main _GUI_ toolkit is intended to be _WebKit_, but in order to support native widgets a number of wrappers are already available for accessing system dialogs and controls such as the _MacOS_ drawer and top level menu; others are being added. In the future it will be possible to specify an entire native GUI through _JSON_ and use [Knockoutjs](http://knockoutjs.com/) to manage the user interface
 and application logic, as done for web applications.
@@ -189,7 +189,7 @@ A minimal _OpenGL_-_WebView_ integration example is available as well:
    handle events received from the run-time
 * [_JavaScript_ application](https://github.com/candycode/loco/blob/master/apps/locoplay-scripts/test33-graphics-view-webwindow.js): create GUI then load OpenGL application and connect events coming from the _GUI_ to event handlers in the _OpenGL_ app. 
 
-###WebKit integration
+### WebKit integration
 
 _WebKit_ is exposed to _LoCO_ through a _WebWindow_ or _GraphicsWebWindow_(works inside an
 _OpenGL_ context) object.
@@ -252,7 +252,7 @@ try {
 
 {% endhighlight %}
 
-###Filters
+### Filters
 
 The code/bytes passed to the _LoCO_ intepreter are transformed trough a chain of filters before the actual code is delivered to the interpreter. This allows to e.g. load a source file and use _Skulpt_ or _CoffeeScript_ to generate _JavaScript_ code on the fly and further pass the generated code to _lint_.
 
@@ -291,7 +291,7 @@ try {
 
 {% endhighlight %}
 
-###Synchronous calls
+### Synchronous calls
 
 Where applicable I replaced async calls with callbacks with sync calls with soft real-time guarantees i.e. invoke a synchronous function telling it how long you are willing to wait for completion.
 
@@ -303,7 +303,7 @@ webWindow.syncLoad( "http://www.github.com", 5000 /*ms*/ );
 
 {% endhighlight %}
 
-###QtScript and JavaScriptCore(or V8) support
+### QtScript and JavaScriptCore(or V8) support
 
 _JavaScript_ code can be run through either _Qt_'s own script engine or the _JavaScript_ engine embedded in _WebKit_. In both cases the code is _JIT_ compiled before execution, unless
 you explicitly disable _JIT_ compilation when building _Qt_.
@@ -313,7 +313,7 @@ In case _QtScript_ is used it is possible to remove dependencies on _QtWebKit_ a
 _JavaScript_ code can be evaluated from within _JavaScript_ through the ```eval``` function or(if exposed) ```<LocoContextname>.eval```, in the former case the code is interpreted, in the latter it goes through _JIT_ compilation. It is also possible to entire disable access to run-time code
 evaluation in slave contexts if needed.
 
-###Nested contexts
+### Nested contexts
 
 It is possible to create other _JavaScript_ contexts from within any existing _JavaScript_ context and marshal data between parent and child context. This allow the creation of sandboxed contexts with only a subset of the _JavaScript_ environment exposed to scripts.
 
@@ -367,7 +367,7 @@ newCtx.eval( "io.println( parentData.data.key )" );
 
 {% endhighlight %}
 
-###Custom resource access manager
+### Custom resource access manager
 
 Network and filesystem access is controlled by resource access managers which can be configured through a regex engine or entirely replaced to:
 
@@ -405,7 +405,7 @@ Note that access control is not entirely exposed to _JavaScript_, to allow for t
 
 This is something I borrowed from the mobile environment, desktop applications are unfortunately still being developed with patterns from the 80s/90s with no concept of security or access control, any desktop application can easily access the file system to read and broadcast data over the internet with little control over it, not to mention direct access to audio/video devices with no access protection at all(this is something I'll be addessing in future releases).
 
-###Custom protocols
+### Custom protocols
 
 Custom protocol handlers can be installed in the web engine to allow for addition of new schemes or filtering of requests for standard schemes.
 
@@ -436,7 +436,7 @@ Example:
 * [Application](http://github.com/candycode/loco/blob/master/apps/locoplay-scripts/test20-custom-protocol.js)
 * [Page](http://github.com/candycode/loco/blob/master/apps/locoplay-scripts/test20-custom-protocol.html)
 
-###Multithreading
+### Multithreading
 
 Scripts can be run in multiple contexts mapped to different threads.
 
@@ -457,7 +457,7 @@ Results can be retrieved from the parent context/thread by:
 
 [A working example](http://github.com/candycode/loco/blob/master/apps/locoplay-scripts/test23-thread-loop.js) is available.
 
-###Network
+### Network
 
 Support for _tcp_/_udp_ sockets, _http_ and _ssl_ is included.
 
